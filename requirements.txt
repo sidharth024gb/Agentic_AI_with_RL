@@ -1,0 +1,4 @@
+gymnasium: The industry standard for creating "Sandbox" environments.
+stable-baselines3: Provides reliable, pre-built implementations of RL algorithms like PPO.
+ollama: The Python client to communicate with your local Llama 3 model.
+shimmy: A helper package to ensure compatibility between different versions of gym environments.
