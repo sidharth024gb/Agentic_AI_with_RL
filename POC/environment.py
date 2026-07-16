@@ -4,17 +4,18 @@ import numpy as np
 from planner import get_llm_hint
 
 class GridWorldEnv(gym.Env):
-    def __init__(self):
+    def __init__(self, use_llm=False):
         super(GridWorldEnv, self).__init__()
 
+        self.use_llm = use_llm
         self.grid_size = 5
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Box(low=0, high=self.grid_size - 1, shape=(2,), dtype=np.int32)
         self.agent_pos = np.array([0, 0])
 
-    def reset(self, seed=None):
+    def reset(self, seed=None, options=None):
         self.agent_pos = np.array([0, 0])
-        return self.agent_pos, {}
+        return self.agent_pos.astype(np.int32), {}
     
     def step(self, action):
         # 0: UP, 1: DOWN, 2: LEFT, 3: RIGHT
@@ -24,16 +25,18 @@ class GridWorldEnv(gym.Env):
         elif action == 3: self.agent_pos[1] = min(self.grid_size - 1, self.agent_pos[1] + 1)
         else: raise f"Invalid Action: {action}"
 
-        # Get LLM Hint (The "Grounding" Mechanism)
-        hint_action = get_llm_hint(self.agent_pos)
+        reward = -0.1 # Base penalty for each step to encourage speed ( Reward to find the shortest path )
+
+        if self.use_llm:
+            # Get LLM Hint (The "Grounding" Mechanism)
+            hint_action = get_llm_hint(self.agent_pos)
+            # Apply Bonus: If agent matches LLM hint, add +0.5 reward
+            if hint_action == action:
+                reward += 0.5
 
         # Define the Goal
         goal = np.array([4, 4])
         done = np.array_equal(self.agent_pos, goal)
-        reward = 10 if done else -0.1 # Small penalty for each step to encourage speed ( Reward to find the shortest path )
+        if done: reward += 10
 
-        # Apply Bonus: If agent matches LLM hint, add +0.5 reward
-        if hint_action == action:
-            reward += 0.5
-
-        return self.agent_pos, reward, done, False, {}
+        return self.agent_pos.astype(np.int32), reward, done, False, {}
