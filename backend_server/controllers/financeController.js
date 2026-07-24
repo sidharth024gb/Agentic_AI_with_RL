@@ -1,4 +1,28 @@
-import { Invoice, Transaction, Account } from "../models/index.js";
+import { Invoice, Transaction, Account } from "../models/modelsIndex.js";
+
+// @desc    Create a new invoice (Ingestion / Accounts Payable)
+// @route   POST /api/finance/invoices
+// @access  Private
+export const createInvoice = async (req, res) => {
+  try {
+    const { vendorName, amount, dueDate, description } = req.body;
+
+    const invoice = await Invoice.create({
+      vendorName,
+      amount,
+      dueDate,
+      description,
+      createdBy: req.user.id || req.user._id,
+    });
+
+    return res.status(201).json({
+      message: "Invoice created successfully",
+      invoice,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
 
 // @desc    Get all invoices
 // @route   GET /api/finance/invoices
@@ -41,7 +65,7 @@ export const updateInvoiceStatus = async (req, res) => {
 // @route   POST /api/finance/pay
 export const executePayment = async (req, res) => {
   try {
-    const { invoiceId, accountNumber } = req.body;
+    const { invoiceId, paymentMethod, accountNumber } = req.body;
 
     const invoice = await Invoice.findById(invoiceId);
     if (!invoice) {
@@ -76,6 +100,7 @@ export const executePayment = async (req, res) => {
 
     // Mark invoice as paid
     invoice.status = "PAID";
+    invoice.paymentMethod = paymentMethod;
     await invoice.save();
 
     // Log ledger transaction
@@ -90,7 +115,7 @@ export const executePayment = async (req, res) => {
 
     res.status(200).json({
       message: "Payment executed successfully",
-      newBalance: account.balance,
+      account: account,
       transaction,
     });
   } catch (error) {
@@ -119,5 +144,29 @@ export const reconcileTransaction = async (req, res) => {
       .json({ message: "Transaction reconciled successfully", transaction });
   } catch (error) {
     res.status(500).json({ error: "Reconciliation failed: " + error.message });
+  }
+};
+
+// @desc    Get transaction history ledger
+// @route   GET /api/finance/transactions
+// @access  Private
+export const getTransactions = async (req, res) => {
+  try {
+    const transactions = await Transaction.find().sort({ createdAt: -1 });
+    return res.status(200).json(transactions);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+// @desc    Get corporate treasury account balances
+// @route   GET /api/finance/accounts
+// @access  Private
+export const getAccounts = async (req, res) => {
+  try {
+    const accounts = await Account.find();
+    return res.status(200).json(accounts);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
 };

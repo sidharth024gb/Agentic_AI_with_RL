@@ -1,4 +1,4 @@
-import { User, Invoice, Transaction, Account } from "../models/index.js";
+import { User, Invoice, Transaction, Account } from "../models/modelsIndex.js";
 
 // @desc    Reset dynamic data to baseline state for RL agent training
 // @route   POST /api/sandbox/reset
@@ -23,6 +23,7 @@ export const resetSandbox = async (req, res) => {
         invoiceNumber: "INV-1001",
         vendorName: "Acme Cloud Services",
         amount: 4500,
+        description: "Monthly Cloud Infrastructure Bill",
         dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
         status: "PENDING_APPROVAL",
       },
@@ -30,6 +31,7 @@ export const resetSandbox = async (req, res) => {
         invoiceNumber: "INV-1002",
         vendorName: "Global Logistics Ltd",
         amount: 12000,
+        description: "Monthly Storage Infrastructure Bill",
         dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
         status: "PENDING_APPROVAL",
       },
@@ -37,6 +39,7 @@ export const resetSandbox = async (req, res) => {
         invoiceNumber: "INV-1003",
         vendorName: "Office Supplies Co",
         amount: 850,
+        description: "Monthly Office Management Bill",
         dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
         status: "APPROVED",
       },
@@ -70,7 +73,7 @@ export const getSandboxState = async (req, res) => {
     });
 
     res.status(200).json({
-      balance: account ? account.balance : 0,
+      account: account,
       metrics: {
         pendingInvoices,
         approvedInvoices,

@@ -1,10 +1,13 @@
 import { Schema, model } from "mongoose";
+import crypto from "crypto"
 
 const invoiceSchema = new Schema({
   invoiceNumber: {
     type: String,
     required: true,
     unique: true,
+    // ✅ Automatically generates a random 8-character hex string on creation
+    default: () => `INV-${crypto.randomBytes(4).toString("hex").toUpperCase()}`,
   },
   vendorName: {
     type: String,
@@ -18,6 +21,13 @@ const invoiceSchema = new Schema({
   dueDate: {
     type: Date,
     required: true,
+  },
+  description: {
+    type: String,
+    required: true,
+  },
+  paymentMethod: {
+    type: String,
   },
   status: {
     type: String,

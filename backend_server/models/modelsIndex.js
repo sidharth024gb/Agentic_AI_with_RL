@@ -1,9 +1,9 @@
-import User from "./User";
-import Invoice from "./Invoice";
-import Transaction from "./Transaction";
-import Account from "./Account";
+import User from "./User.js";
+import Invoice from "./Invoice.js";
+import Transaction from "./Transaction.js";
+import Account from "./Account.js";
 
-export default {
+export {
   User,
   Invoice,
   Transaction,

@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { User } from "../models/index.js";
+import { User } from "../models/modelsIndex.js";
 
 // Helper function to generate JWT
 const generateToken = (id, role) => {
