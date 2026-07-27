@@ -23,9 +23,21 @@ CREATED_INVOICE_ID = None
 AGENT_ACCOUNT_NUMBER = None
 INITIATED_TRANSACTION_ID = None
 
+SUCCESS = 0
+FAILED = 0
+
 def print_status(test_name, response):
     """Helper function to print test results cleanly."""
-    status = "SUCCESS" if response.status_code in [200, 201] else "FAILED"
+    global SUCCESS, FAILED
+    status = "UNKNOWN"
+
+    if response.status_code in [200, 201]:
+        status = "SUCCESS"
+        SUCCESS += 1
+    else:
+        status = "FAILED"
+        FAILED += 1
+
     color_code = "\033[92m" if status == "SUCCESS" else "\033[91m"
     reset_code = "\033[0m"
     
@@ -132,6 +144,14 @@ def test_finance_endpoints():
     rec_res = requests.post(f"{BASE_URL}/api/finance/reconcile", json={"transactionId": INITIATED_TRANSACTION_ID}, headers=HEADERS)
     print_status("Reconcile Ledger POST /api/finance/reconcile", rec_res)
 
+    # Get All Transactions
+    trans_res = requests.get(f"{BASE_URL}/api/finance/transactions", headers=HEADERS)
+    print_status("Get Transactions GET /api/finance/transactions", trans_res)
+
+    # Get All Accounts
+    acc_res = requests.get(f"{BASE_URL}/api/finance/accounts", headers=HEADERS)
+    print_status("Get Accounts GET /api/finance/accounts", acc_res)
+
 
 def run_all_tests():
     """Run all API endpoint validation tests in sequence."""
@@ -147,7 +167,7 @@ def run_all_tests():
     print("\n")
     print("=" * 60)
     print(" API TESTING COMPLETE ")
-    print(" If all endpoints above show [SUCCESS], your backend is ready for RL Gym environment integration!")
+    print(f" Success: {SUCCESS} ;; Failed: {FAILED}")
     print("=" * 60)
 
 
