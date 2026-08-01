@@ -3,32 +3,45 @@ import { Schema, model } from "mongoose";
 const transactionSchema = new Schema({
   referenceId: {
     type: String,
-    required: true,
     unique: true,
+    required: true,
   },
-  invoiceId: {
+
+  invoice: {
     type: Schema.Types.ObjectId,
     ref: "Invoice",
-    default: null,
   },
-  accountId: {
+
+  account: {
     type: Schema.Types.ObjectId,
     ref: "Account",
-    required: true,
   },
+
+  amount: Number,
+
   type: {
     type: String,
-    enum: ["PAYMENT_OUT", "DEPOSIT_IN"],
-    required: true,
+    enum: ["PAYMENT_OUT", "DEPOSIT_IN", "REFUND"],
   },
-  amount: {
-    type: Number,
-    required: true,
+
+  status: {
+    type: String,
+    enum: ["PENDING", "SUCCESS", "FAILED", "REVERSED"],
+    default: "PENDING",
   },
+
   reconciled: {
     type: Boolean,
     default: false,
   },
+
+  failureReason: String,
+
+  paymentMethod: {
+    type: String,
+    enum: ["BANK", "WIRE", "CARD"],
+  },
+
   executedAt: {
     type: Date,
     default: Date.now,

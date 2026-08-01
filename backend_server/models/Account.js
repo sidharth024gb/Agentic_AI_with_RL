@@ -3,22 +3,38 @@ import { Schema, model } from "mongoose";
 const accountSchema = new Schema({
   accountNumber: {
     type: String,
-    required: true,
     unique: true,
-  },
-  accountName: {
-    type: String,
     required: true,
   },
+
+  accountName: String,
+
+  accountType: {
+    type: String,
+    enum: ["TREASURY", "PAYMENT", "EXPENSE"],
+    default: "PAYMENT",
+  },
+
   balance: {
     type: Number,
-    required: true,
-    default: 1000000, // Initial corporate treasury seed balance
+    default: 1000000,
   },
+
   currency: {
     type: String,
     default: "GBP",
   },
+
+  frozen: {
+    type: Boolean,
+    default: false,
+  },
+
+  dailyTransferLimit: {
+    type: Number,
+    default: 100000,
+  },
+
   updatedAt: {
     type: Date,
     default: Date.now,

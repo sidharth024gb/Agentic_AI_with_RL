@@ -1,43 +1,78 @@
 import { Schema, model } from "mongoose";
-import crypto from "crypto"
+import { randomBytes } from "crypto";
 
 const invoiceSchema = new Schema({
   invoiceNumber: {
     type: String,
-    required: true,
     unique: true,
-    // ✅ Automatically generates a random 8-character hex string on creation
-    default: () => `INV-${crypto.randomBytes(4).toString("hex").toUpperCase()}`,
+    default: () => `INV-${randomBytes(4).toString("hex").toUpperCase()}`,
   },
-  vendorName: {
-    type: String,
+
+  supplier: {
+    type: Schema.Types.ObjectId,
+    ref: "Supplier",
     required: true,
   },
+
   amount: {
     type: Number,
     required: true,
-    min: 0,
   },
+
   dueDate: {
     type: Date,
     required: true,
   },
-  description: {
-    type: String,
-    required: true,
-  },
+
+  description: String,
+
   paymentMethod: {
     type: String,
+    enum: ["BANK", "WIRE", "CARD"],
   },
+
   status: {
     type: String,
     enum: ["PENDING_APPROVAL", "APPROVED", "REJECTED", "PAID"],
     default: "PENDING_APPROVAL",
   },
+
+  priority: {
+    type: String,
+    enum: ["LOW", "MEDIUM", "HIGH"],
+    default: "MEDIUM",
+  },
+
+  duplicateFlag: {
+    type: Boolean,
+    default: false,
+  },
+
+  requiresManagerApproval: {
+    type: Boolean,
+    default: false,
+  },
+
+  approvedBy: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+  },
+
+  paymentAttempts: {
+    type: Number,
+    default: 0,
+  },
+
+  category: {
+    type: String,
+    enum: ["SOFTWARE", "SERVICES", "TRAVEL", "HARDWARE"],
+  },
+
   createdBy: {
     type: Schema.Types.ObjectId,
     ref: "User",
   },
+
   createdAt: {
     type: Date,
     default: Date.now,
