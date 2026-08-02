@@ -21,6 +21,8 @@ export const REWARDS = {
 
   SUPPLIER_INACTIVE: -20,
 
+  SUPPLIER_HIGH_RISK: -15,
+
   BUDGET_EXCEEDED: -25,
 
   INSUFFICIENT_BALANCE: -30,
@@ -30,7 +32,6 @@ export const REWARDS = {
   UNAUTHORIZED_ACTION: -50,
 
   SYSTEM_ERROR: null,
-
 
   // No Rewards
   NONE: 0,

@@ -1,7 +1,7 @@
 import { Schema, model } from "mongoose";
 
 const transactionSchema = new Schema({
-  referenceId: {
+  transactionId: {
     type: String,
     unique: true,
     required: true,

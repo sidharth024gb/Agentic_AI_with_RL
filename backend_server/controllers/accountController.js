@@ -21,9 +21,7 @@ export async function getAccounts(req, res) {
 
       done: false,
 
-      observation: {
-        accounts,
-      },
+      accounts,
     });
   } catch (error) {
     return res.status(500).json({
@@ -54,12 +52,21 @@ export async function checkBudget(req, res) {
   try {
     const { department, amount } = req.body;
 
+    // Missing required fields
+    if (!department || amount == null) {
+      return res.status(400).json({
+        success: false,
+        environmentError: false,
+        message: "department and amount are required.",
+      });
+    }
+
     const budget = await Budget.findOne({
       department,
     });
 
     if (!budget) {
-      return res.json({
+      return res.status(404).json({
         success: false,
 
         reward: REWARDS.BUDGET_EXCEEDED,
@@ -127,12 +134,21 @@ export async function transferMoney(req, res) {
   try {
     const { fromAccount, toAccount, amount } = req.body;
 
+    // Missing required fields
+    if (!fromAccount || !toAccount || amount == null) {
+      return res.status(400).json({
+        success: false,
+        environmentError: false,
+        message: "fromAccount, toAccount and amount are required.",
+      });
+    }
+
     const source = await Account.findById(fromAccount);
 
     const destination = await Account.findById(toAccount);
 
     if (!source || !destination) {
-      return res.json({
+      return res.status(404).json({
         success: false,
 
         reward: REWARDS.INVALID_ACTION,
@@ -144,7 +160,7 @@ export async function transferMoney(req, res) {
     }
 
     if (source.frozen) {
-      return res.json({
+      return res.status(400).json({
         success: false,
 
         reward: REWARDS.INVALID_ACTION,
@@ -156,7 +172,7 @@ export async function transferMoney(req, res) {
     }
 
     if (source.balance < amount) {
-      return res.json({
+      return res.status(400).json({
         success: false,
 
         reward: REWARDS.INSUFFICIENT_BALANCE,
@@ -168,7 +184,7 @@ export async function transferMoney(req, res) {
     }
 
     if (amount > source.dailyTransferLimit) {
-      return res.json({
+      return res.status(400).json({
         success: false,
 
         reward: REWARDS.BUDGET_EXCEEDED,
@@ -187,8 +203,8 @@ export async function transferMoney(req, res) {
 
     await destination.save();
 
-    await Transaction.create({
-      referenceId: `TR-${Date.now()}`,
+    const transaction = await Transaction.create({
+      transactionId: `TXN-${Date.now()}`,
 
       account: source._id,
 
@@ -196,23 +212,17 @@ export async function transferMoney(req, res) {
 
       status: "SUCCESS",
 
-      type: "TRANSFER",
+      type: "PAYMENT_OUT",
     });
 
-    return res.json({
+    return res.status(201).json({
       success: true,
 
       reward: REWARDS.SUCCESS,
 
       done: false,
 
-      transaction: {
-        from: source._id,
-
-        to: destination._id,
-
-        amount,
-      },
+      transaction,
     });
   } catch (error) {
     return res.status(500).json({

@@ -102,7 +102,7 @@ export const addStep = async (req, res) => {
 
     await episode.save();
 
-    return res.json({
+    return res.status(200).json({
       success: true,
 
       message: "Step recorded.",
@@ -156,7 +156,7 @@ export const endEpisode = async (req, res) => {
 
     await episode.save();
 
-    return res.json({
+    return res.status(200).json({
       success: true,
 
       message: "Episode completed.",
@@ -198,7 +198,7 @@ export const getEpisode = async (req, res) => {
       });
     }
 
-    return res.json({
+    return res.status(200).json({
       success: true,
 
       episode,
@@ -218,7 +218,7 @@ export const getEpisodes = async (req, res) => {
   try {
     const episodes = await Episode.find().sort({ episodeNumber: -1 });
 
-    return res.json({
+    return res.status(200).json({
       success: true,
 
       count: episodes.length,

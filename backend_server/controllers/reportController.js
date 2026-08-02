@@ -13,13 +13,60 @@ export async function getTransactions(req, res) {
   try {
     const { status, invoice, limit = 50, page = 1 } = req.query;
 
+    // Validate pagination params
+    if (
+      isNaN(Number(limit)) ||
+      isNaN(Number(page)) ||
+      Number(limit) <= 0 ||
+      Number(page) <= 0
+    ) {
+      return res.status(400).json({
+        success: false,
+
+        reward: REWARDS.INVALID_ACTION,
+
+        done: false,
+
+        message:
+          "Invalid pagination parameters. Limit and page must be positive numbers.",
+      });
+    }
+
     const filter = {};
 
+    // Validate status filter
     if (status) {
+      const allowedStatus = ["PENDING", "SUCCESS", "FAILED", "REVERSED"];
+
+      if (!allowedStatus.includes(status)) {
+        return res.status(400).json({
+          success: false,
+
+          reward: REWARDS.INVALID_ACTION,
+
+          done: false,
+
+          message: "Invalid transaction status.",
+        });
+      }
+
       filter.status = status;
     }
 
+    // Validate invoice id
     if (invoice) {
+      if (!invoice.match(/^[0-9a-fA-F]{24}$/)) {
+        return res.status(400).json({
+          success: false,
+
+          reward: REWARDS.INVALID_ACTION,
+
+          done: false,
+
+          message: "Invalid invoice ID.",
+        });
+      }
+
       filter.invoice = invoice;
     }
 
@@ -34,12 +81,14 @@ export async function getTransactions(req, res) {
 
     const total = await Transaction.countDocuments(filter);
 
-    return res.json({
+    return res.status(200).json({
       success: true,
 
       message: "Transactions retrieved.",
 
       reward: REWARDS.SUCCESS,
+
+      done: false,
 
       count: transactions.length,
 
@@ -55,7 +104,11 @@ export async function getTransactions(req, res) {
 
       environmentError: true,
 
+      retryable: true,
+
       reward: null,
+
+      done: false,
 
       message: error.message,
     });
@@ -71,12 +124,69 @@ export async function generateReport(req, res) {
   try {
     const { startDate, endDate, type } = req.body;
 
-    const filter = {};
+    // Validate required parameter
+    if (!type) {
+      return res.status(400).json({
+        success: false,
+        reward: null,
+        environmentError: false,
+        message: "Report type is required.",
+      });
+    }
 
-    if (startDate && endDate) {
+    const allowedTypes = [
+      "TRANSACTION_SUMMARY",
+      "AUDIT_SUMMARY",
+      "AGENT_PERFORMANCE",
+    ];
+
+    if (!allowedTypes.includes(type)) {
+      return res.status(400).json({
+        success: false,
+        reward: null,
+        environmentError: false,
+        message: "Invalid report type.",
+      });
+    }
+
+    // Validate dates if provided
+    let filter = {};
+
+    if (startDate || endDate) {
+      if (!startDate || !endDate) {
+        return res.status(400).json({
+          success: false,
+          reward: null,
+          environmentError: false,
+          message:
+            "Both startDate and endDate are required when filtering by date.",
+        });
+      }
+
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return res.status(400).json({
+          success: false,
+          reward: null,
+          environmentError: false,
+          message: "Invalid date format.",
+        });
+      }
+
+      if (start > end) {
+        return res.status(400).json({
+          success: false,
+          reward: null,
+          environmentError: false,
+          message: "startDate cannot be greater than endDate.",
+        });
+      }
+
       filter.createdAt = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate),
+        $gte: start,
+        $lte: end,
       };
     }
 
@@ -141,19 +251,20 @@ export async function generateReport(req, res) {
       default:
         return res.status(400).json({
           success: false,
-
           reward: null,
-
+          environmentError: false,
           message: "Invalid report type.",
         });
     }
 
-    return res.json({
+    return res.status(200).json({
       success: true,
 
       message: "Report generated.",
 
       reward: REWARDS.REPORT_GENERATED,
+
+      environmentError: false,
 
       report,
     });
@@ -162,6 +273,8 @@ export async function generateReport(req, res) {
       success: false,
 
       environmentError: true,
+
+      retryable: true,
 
       reward: null,
 
@@ -174,30 +287,63 @@ export async function generateReport(req, res) {
 // Get Audit Logs
 // GET /api/report/audit-log
 // =====================================
-
 export async function getAuditLog(req, res) {
   try {
-    const {
-      action,
+    const { action, entityType, success, limit = 100 } = req.query;
 
-      entityType,
+    // Validate limit
+    const parsedLimit = Number(limit);
 
-      success,
-
-      limit = 100,
-    } = req.query;
+    if (isNaN(parsedLimit) || parsedLimit <= 0 || parsedLimit > 500) {
+      return res.status(400).json({
+        success: false,
+        reward: null,
+        environmentError: false,
+        message: "Limit must be a number between 1 and 500.",
+      });
+    }
 
     const filter = {};
 
+    // Validate action if provided
     if (action) {
+      if (typeof action !== "string") {
+        return res.status(400).json({
+          success: false,
+          reward: null,
+          environmentError: false,
+          message: "Invalid action parameter.",
+        });
+      }
+
       filter.action = action;
     }
 
+    // Validate entity type if provided
     if (entityType) {
+      if (typeof entityType !== "string") {
+        return res.status(400).json({
+          success: false,
+          reward: null,
+          environmentError: false,
+          message: "Invalid entityType parameter.",
+        });
+      }
+
       filter.entityType = entityType;
     }
 
+    // Validate success filter
     if (success !== undefined) {
+      if (success !== "true" && success !== "false") {
+        return res.status(400).json({
+          success: false,
+          reward: null,
+          environmentError: false,
+          message: "success parameter must be true or false.",
+        });
+      }
+
       filter.success = success === "true";
     }
 
@@ -206,14 +352,16 @@ export async function getAuditLog(req, res) {
       .sort({
         createdAt: -1,
       })
-      .limit(Number(limit));
+      .limit(parsedLimit);
 
-    return res.json({
+    return res.status(200).json({
       success: true,
 
       message: "Audit logs retrieved.",
 
       reward: REWARDS.SUCCESS,
+
+      environmentError: false,
 
       count: logs.length,
 
@@ -224,6 +372,8 @@ export async function getAuditLog(req, res) {
       success: false,
 
       environmentError: true,
+
+      retryable: true,
 
       reward: null,
 

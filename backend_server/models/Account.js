@@ -11,7 +11,7 @@ const accountSchema = new Schema({
 
   accountType: {
     type: String,
-    enum: ["TREASURY", "PAYMENT", "EXPENSE"],
+    enum: ["TREASURY", "OPERATIONS", "EXPENSE", "PAYMENT"],
     default: "PAYMENT",
   },
 

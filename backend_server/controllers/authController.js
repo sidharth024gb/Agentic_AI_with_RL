@@ -171,7 +171,7 @@ export async function login(req, res) {
 
 export async function getProfile(req, res) {
   try {
-    return res.json({
+    return res.status(200).json({
       success: true,
 
       user: {

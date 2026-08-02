@@ -7,20 +7,50 @@ import { REWARDS } from "../utils/rewards.js";
 
 export async function createInvoice(req, res) {
   try {
+    const {
+      supplierId,
+      amount,
+      dueDate,
+      description,
+      paymentMethod,
+      priority,
+      category,
+    } = req.body;
+
+    if (!supplierId || !amount || !dueDate) {
+      return res.status(400).json({
+        success: false,
+
+        reward: REWARDS.INVALID_ACTION,
+
+        message: "Supplier, amount and due date are required.",
+      });
+    }
+
+    const supplier = await Supplier.findById({ _id: supplierId });
+
+    if (!supplier) {
+      return res.status(404).json({
+        success: false,
+        message: "Supplier not found",
+        reward: REWARDS.SUPPLIER_INACTIVE,
+      });
+    }
+
     const invoice = await Invoice.create({
-      supplier: req.body.supplier,
+      supplier: supplier._id,
 
-      amount: req.body.amount,
+      amount,
 
-      dueDate: req.body.dueDate,
+      dueDate,
 
-      description: req.body.description,
+      description,
 
-      paymentMethod: req.body.paymentMethod,
+      paymentMethod,
 
-      priority: req.body.priority,
+      priority,
 
-      category: req.body.category,
+      category,
 
       createdBy: req.user._id,
     });
@@ -51,13 +81,13 @@ export async function createInvoice(req, res) {
 
 export async function getInvoices(req, res) {
   try {
-    const invoices = await Invoice.find()
+    const invoices = await Invoice.find({})
       .populate("supplier", "supplierName riskScore active")
       .sort({
         createdAt: -1,
       });
 
-    return res.json({
+    return res.status(200).json({
       success: true,
 
       reward: REWARDS.INVOICE_FOUND,
@@ -88,7 +118,7 @@ export async function getInvoice(req, res) {
       .populate("approvedBy", "username email");
 
     if (!invoice) {
-      return res.json({
+      return res.status(404).json({
         success: false,
 
         reward: REWARDS.INVOICE_NOT_FOUND,
@@ -97,7 +127,7 @@ export async function getInvoice(req, res) {
       });
     }
 
-    return res.json({
+    return res.status(200).json({
       success: true,
 
       reward: REWARDS.INVOICE_FOUND,
@@ -126,7 +156,7 @@ export async function updateStatus(req, res) {
     const invoice = await Invoice.findById(req.params.id);
 
     if (!invoice) {
-      return res.json({
+      return res.status(404).json({
         success: false,
 
         reward: REWARDS.INVOICE_NOT_FOUND,
@@ -138,7 +168,7 @@ export async function updateStatus(req, res) {
     const allowedStatus = ["PENDING_APPROVAL", "APPROVED", "REJECTED", "PAID"];
 
     if (!allowedStatus.includes(status)) {
-      return res.json({
+      return res.status(400).json({
         success: false,
 
         reward: REWARDS.INVALID_ACTION,
@@ -155,7 +185,7 @@ export async function updateStatus(req, res) {
 
     await invoice.save();
 
-    return res.json({
+    return res.status(200).json({
       success: true,
 
       reward: REWARDS.SUCCESS,
@@ -181,20 +211,34 @@ export async function updateStatus(req, res) {
 
 export async function checkDuplicate(req, res) {
   try {
-    const { supplier, amount } = req.body;
+    const { supplierId, amount, dueDate } = req.body;
+
+    if (!supplierId || !amount || !dueDate) {
+      return res.status(400).json({
+        success: false,
+
+        reward: REWARDS.INVALID_ACTION,
+
+        message: "SupplierId and amount and dueDate are required.",
+      });
+    }
 
     const duplicate = await Invoice.findOne({
-      supplier,
-
+      supplier: supplierId,
+  
       amount,
 
       status: {
         $ne: "REJECTED",
       },
+
+      dueDate: {
+        $eq: dueDate,
+      },
     });
 
     if (duplicate) {
-      return res.json({
+      return res.status(200).json({
         success: false,
 
         reward: REWARDS.DUPLICATE_INVOICE,
@@ -207,7 +251,7 @@ export async function checkDuplicate(req, res) {
       });
     }
 
-    return res.json({
+    return res.status(200).json({
       success: true,
 
       reward: REWARDS.SUCCESS,
@@ -235,10 +279,20 @@ export async function archiveInvoice(req, res) {
   try {
     const { invoiceId } = req.body;
 
+    if (!invoiceId) {
+      return res.status(400).json({
+        success: false,
+
+        reward: REWARDS.INVALID_ACTION,
+
+        message: "Invoice ID is required.",
+      });
+    }
+
     const invoice = await Invoice.findById(invoiceId);
 
     if (!invoice) {
-      return res.json({
+      return res.status(404).json({
         success: false,
 
         reward: REWARDS.INVOICE_NOT_FOUND,
@@ -251,7 +305,7 @@ export async function archiveInvoice(req, res) {
 
     await invoice.save();
 
-    return res.json({
+    return res.status(200).json({
       success: true,
 
       reward: REWARDS.SUCCESS,

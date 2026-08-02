@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import { REWARDS } from "../utils/rewards.js"
 
 export const protect = async (req, res, next) => {
   try {
@@ -62,6 +63,7 @@ export const authorizePermission = (...permissions) => {
     if (!hasPermission) {
       return res.status(403).json({
         success: false,
+        reward: REWARDS.UNAUTHORIZED_ACTION,
         message: "Insufficient permissions",
       });
     }

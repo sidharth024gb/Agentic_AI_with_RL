@@ -12,7 +12,7 @@ export async function payInvoice(req, res) {
     const invoice = await Invoice.findById(invoiceId).populate("supplier");
 
     if (!invoice) {
-      return res.json({
+      return res.status(404).json({
         success: false,
 
         reward: REWARDS.INVOICE_NOT_FOUND,
@@ -29,7 +29,7 @@ export async function payInvoice(req, res) {
     // Invoice must be approved before payment
 
     if (invoice.status !== "APPROVED") {
-      return res.json({
+      return res.status(409).json({
         success: false,
 
         reward: REWARDS.INVALID_WORKFLOW,
@@ -45,7 +45,7 @@ export async function payInvoice(req, res) {
     // Duplicate invoice protection
 
     if (invoice.duplicateFlag) {
-      return res.json({
+      return res.status(409).json({
         success: false,
 
         reward: REWARDS.DUPLICATE_INVOICE,
@@ -61,7 +61,7 @@ export async function payInvoice(req, res) {
     // Supplier validation
 
     if (!invoice.supplier || !invoice.supplier.active) {
-      return res.json({
+      return res.status(409).json({
         success: false,
 
         reward: REWARDS.SUPPLIER_INACTIVE,
@@ -77,7 +77,7 @@ export async function payInvoice(req, res) {
     const account = await Account.findById(accountId);
 
     if (!account) {
-      return res.json({
+      return res.status(404).json({
         success: false,
 
         reward: REWARDS.INVALID_ACTION,
@@ -91,7 +91,7 @@ export async function payInvoice(req, res) {
     }
 
     if (account.frozen) {
-      return res.json({
+      return res.status(409).json({
         success: false,
 
         reward: REWARDS.INVALID_WORKFLOW,
@@ -105,7 +105,7 @@ export async function payInvoice(req, res) {
     }
 
     if (account.balance < invoice.amount) {
-      return res.json({
+      return res.status(409).json({
         success: false,
 
         reward: REWARDS.INSUFFICIENT_BALANCE,
@@ -131,7 +131,7 @@ export async function payInvoice(req, res) {
     await invoice.save();
 
     const transaction = await Transaction.create({
-      referenceId: `TX-${Date.now()}`,
+      transactionId: `TX-${Date.now()}`,
 
       invoice: invoice._id,
 
@@ -144,7 +144,7 @@ export async function payInvoice(req, res) {
       status: "SUCCESS",
     });
 
-    return res.json({
+    return res.status(200).json({
       success: true,
 
       reward: REWARDS.PAYMENT_SUCCESS,
@@ -154,11 +154,9 @@ export async function payInvoice(req, res) {
       message: "Invoice paid successfully.",
 
       state: {
-        invoiceStatus: invoice.status,
-
-        transactionId: transaction._id,
-
-        accountBalance: account.balance,
+       invoice,
+       transaction,
+       account,
       },
     });
   } catch (error) {
@@ -175,7 +173,6 @@ export async function payInvoice(req, res) {
 }
 
 // REFUND PAYMENT
-
 export async function refund(req, res) {
   try {
     const { transactionId } = req.body;
@@ -184,7 +181,7 @@ export async function refund(req, res) {
       await Transaction.findById(transactionId).populate("invoice");
 
     if (!transaction) {
-      return res.json({
+      return res.status(404).json({
         success: false,
 
         reward: REWARDS.INVALID_ACTION,
@@ -196,7 +193,7 @@ export async function refund(req, res) {
     }
 
     if (transaction.status !== "SUCCESS") {
-      return res.json({
+      return res.status(409).json({
         success: false,
 
         reward: REWARDS.INVALID_WORKFLOW,
@@ -218,14 +215,14 @@ export async function refund(req, res) {
     await transaction.save();
 
     await Invoice.findByIdAndUpdate(
-      transaction.invoice._id,
+      transaction.invoice,
 
       {
         status: "APPROVED",
       },
     );
 
-    return res.json({
+    return res.status(200).json({
       success: true,
 
       reward: REWARDS.SUCCESS,
@@ -236,7 +233,6 @@ export async function refund(req, res) {
 
       state: {
         transactionStatus: transaction.status,
-
         accountBalance: account.balance,
       },
     });
@@ -254,7 +250,6 @@ export async function refund(req, res) {
 }
 
 // CANCEL PAYMENT
-
 export async function cancelPayment(req, res) {
   try {
     const { transactionId } = req.body;
@@ -262,7 +257,7 @@ export async function cancelPayment(req, res) {
     const transaction = await Transaction.findById(transactionId);
 
     if (!transaction) {
-      return res.json({
+      return res.status(404).json({
         success: false,
 
         reward: REWARDS.INVALID_ACTION,
@@ -274,7 +269,7 @@ export async function cancelPayment(req, res) {
     }
 
     if (transaction.status !== "PENDING") {
-      return res.json({
+      return res.status(409).json({
         success: false,
 
         reward: REWARDS.INVALID_WORKFLOW,
@@ -291,7 +286,7 @@ export async function cancelPayment(req, res) {
 
     await transaction.save();
 
-    return res.json({
+    return res.status(200).json({
       success: true,
 
       reward: REWARDS.SUCCESS,
@@ -318,7 +313,6 @@ export async function cancelPayment(req, res) {
 }
 
 // RETRY PAYMENT
-
 export async function retryPayment(req, res) {
   try {
     const { invoiceId } = req.body;
@@ -326,7 +320,7 @@ export async function retryPayment(req, res) {
     const invoice = await Invoice.findById(invoiceId);
 
     if (!invoice) {
-      return res.json({
+      return res.status(404).json({
         success: false,
 
         reward: REWARDS.INVOICE_NOT_FOUND,
@@ -338,7 +332,7 @@ export async function retryPayment(req, res) {
     }
 
     if (invoice.status === "PAID") {
-      return res.json({
+      return res.status(409).json({
         success: false,
 
         reward: REWARDS.INVALID_ACTION,
@@ -353,7 +347,7 @@ export async function retryPayment(req, res) {
 
     await invoice.save();
 
-    return res.json({
+    return res.status(200).json({
       success: true,
 
       reward: REWARDS.SUCCESS,
@@ -362,9 +356,7 @@ export async function retryPayment(req, res) {
 
       message: "Payment retry initiated.",
 
-      state: {
-        paymentAttempts: invoice.paymentAttempts,
-      },
+      invoice,
     });
   } catch (error) {
     return res.status(500).json({

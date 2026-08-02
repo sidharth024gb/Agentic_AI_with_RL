@@ -2,7 +2,6 @@ import { Router } from "express";
 import {
   resetEnvironment,
   getState,
-  randomizeEnvironment,
   getReward,
 } from "../controllers/sandboxController.js";
 import { authorizePermission } from "../middleware/authMiddleware.js";
@@ -24,15 +23,8 @@ router.get(
   getState,
 );
 
-router.post(
-  "/randomize",
-  authorizePermission("RESET_ENVIRONMENT"),
-  actionLogger("RANDOMIZE_ENVIRONMENT"),
-  randomizeEnvironment,
-);
-
 router.get(
-  "/reward",
+  "/reward/:episodeId",
   authorizePermission("VIEW_STATE"),
   actionLogger("VIEW_REWARD"),
   getReward,

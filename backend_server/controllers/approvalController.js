@@ -9,10 +9,18 @@ export async function approveInvoice(req, res) {
   try {
     const { invoiceId } = req.body;
 
+    if (!invoiceId) {
+      return res.status(400).json({
+        success: false,
+        environmentError: false,
+        message: "invoiceId is required.",
+      });
+    }
+
     const invoice = await Invoice.findById(invoiceId);
 
     if (!invoice) {
-      return res.status(200).json({
+      return res.status(404).json({
         success: false,
 
         reward: REWARDS.INVOICE_NOT_FOUND,
@@ -27,7 +35,7 @@ export async function approveInvoice(req, res) {
 
     // Wrong workflow action
     if (invoice.status !== "PENDING_APPROVAL") {
-      return res.status(200).json({
+      return res.status(400).json({
         success: false,
 
         reward: REWARDS.INVALID_WORKFLOW,
@@ -62,10 +70,10 @@ export async function approveInvoice(req, res) {
       message: "Invoice approved successfully.",
     });
 
-    return res.json({
+    return res.status(200).json({
       success: true,
 
-      reward: REWARDS.APPROVE_SUCCESS,
+      reward: REWARDS.SUCCESS,
 
       done: false,
 
@@ -96,10 +104,18 @@ export async function rejectInvoice(req, res) {
   try {
     const { invoiceId, reason } = req.body;
 
+    if (!invoiceId) {
+      return res.status(400).json({
+        success: false,
+        environmentError: false,
+        message: "invoiceId is required.",
+      });
+    }
+
     const invoice = await Invoice.findById(invoiceId);
 
     if (!invoice) {
-      return res.status(200).json({
+      return res.status(404).json({
         success: false,
 
         reward: REWARDS.INVOICE_NOT_FOUND,
@@ -111,7 +127,7 @@ export async function rejectInvoice(req, res) {
     }
 
     if (invoice.status !== "PENDING_APPROVAL") {
-      return res.status(200).json({
+      return res.status(400).json({
         success: false,
 
         reward: REWARDS.INVALID_WORKFLOW,
@@ -153,11 +169,7 @@ export async function rejectInvoice(req, res) {
 
       done: false,
 
-      state: {
-        invoiceId: invoice._id,
-
-        status: invoice.status,
-      },
+      invoice,
 
       message: "Invoice rejected.",
     });
