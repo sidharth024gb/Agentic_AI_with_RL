@@ -262,7 +262,9 @@ export async function cashPosition(req, res) {
       cashPosition: {
         totalCash,
 
-        accounts: accounts.length,
+        totalAccounts: accounts.length,
+
+        accounts: accounts,
       },
     });
   } catch (error) {

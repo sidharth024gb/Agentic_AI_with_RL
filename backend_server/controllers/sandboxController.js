@@ -272,7 +272,7 @@ export async function getState(req, res) {
   try {
     const invoices = await Invoice.find({
       status: {
-        $in: ["PENDING", "APPROVED"],
+        $in: ["PENDING_APPROVAL", "APPROVED"],
       },
     });
 
@@ -280,15 +280,19 @@ export async function getState(req, res) {
 
     const suppliers = await Supplier.find();
 
+    const budgets = await Budget.find();
+
+    const transactions = await Transaction.find();
+
     return res.json({
       success: true,
 
       observation: {
         invoices,
-
         accounts,
-
         suppliers,
+        budgets,
+        transactions,
       },
 
       done: false,

@@ -7,4 +7,5 @@ __pycache__/
 
 node_modules/
 
-logs/
+backend_server/logs/
+archive/

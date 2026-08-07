@@ -1,5 +1,5 @@
 import Episode from "../models/Episode.js";
-import {REWARDS} from "../utils/rewards.js";
+import { REWARDS } from "../utils/rewards.js";
 
 // Start Episode
 
@@ -30,7 +30,7 @@ export const startEpisode = async (req, res) => {
 
       episodeNumber: episode.episodeNumber,
 
-      reward: 0,
+      reward: REWARDS.NONE,
     });
   } catch (err) {
     return res.status(500).json({
@@ -71,7 +71,7 @@ export const addStep = async (req, res) => {
 
         message: "Episode not found",
 
-        reward: REWARDS.SYSTEM_ERROR,
+        reward: REWARDS.NONE,
       });
     }
 
@@ -130,7 +130,7 @@ export const endEpisode = async (req, res) => {
   try {
     const {
       finalState,
-
+      completed,
       terminatedReason,
     } = req.body;
 
@@ -146,7 +146,7 @@ export const endEpisode = async (req, res) => {
       });
     }
 
-    episode.completed = terminatedReason === "GOAL_REACHED";
+    episode.completed = completed;
 
     episode.terminatedReason = terminatedReason;
 
