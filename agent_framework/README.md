@@ -1,47 +1,19 @@
-✓ config.py
-✓ api_client.py
-✓ finance_env.py
-✓ action_space.py
-✓ state_encoder.py
-✓ reward_processor.py
-✓ base_agent.py
-
-↓
-
 models/
-    policy_network.py
-    value_network.py
-
-↓
+    1. policy_network.py      ← Next
+    2. value_network.py
 
 agents/
-    ppo_agent.py
+    3. ppo_agent.py
 
-↓
-
-training/
-    train.py
-
-↓
-
-training/
-    evaluate.py
-
-↓
-
-utils/
-    logger.py
-    metrics.py
-    visualization.py
-
-↓
-
-LLM/
-    planner.py
-    prompts.py
-    parser.py
-
-↓
+llm/
+    4. prompts.py
+    5. planner.py
+    6. parser.py
 
 agents/
-    llm_rl_agent.py
+    7. llm_rl_agent.py
+
+training/
+    8. train.py
+    9. experiment.py
+    10. evaluate.py

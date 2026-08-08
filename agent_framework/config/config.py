@@ -120,6 +120,7 @@ class AgentConfig:
 
     TASK: str = ""
 
+    HIDDEN_NEURON_SIZE = 256
 
 # ============================
 # Experiment Configuration
