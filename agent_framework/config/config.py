@@ -102,6 +102,14 @@ class TrainingConfig:
 
     EVALUATE_EVERY: int = 50
 
+    GAE_LAMBDA: float = 0.95
+
+    CLIP_EPSILON: float = 0.2
+
+    EPOSHS: float = 10
+
+    HIDDEN_NEURON_SIZE = 256
+
 
 # ============================
 # Agent Configuration
@@ -120,7 +128,6 @@ class AgentConfig:
 
     TASK: str = ""
 
-    HIDDEN_NEURON_SIZE = 256
 
 # ============================
 # Experiment Configuration

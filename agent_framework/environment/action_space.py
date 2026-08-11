@@ -1,145 +1,115 @@
-"""
-action_space.py
-
-State-aware action execution for the Finance RL Environment.
-"""
-
 from enum import IntEnum
 
-from environment.api_client import APIClient
 
+class FinanceAction(IntEnum):
+    """
+    Actions available to the RL agent.
 
-class Action(IntEnum):
+    The integer values are used directly by PPO/DQN policies.
+    """
 
     GET_INVOICES = 0
-
-    VALIDATE_SUPPLIER = 1
-
-    CHECK_BUDGET = 2
-
-    APPROVE_INVOICE = 3
-
-    PAY_INVOICE = 4
-
-    GENERATE_REPORT = 5
+    CHECK_DUPLICATE = 1
+    CHECK_SUPPLIER = 2
+    APPROVE_INVOICES = 3
+    PAY_INVOICES = 4
+    CHECK_BUDGET = 5
+    GENERATE_REPORT = 6
+    CHECK_PAYMENT_COMPLETED = 7
 
 
 class ActionSpace:
+    """
+    Maps RL action IDs to FinanceEnvironment operations.
+    """
 
-    def __init__(self, client: APIClient):
+    ACTION_NAMES = {
+        FinanceAction.GET_INVOICES: "GET_INVOICES",
+        FinanceAction.CHECK_DUPLICATE: "CHECK_DUPLICATE",
+        FinanceAction.CHECK_SUPPLIER: "CHECK_SUPPLIER",
+        FinanceAction.APPROVE_INVOICES: "APPROVE_INVOICES",
+        FinanceAction.PAY_INVOICES: "PAY_INVOICES",
+        FinanceAction.CHECK_BUDGET: "CHECK_BUDGET",
+        FinanceAction.GENERATE_REPORT: "GENERATE_REPORT",
+        FinanceAction.CHECK_PAYMENT_COMPLETED: "CHECK_PAYMENT_COMPLETED",
+    }
 
-        self.client = client
+    def __init__(self):
+        self.n = len(FinanceAction)
 
-    def size(self):
+    def sample(self):
+        """
+        Return a random valid action.
 
-        return len(Action)
+        Useful for testing and random-policy baselines.
+        """
+        import random
 
-    def execute(self, action: int, state: dict):
+        return random.randrange(self.n)
 
-        action = Action(action)
+    def get_action_name(self, action):
+        """
+        Convert integer action ID to readable action name.
+        """
+        try:
+            action = FinanceAction(int(action))
+            return self.ACTION_NAMES[action]
+        except (ValueError, TypeError):
+            raise ValueError(f"Invalid action: {action}")
 
-        invoices = state.get("invoices", [])
+    def is_valid(self, action):
+        """
+        Check whether an action ID is valid.
+        """
+        try:
+            FinanceAction(int(action))
+            return True
+        except (ValueError, TypeError):
+            return False
 
-        suppliers = state.get("suppliers", [])
+    def execute(self, env, action):
+        """
+        Execute an action against FinanceEnvironment.
 
-        accounts = state.get("accounts", [])
+        The environment owns the workflow and DataFrames.
+        ActionSpace only dispatches the action.
+        """
 
-        # -------------------------------------------------------
-        # Get Invoices
-        # -------------------------------------------------------
+        if not self.is_valid(action):
+            raise ValueError(f"Invalid action: {action}")
 
-        if action == Action.GET_INVOICES:
+        action = FinanceAction(int(action))
 
-            return self.client.get_invoices()
+        if action == FinanceAction.GET_INVOICES:
+            return env.get_invoices()
 
-        # -------------------------------------------------------
-        # Validate Supplier
-        # -------------------------------------------------------
+        if action == FinanceAction.CHECK_DUPLICATE:
+            return env.check_duplicate()
 
-        elif action == Action.VALIDATE_SUPPLIER:
+        if action == FinanceAction.CHECK_SUPPLIER:
+            return env.check_supplier()
 
-            invoice = next(
-                (invoice for invoice in invoices if invoice["status"] == "PENDING"),
-                None,
-            )
+        if action == FinanceAction.APPROVE_INVOICES:
+            return env.approve_invoices()
 
-            if invoice is None:
+        if action == FinanceAction.PAY_INVOICES:
+            return env.pay_invoices()
 
-                return {"success": False, "message": "No pending invoice found."}
+        if action == FinanceAction.CHECK_BUDGET:
+            return env.check_budget()
 
-            supplier = invoice["supplier"]
+        if action == FinanceAction.GENERATE_REPORT:
+            return env.generate_report()
 
-            supplier_id = supplier["_id"] if isinstance(supplier, dict) else supplier
+        if action == FinanceAction.CHECK_PAYMENT_COMPLETED:
+            return env.check_payment_completed()
 
-            return self.client.validate_supplier(supplier_id)
+        raise ValueError(f"Unhandled action: {action}")
 
-        # -------------------------------------------------------
-        # Budget Check
-        # -------------------------------------------------------
+    @property
+    def action_count(self):
+        return self.n
 
-        elif action == Action.CHECK_BUDGET:
-
-            invoice = next(
-                (invoice for invoice in invoices if invoice["status"] == "PENDING"),
-                None,
-            )
-
-            if invoice is None:
-
-                return {"success": False, "message": "No pending invoice found."}
-
-            return self.client.check_budget(
-                amount=invoice["amount"], department=invoice["department"]
-            )
-
-        # -------------------------------------------------------
-        # Approve
-        # -------------------------------------------------------
-
-        elif action == Action.APPROVE_INVOICE:
-
-            invoice = next(
-                (invoice for invoice in invoices if invoice["status"] == "PENDING"),
-                None,
-            )
-
-            if invoice is None:
-
-                return {"success": False, "message": "No invoice available."}
-
-            return self.client.approve_invoice(invoice["_id"])
-
-        # -------------------------------------------------------
-        # Pay
-        # -------------------------------------------------------
-
-        elif action == Action.PAY_INVOICE:
-
-            invoice = next(
-                (invoice for invoice in invoices if invoice["status"] == "APPROVED"),
-                None,
-            )
-
-            if invoice is None:
-
-                return {"success": False, "message": "No approved invoice."}
-
-            account = max(accounts, key=lambda x: x["balance"], default=None)
-
-            if account is None:
-
-                return {"success": False, "message": "No account available."}
-
-            return self.client.pay_invoice(
-                invoice_id=invoice["_id"], account_id=account["_id"]
-            )
-
-        # -------------------------------------------------------
-        # Report
-        # -------------------------------------------------------
-
-        elif action == Action.GENERATE_REPORT:
-
-            return self.client.generate_report(type="SUMMARY")
-
-        raise ValueError(f"Unknown action {action}")
+    @property
+    def action_names(self):
+        return list(self.ACTION_NAMES.values())

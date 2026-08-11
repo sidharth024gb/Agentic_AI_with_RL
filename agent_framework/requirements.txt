@@ -1,0 +1,46 @@
+# Core numerical and data processing
+
+numpy
+pandas
+
+# Deep learning
+
+torch
+
+# HTTP / Backend communication
+
+requests
+
+# Configuration
+
+python-dotenv
+
+# Reinforcement learning environment interface
+
+gymnasium
+
+# Testing
+
+pytest
+
+# Visualization
+
+matplotlib
+
+# LLM integration
+
+ollama
+
+
+| Package         | Used for                                                 |
+| --------------- | -------------------------------------------------------- |
+| `numpy`         | State processing, numerical operations, PPO calculations |
+| `pandas`        | Metrics/results processing                               |
+| `torch`         | Policy network, value network, PPO training              |
+| `requests`      | `api_client.py` backend communication                    |
+| `python-dotenv` | Loading your `.env` configuration                        |
+| `gymnasium`     | RL environment interface                                 |
+| `pytest`        | `test_agent.py`, `test_api.py`, `test_environment.py`    |
+| `matplotlib`    | `visualization.py`                                       |
+| `ollama`        | Connecting the LLM agent to your local Ollama/Llama 3    |
+

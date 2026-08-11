@@ -1,6 +1,7 @@
 import Invoice from "../models/Invoice.js";
 import Transaction from "../models/Transaction.js";
 import Account from "../models/Account.js";
+import Budget from "../models/Budget.js"
 
 import { REWARDS } from "../utils/rewards.js";
 
@@ -8,6 +9,10 @@ import { REWARDS } from "../utils/rewards.js";
 export async function payInvoice(req, res) {
   try {
     const { invoiceId, accountId } = req.body;
+
+    // =====================================================
+    // 1. FIND INVOICE
+    // =====================================================
 
     const invoice = await Invoice.findById(invoiceId).populate("supplier");
 
@@ -25,8 +30,9 @@ export async function payInvoice(req, res) {
       });
     }
 
-    // Business rule:
-    // Invoice must be approved before payment
+    // =====================================================
+    // 2. INVOICE MUST BE APPROVED
+    // =====================================================
 
     if (invoice.status !== "APPROVED") {
       return res.status(409).json({
@@ -42,7 +48,9 @@ export async function payInvoice(req, res) {
       });
     }
 
-    // Duplicate invoice protection
+    // =====================================================
+    // 3. DUPLICATE INVOICE CHECK
+    // =====================================================
 
     if (invoice.duplicateFlag) {
       return res.status(409).json({
@@ -58,7 +66,9 @@ export async function payInvoice(req, res) {
       });
     }
 
-    // Supplier validation
+    // =====================================================
+    // 4. SUPPLIER VALIDATION
+    // =====================================================
 
     if (!invoice.supplier || !invoice.supplier.active) {
       return res.status(409).json({
@@ -73,6 +83,67 @@ export async function payInvoice(req, res) {
         message: "Supplier inactive.",
       });
     }
+
+    // =====================================================
+    // 5. BUDGET CHECK
+    //
+    // Invoice category maps directly to
+    // Budget department.
+    //
+    // Example:
+    //
+    // invoice.category = "SOFTWARE"
+    //
+    //        ↓
+    //
+    // budget.department = "SOFTWARE"
+    // =====================================================
+
+    const budget = await Budget.findOne({
+      department: invoice.category,
+    });
+
+    // No matching budget
+
+    if (!budget) {
+      return res.status(409).json({
+        success: false,
+
+        reward: REWARDS.INVALID_ACTION,
+
+        done: false,
+
+        errorType: "BUDGET_NOT_FOUND",
+
+        message: `No budget found for department ${invoice.category}.`,
+      });
+    }
+
+    // =====================================================
+    // 6. CHECK REMAINING BUDGET
+    // =====================================================
+
+    if (budget.remainingBudget < invoice.amount) {
+      return res.status(409).json({
+        success: false,
+
+        reward: REWARDS.BUDGET_EXCEEDED,
+
+        done: false,
+
+        errorType: "BUDGET_EXCEEDED",
+
+        message: "Insufficient remaining budget.",
+
+        state: {
+          budget,
+        },
+      });
+    }
+
+    // =====================================================
+    // 7. FIND PAYMENT ACCOUNT
+    // =====================================================
 
     const account = await Account.findById(accountId);
 
@@ -90,6 +161,10 @@ export async function payInvoice(req, res) {
       });
     }
 
+    // =====================================================
+    // 8. ACCOUNT FROZEN CHECK
+    // =====================================================
+
     if (account.frozen) {
       return res.status(409).json({
         success: false,
@@ -103,6 +178,10 @@ export async function payInvoice(req, res) {
         message: "Account is frozen.",
       });
     }
+
+    // =====================================================
+    // 9. ACCOUNT BALANCE CHECK
+    // =====================================================
 
     if (account.balance < invoice.amount) {
       return res.status(409).json({
@@ -118,17 +197,34 @@ export async function payInvoice(req, res) {
       });
     }
 
-    // Execute payment
+    // =====================================================
+    // 10. EXECUTE PAYMENT
+    // =====================================================
 
     account.balance -= invoice.amount;
 
-    await account.save();
+    // Deduct the invoice amount from
+    // the category's remaining budget.
+
+    budget.remainingBudget -= invoice.amount;
 
     invoice.status = "PAID";
 
     invoice.paymentAttempts += 1;
 
+    // =====================================================
+    // 11. SAVE UPDATED DATA
+    // =====================================================
+
+    await account.save();
+
+    await budget.save();
+
     await invoice.save();
+
+    // =====================================================
+    // 12. CREATE TRANSACTION
+    // =====================================================
 
     const transaction = await Transaction.create({
       transactionId: `TX-${Date.now()}`,
@@ -144,6 +240,10 @@ export async function payInvoice(req, res) {
       status: "SUCCESS",
     });
 
+    // =====================================================
+    // 13. SUCCESS RESPONSE
+    // =====================================================
+
     return res.status(200).json({
       success: true,
 
@@ -154,12 +254,19 @@ export async function payInvoice(req, res) {
       message: "Invoice paid successfully.",
 
       state: {
-       invoice,
-       transaction,
-       account,
+        invoice,
+
+        transaction,
+
+        account,
+
+        budget,
       },
     });
   } catch (error) {
+    // Environment/system error.
+    // Do NOT give the RL agent a negative reward.
+
     return res.status(500).json({
       success: false,
 
@@ -167,11 +274,12 @@ export async function payInvoice(req, res) {
 
       retryable: true,
 
+      reward: null,
+
       message: error.message,
     });
   }
 }
-
 // REFUND PAYMENT
 export async function refund(req, res) {
   try {

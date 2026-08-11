@@ -4,124 +4,96 @@ state_encoder.py
 Converts backend environment state (JSON)
 into numerical vectors for RL algorithms.
 """
-
 import numpy as np
 
 
 class StateEncoder:
     """
-    Encodes Finance Backend state into RL observation vector.
+    Converts FinanceEnvironment state into a binary RL observation.
+
+    Observation contains only 0/1 values.
     """
 
+    STATE_NAMES = [
+        # Action execution states
+        "get_invoices",
+        "check_duplicate",
+        "check_supplier",
+        "approve_invoices",
+        "pay_invoices",
+        "check_budget",
+        "generate_report",
+        "check_payment_completed",
+        # Invoice condition states
+        "has_paid_invoices",
+        "has_rejected_invoices",
+        "has_pending_approval_invoices",
+        "has_approved_invoices",
+        # Final task state
+        "task_completed",
+    ]
+
+    STATE_SIZE = len(STATE_NAMES)
+
     def __init__(self):
+        self.state_size = self.STATE_SIZE
 
-        # Keep feature order fixed.
-        # The neural network depends on this order.
-
-        self.feature_names = [
-            "total_invoices",
-            "pending_invoices",
-            "approved_invoices",
-            "paid_invoices",
-            "total_invoice_amount",
-            "total_accounts",
-            "available_balance",
-            "total_suppliers",
-            "active_suppliers",
-            "average_supplier_risk",
-        ]
-
-    # ==========================================================
-    # Main Encoder
-    # ==========================================================
-
-    def encode(self, state: dict):
+    def encode(self, state):
         """
-        Convert backend JSON state into numpy vector.
+        Convert a state dictionary into a numpy binary vector.
 
-        Parameters
-        ----------
-        state:
-            Raw backend state dictionary
-
-
-        Returns
-        -------
-        np.ndarray
-            RL observation vector
+        Returns:
+            np.ndarray of shape (13,)
         """
 
-        invoices = state.get("invoices", [])
+        observation = []
 
-        accounts = state.get("accounts", [])
+        for state_name in self.STATE_NAMES:
+            value = state.get(state_name, False)
 
-        suppliers = state.get("suppliers", [])
+            observation.append(1.0 if bool(value) else 0.0)
 
-        observation = [
-            self._invoice_count(invoices),
-            self._invoice_status_count(invoices, "PENDING"),
-            self._invoice_status_count(invoices, "APPROVED"),
-            self._invoice_status_count(invoices, "PAID"),
-            self._total_invoice_amount(invoices),
-            len(accounts),
-            self._total_balance(accounts),
-            len(suppliers),
-            self._active_supplier_count(suppliers),
-            self._average_supplier_risk(suppliers),
-        ]
+        return np.asarray(observation, dtype=np.float32)
 
-        return np.array(observation, dtype=np.float32)
+    def decode(self, observation):
+        """
+        Convert an encoded observation back into a readable dictionary.
 
-    # ==========================================================
-    # Invoice Features
-    # ==========================================================
+        Mainly useful for debugging and logging.
+        """
 
-    def _invoice_count(self, invoices):
+        observation = np.asarray(observation).flatten()
 
-        return len(invoices)
+        if len(observation) != self.STATE_SIZE:
+            raise ValueError(
+                f"Expected {self.STATE_SIZE} states, " f"received {len(observation)}"
+            )
 
-    def _invoice_status_count(self, invoices, status):
+        return {
+            state_name: bool(value >= 0.5)
+            for state_name, value in zip(self.STATE_NAMES, observation)
+        }
 
-        return sum(1 for invoice in invoices if invoice.get("status") == status)
+    def get_state_names(self):
+        """
+        Return ordered state names.
+        """
+        return list(self.STATE_NAMES)
 
-    def _total_invoice_amount(self, invoices):
+    def get_state_size(self):
+        """
+        Return number of observation dimensions.
+        """
+        return self.state_size
 
-        return sum(invoice.get("amount", 0) for invoice in invoices)
+    def validate(self, observation):
+        """
+        Validate that an observation contains only binary values.
+        """
 
-    # ==========================================================
-    # Account Features
-    # ==========================================================
+        observation = np.asarray(observation).flatten()
 
-    def _total_balance(self, accounts):
+        if len(observation) != self.STATE_SIZE:
+            return False
 
-        return sum(account.get("balance", 0) for account in accounts)
-
-    # ==========================================================
-    # Supplier Features
-    # ==========================================================
-
-    def _active_supplier_count(self, suppliers):
-
-        return sum(1 for supplier in suppliers if supplier.get("active", False))
-
-    def _average_supplier_risk(self, suppliers):
-
-        if not suppliers:
-
-            return 0
-
-        total_risk = sum(supplier.get("riskScore", 0) for supplier in suppliers)
-
-        return total_risk / len(suppliers)
-
-    # ==========================================================
-    # Utilities
-    # ==========================================================
-
-    def get_feature_names(self):
-
-        return self.feature_names
-
-    def observation_size(self):
-
-        return len(self.feature_names)
+        return bool(np.all(np.logical_or(observation == 0, observation == 1)))

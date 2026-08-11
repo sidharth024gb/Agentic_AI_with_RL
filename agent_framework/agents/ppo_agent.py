@@ -10,16 +10,11 @@ against the LLM-enhanced PPO agent.
 import torch
 import torch.nn as nn
 import torch.optim as optim
-
-from torch.distributions import Categorical
-
-
 from agents.base_agent import BaseAgent
-
 from models.policy_network import PolicyNetwork
 from models.value_network import ValueNetwork
-
 from memory.rollout_buffer import RolloutBuffer
+from config.config import config
 
 
 class PPOAgent(BaseAgent):
@@ -28,12 +23,6 @@ class PPOAgent(BaseAgent):
         self,
         observation_size,
         action_size,
-        learning_rate=3e-4,
-        gamma=0.99,
-        gae_lambda=0.95,
-        clip_epsilon=0.2,
-        epochs=10,
-        hidden_size=256,
     ):
 
         super().__init__(
@@ -43,37 +32,37 @@ class PPOAgent(BaseAgent):
 
         # Hyperparameters
 
-        self.gamma = gamma
+        self.gamma = config.training.GAMMA
 
-        self.gae_lambda = gae_lambda
+        self.gae_lambda = config.training.GAE_LAMBDA
 
-        self.clip_epsilon = clip_epsilon
+        self.clip_epsilon = config.training.CLIP_EPSILON
 
-        self.epochs = epochs
+        self.epochs = config.training.EPOSHS
 
         # Networks
 
         self.policy = PolicyNetwork(
             observation_size,
             action_size,
-            hidden_size,
+            config.training.HIDDEN_NEURON_SIZE,
         ).to(self.device)
 
         self.value = ValueNetwork(
             observation_size,
-            hidden_size,
+            config.training.HIDDEN_NEURON_SIZE,
         ).to(self.device)
 
         # Optimizers
 
         self.policy_optimizer = optim.Adam(
             self.policy.parameters(),
-            lr=learning_rate,
+            lr=config.training.LEARNING_RATE,
         )
 
         self.value_optimizer = optim.Adam(
             self.value.parameters(),
-            lr=learning_rate,
+            lr=config.training.LEARNING_RATE,
         )
 
         # Rollout storage
