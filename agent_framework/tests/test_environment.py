@@ -72,7 +72,7 @@ STATS = {
 # LOG FILE CONFIGURATION
 # ============================================================
 
-LOG_FILE = f"logs/rl_environment_test_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+LOG_FILE = f"results/logs/test/rl_environment_test_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
 
 
 def init_log():

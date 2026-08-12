@@ -7,6 +7,7 @@ go through this class.
 """
 
 from typing import Any, Dict, Optional
+from urllib.parse import urlencode
 
 import requests
 
@@ -98,7 +99,7 @@ class APIClient:
     def login(self):
 
         payload = {
-            "email": config.backend.USERNAME,
+            "email": config.backend.EMAIL,
             "password": config.backend.PASSWORD,
         }
 
@@ -159,6 +160,41 @@ class APIClient:
             f"{config.backend.EPISODE}/{episode_id}{config.backend.EPISODE_END}",
             json=payload,
         )
+
+    def get_episodes(
+        self,
+        experiment_name=None,
+        phase=None,
+        agent_type=None,
+        algorithm=None,
+    ):
+
+        query = {}
+
+        if experiment_name:
+            query["experimentName"] = (
+                experiment_name
+            )
+
+        if phase:
+            query["phase"] = phase
+
+        if agent_type:
+            query["agentType"] = agent_type
+
+        if algorithm:
+            query["algorithm"] = algorithm
+
+        endpoint = config.backend.EPISODE
+
+        if query:
+
+            endpoint = (
+                f"{endpoint}?"
+                f"{urlencode(query)}"
+            )
+
+        return self._get(endpoint)
 
     # ==========================================================
     # Invoice

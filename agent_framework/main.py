@@ -1,316 +1,447 @@
 """
 main.py
 
-Main entry point for the Finance RL Agent project.
+Complete PPO training pipeline.
 
-The project focuses on comparing:
+Usage:
 
-    1. PPO
-    2. LLM + PPO
+    python main.py train
 
-The actual training, evaluation, and experiment logic is
-implemented in the training package.
+Optional:
 
-This file only orchestrates those components.
+    python main.py train --episodes 100
+    python main.py train --episodes 1000 --eval-episodes 100
 """
 
 import argparse
 import sys
-from typing import Optional
 
-# ==============================================================
-# Project Imports
-# ==============================================================
+from pathlib import Path
 
-from environment.finance_env import FinanceEnv
 
 from agents.ppo_agent import PPOAgent
-from agents.llm_rl_agent import LLMRLAgent
 
-from training.train import train_agent
-from training.evaluate import evaluate_agent
-from training.experiment import run_experiment
+from config.config import config
 
-from utils.logger import get_logger
+from environment.api_client import APIClient
+from environment.finance_env import FinanceEnvironment
 
-# ==============================================================
-# Logger
-# ==============================================================
+from training.train import train_ppo
+from training.evaluate import evaluate_ppo
 
-logger = get_logger(name="main")
+from utils.logger import (
+    close_logger,
+    create_run_name,
+    get_run_logger,
+    prepare_run_directories,
+)
+
+from utils.metrics import (
+    build_metric_tables,
+    export_metrics_excel,
+)
+
+from utils.visualization import (
+    generate_ppo_visualizations,
+)
+
+# ==========================================================
+# Response Helper
+# ==========================================================
 
 
-# ==============================================================
-# Agent Creation
-# ==============================================================
-
-
-def create_agent(
-    agent_type: str,
-    env: FinanceEnv,
+def _response_payload(
+    response,
 ):
-    """
-    Create the requested agent.
 
-    Parameters
-    ----------
-    agent_type:
-        "ppo" or "llm_ppo"
+    if not isinstance(
+        response,
+        dict,
+    ):
+        return {}
 
-    env:
-        Finance RL environment.
+    data = response.get(
+        "data",
+        {},
+    )
 
-    Returns
-    -------
-    Agent instance
-    """
+    if isinstance(
+        data,
+        dict,
+    ) and isinstance(
+        data.get("data"),
+        dict,
+    ):
 
-    agent_type = agent_type.lower()
+        return data["data"]
 
-    # ----------------------------------------------------------
-    # PPO
-    # ----------------------------------------------------------
-
-    if agent_type == "ppo":
-
-        logger.info("Creating PPO agent.")
-
-        return PPOAgent(env=env)
-
-    # ----------------------------------------------------------
-    # LLM + PPO
-    # ----------------------------------------------------------
-
-    if agent_type in {
-        "llm_ppo",
-        "llm+ppo",
-        "llm",
-    }:
-
-        logger.info("Creating LLM + PPO agent.")
-
-        return LLMRLAgent(env=env)
-
-    raise ValueError(f"Unknown agent type: {agent_type}")
+    return (
+        data
+        if isinstance(
+            data,
+            dict,
+        )
+        else {}
+    )
 
 
-# ==============================================================
-# Environment Creation
-# ==============================================================
+# ==========================================================
+# Authentication
+# ==========================================================
 
 
-def create_environment():
-    """
-    Create and return the Finance RL environment.
-    """
-
-    logger.info("Creating finance environment.")
-
-    return FinanceEnv()
-
-
-# ==============================================================
-# Training
-# ==============================================================
-
-
-def run_training(
-    agent_type: str,
+def create_api_client(
+    logger,
 ):
-    """
-    Train a single agent.
-    """
 
-    env = create_environment()
+    client = APIClient()
+
+    logger.info("Authenticating AGENT_BOT.")
+
+    response = client.login()
+    
+    if response.get(
+        "environment_error",
+        False,
+    ):
+
+        raise RuntimeError("Backend environment error during login.")
+
+    if not response.get(
+        "success",
+        False,
+    ):
+
+        raise RuntimeError("Agent authentication failed.")
+
+    logger.info("Backend authentication successful.")
+
+    return client
+
+
+# ==========================================================
+# Fetch Backend Episodes
+# ==========================================================
+
+
+def fetch_backend_episodes(
+    client,
+    run_name,
+    phase,
+):
+
+    response = client.get_episodes(
+        experiment_name=run_name,
+        phase=phase,
+        agent_type="RL",
+        algorithm="PPO",
+    )
+
+    if response.get(
+        "environment_error",
+        False,
+    ):
+
+        raise RuntimeError(f"Environment error while fetching {phase} episodes.")
+
+    if not response.get(
+        "success",
+        False,
+    ):
+
+        raise RuntimeError(f"Failed to fetch {phase} episodes.")
+
+    payload = _response_payload(response)
+
+    return payload.get(
+        "episodes",
+        [],
+    )
+
+
+# ==========================================================
+# PPO Pipeline
+# ==========================================================
+
+
+def run_ppo_training(
+    total_episodes=None,
+    evaluation_episodes=None,
+):
+
+    run_name = create_run_name(config.experiment.EXPERIMENT_NAME)
+
+    directories = prepare_run_directories(run_name)
+
+    logger = get_run_logger(
+        run_name=run_name,
+        log_directory=directories["logs"],
+    )
+
+    api_client = None
+
+    env = None
 
     try:
 
-        agent = create_agent(
-            agent_type,
-            env,
+        # ======================================================
+        # API
+        # ======================================================
+
+        api_client = create_api_client(logger)
+
+        # ======================================================
+        # Environment
+        # ======================================================
+
+        env = FinanceEnvironment(api_client=api_client)
+
+        observation_size = env.state_encoder.get_state_size()
+
+        action_size = env.action_space_handler.action_count
+
+        if action_size != config.environment.ACTION_SPACE_SIZE:
+
+            raise RuntimeError(
+                (
+                    "Action space mismatch: "
+                    f"environment={action_size}, "
+                    f"config="
+                    f"{config.environment.ACTION_SPACE_SIZE}"
+                )
+            )
+
+        logger.info(
+            ("Environment ready | " "observation_size=%s | " "action_size=%s"),
+            observation_size,
+            action_size,
+        )
+
+        # ======================================================
+        # PPO Agent
+        # ======================================================
+
+        agent = PPOAgent(
+            observation_size=observation_size,
+            action_size=action_size,
         )
 
         logger.info(
-            "Starting training for %s.",
-            agent_type,
+            "PPO agent created | device=%s",
+            agent.device,
         )
 
-        results = train_agent(
+        # ======================================================
+        # Train
+        # ======================================================
+
+        training_result = train_ppo(
             agent=agent,
             env=env,
+            run_name=run_name,
+            model_directory=directories["models"],
+            logger=logger,
+            total_episodes=total_episodes,
+        )
+
+        # ======================================================
+        # Deterministic Evaluation
+        # ======================================================
+
+        evaluation_result = evaluate_ppo(
+            agent=agent,
+            env=env,
+            run_name=run_name,
+            logger=logger,
+            evaluation_episodes=evaluation_episodes,
+        )
+
+        # ======================================================
+        # Fetch authoritative backend episodes
+        # ======================================================
+
+        logger.info("Fetching training episodes from backend.")
+
+        training_episodes = fetch_backend_episodes(
+            api_client,
+            run_name,
+            "TRAIN",
         )
 
         logger.info(
-            "Training completed for %s.",
-            agent_type,
+            "Training episodes retrieved: %s",
+            len(training_episodes),
         )
 
-        return results
+        logger.info("Fetching evaluation episodes from backend.")
+
+        evaluation_episodes_backend = fetch_backend_episodes(
+            api_client,
+            run_name,
+            "EVALUATION",
+        )
+
+        logger.info(
+            "Evaluation episodes retrieved: %s",
+            len(evaluation_episodes_backend),
+        )
+
+        # ======================================================
+        # Metrics
+        # ======================================================
+
+        tables = build_metric_tables(
+            training_episodes=training_episodes,
+            evaluation_episodes=evaluation_episodes_backend,
+            ppo_updates=training_result["ppo_updates"],
+            training_time=training_result["training_time"],
+            evaluation_time=evaluation_result["evaluation_time"],
+        )
+
+        # ======================================================
+        # Excel
+        # ======================================================
+
+        excel_path = Path(directories["metrics"]) / "ppo_results.xlsx"
+
+        excel_path = export_metrics_excel(
+            tables,
+            excel_path,
+        )
+
+        logger.info(
+            "Excel metrics exported: %s",
+            excel_path,
+        )
+
+        # ======================================================
+        # Visualizations
+        # ======================================================
+
+        graph_paths = generate_ppo_visualizations(
+            tables=tables,
+            output_directory=directories["graphs"],
+        )
+
+        for (
+            graph_name,
+            graph_path,
+        ) in graph_paths.items():
+
+            logger.info(
+                "Graph %-20s %s",
+                graph_name,
+                graph_path,
+            )
+
+        # ======================================================
+        # Console Summary
+        # ======================================================
+
+        summary = tables["summary"]
+
+        logger.info(
+            "\n%s",
+            summary.to_string(index=False),
+        )
+
+        logger.info("========================================")
+
+        logger.info("PPO RUN COMPLETE")
+
+        logger.info(
+            "Run name: %s",
+            run_name,
+        )
+
+        logger.info(
+            "Model: %s",
+            training_result["final_checkpoint"],
+        )
+
+        logger.info(
+            "Metrics: %s",
+            excel_path,
+        )
+
+        logger.info(
+            "Graphs: %s",
+            directories["graphs"],
+        )
+
+        logger.info("========================================")
+
+        return {
+            "run_name": run_name,
+            "training": training_result,
+            "evaluation": evaluation_result,
+            "metrics_excel": excel_path,
+            "graphs": graph_paths,
+        }
 
     finally:
 
-        env.close("TRAINING_COMPLETE")
+        if env is not None:
+
+            env.close(terminated_reason="FAILED")
+
+        elif api_client is not None and hasattr(
+            api_client,
+            "session",
+        ):
+
+            api_client.session.close()
+
+        close_logger(logger)
 
 
-# ==============================================================
-# Evaluation
-# ==============================================================
+# ==========================================================
+# CLI
+# ==========================================================
 
 
-def run_evaluation(
-    agent_type: str,
-):
-    """
-    Evaluate a trained agent.
-    """
-
-    env = create_environment()
-
-    try:
-
-        agent = create_agent(
-            agent_type,
-            env,
-        )
-
-        logger.info(
-            "Starting evaluation for %s.",
-            agent_type,
-        )
-
-        results = evaluate_agent(
-            agent=agent,
-            env=env,
-        )
-
-        logger.info(
-            "Evaluation completed for %s.",
-            agent_type,
-        )
-
-        return results
-
-    finally:
-
-        env.close("EVALUATION_COMPLETE")
-
-
-# ==============================================================
-# Experiment
-# ==============================================================
-
-
-def run_comparison():
-    """
-    Run the main PPO vs LLM + PPO experiment.
-
-    The experiment module is responsible for:
-
-        - running both agents
-        - collecting metrics
-        - comparing results
-        - generating experiment outputs
-    """
-
-    logger.info("Starting PPO vs LLM + PPO experiment.")
-
-    results = run_experiment()
-
-    logger.info("PPO vs LLM + PPO experiment completed.")
-
-    return results
-
-
-# ==============================================================
-# Argument Parser
-# ==============================================================
-
-
-def build_parser() -> argparse.ArgumentParser:
-    """
-    Build the command-line argument parser.
-    """
+def build_parser():
 
     parser = argparse.ArgumentParser(
-        description=("Finance RL Agent - " "PPO and LLM + PPO experiments")
+        description=("Train and analyse the " "Finance PPO agent.")
     )
 
     subparsers = parser.add_subparsers(dest="command")
 
-    # ----------------------------------------------------------
-    # Train
-    # ----------------------------------------------------------
-
     train_parser = subparsers.add_parser(
         "train",
-        help="Train an agent.",
+        help=("Train PPO, evaluate it, " "and generate results."),
     )
 
     train_parser.add_argument(
-        "--agent",
-        choices=[
-            "ppo",
-            "llm_ppo",
-        ],
-        required=True,
-        help=("Agent to train."),
+        "--episodes",
+        type=int,
+        default=None,
+        help=("Override TOTAL_EPISODES."),
     )
 
-    # ----------------------------------------------------------
-    # Evaluate
-    # ----------------------------------------------------------
-
-    evaluate_parser = subparsers.add_parser(
-        "evaluate",
-        help="Evaluate a trained agent.",
-    )
-
-    evaluate_parser.add_argument(
-        "--agent",
-        choices=[
-            "ppo",
-            "llm_ppo",
-        ],
-        required=True,
-        help=("Agent to evaluate."),
-    )
-
-    # ----------------------------------------------------------
-    # Experiment
-    # ----------------------------------------------------------
-
-    subparsers.add_parser(
-        "experiment",
-        help=("Run PPO vs LLM + PPO comparison."),
+    train_parser.add_argument(
+        "--eval-episodes",
+        type=int,
+        default=None,
+        help=("Override EVALUATION_EPISODES."),
     )
 
     return parser
 
 
-# ==============================================================
+# ==========================================================
 # Main
-# ==============================================================
+# ==========================================================
 
 
 def main(
-    argv: Optional[list] = None,
-) -> int:
-    """
-    Main application entry point.
-
-    Returns
-    -------
-    int
-        Process exit code.
-    """
+    argv=None,
+):
 
     parser = build_parser()
 
     args = parser.parse_args(argv)
-
-    # ----------------------------------------------------------
-    # No command
-    # ----------------------------------------------------------
 
     if args.command is None:
 
@@ -320,71 +451,30 @@ def main(
 
     try:
 
-        # ------------------------------------------------------
-        # Training
-        # ------------------------------------------------------
-
         if args.command == "train":
 
-            run_training(args.agent)
+            run_ppo_training(
+                total_episodes=args.episodes,
+                evaluation_episodes=args.eval_episodes,
+            )
 
             return 0
-
-        # ------------------------------------------------------
-        # Evaluation
-        # ------------------------------------------------------
-
-        if args.command == "evaluate":
-
-            run_evaluation(args.agent)
-
-            return 0
-
-        # ------------------------------------------------------
-        # Experiment
-        # ------------------------------------------------------
-
-        if args.command == "experiment":
-
-            run_comparison()
-
-            return 0
-
-        logger.error(
-            "Unknown command: %s",
-            args.command,
-        )
 
         return 1
 
     except KeyboardInterrupt:
 
-        logger.warning("Execution interrupted by user.")
+        print("\nTraining interrupted.")
 
         return 130
 
     except Exception as exc:
 
-        logger.exception(
-            "Execution failed: %s",
-            exc,
-        )
+        print(f"\nPPO run failed: {exc}")
 
-        return 1
+        raise
 
-
-# ==============================================================
-# Script Entry Point
-# ==============================================================
 
 if __name__ == "__main__":
 
     sys.exit(main())
-
-"""
-python main.py train --agent ppo
-python main.py train --agent llm_ppo
-python main.py evaluate --agent ppo
-python main.py evaluate --agent llm_ppo
-python main.py experiment
-"""

@@ -3,9 +3,11 @@ value_network.py
 
 Critic (Value) Network for PPO.
 
-Estimates the state value V(s), which represents the expected
-future return from the current environment state.
+Estimates the expected discounted future return V(s)
+from the current environment observation.
 """
+
+import math
 
 import torch
 import torch.nn as nn
@@ -14,6 +16,14 @@ import torch.nn as nn
 class ValueNetwork(nn.Module):
     """
     Critic network used by PPO.
+
+    Input
+    -----
+    Environment observation.
+
+    Output
+    ------
+    Scalar value estimate V(s).
     """
 
     def __init__(
@@ -23,42 +33,121 @@ class ValueNetwork(nn.Module):
     ):
         super().__init__()
 
+        if observation_size <= 0:
+            raise ValueError("observation_size must be greater than 0.")
+
+        if hidden_size <= 0:
+            raise ValueError("hidden_size must be greater than 0.")
+
+        self.observation_size = int(observation_size)
+
+        self.hidden_size = int(hidden_size)
+
+        # ==========================================================
+        # Network
+        # ==========================================================
+
         self.network = nn.Sequential(
             nn.Linear(
-                observation_size,
-                hidden_size,
+                self.observation_size,
+                self.hidden_size,
             ),
             nn.ReLU(),
             nn.Linear(
-                hidden_size,
-                hidden_size,
+                self.hidden_size,
+                self.hidden_size,
             ),
             nn.ReLU(),
             nn.Linear(
-                hidden_size,
+                self.hidden_size,
                 1,
             ),
+        )
+
+        # ==========================================================
+        # Initialization
+        # ==========================================================
+
+        self._initialize_weights()
+
+    # ==========================================================
+    # Weight Initialization
+    # ==========================================================
+
+    def _initialize_weights(self):
+        """
+        PPO-friendly orthogonal initialization.
+        """
+
+        # First hidden layer
+        nn.init.orthogonal_(
+            self.network[0].weight,
+            gain=math.sqrt(2),
+        )
+
+        nn.init.constant_(
+            self.network[0].bias,
+            0.0,
+        )
+
+        # Second hidden layer
+        nn.init.orthogonal_(
+            self.network[2].weight,
+            gain=math.sqrt(2),
+        )
+
+        nn.init.constant_(
+            self.network[2].bias,
+            0.0,
+        )
+
+        # Value output layer
+        nn.init.orthogonal_(
+            self.network[4].weight,
+            gain=1.0,
+        )
+
+        nn.init.constant_(
+            self.network[4].bias,
+            0.0,
         )
 
     # ==========================================================
     # Forward Pass
     # ==========================================================
 
-    def forward(self, state):
+    def forward(
+        self,
+        state,
+    ):
         """
-        Estimate the value of a state.
+        Estimate V(state).
 
         Parameters
         ----------
         state : torch.Tensor
-            Encoded environment state.
+
+            Shape:
+
+                (batch_size, observation_size)
 
         Returns
         -------
         torch.Tensor
-            Estimated state value.
+
+            Shape:
+
+                (batch_size, 1)
+
+        PPOAgent performs squeeze(-1) where needed.
         """
 
-        value = self.network(state)
+        if state.shape[-1] != self.observation_size:
 
-        return value.squeeze(-1)
+            raise ValueError(
+                "ValueNetwork expected observation size "
+                f"{self.observation_size}, "
+                f"received {state.shape[-1]}."
+            )
+
+        return self.network(state)

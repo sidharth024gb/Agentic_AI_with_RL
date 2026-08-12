@@ -3,17 +3,32 @@ policy_network.py
 
 Actor (Policy) Network for PPO.
 
-Maps an environment observation to a probability
-distribution over the available actions.
+Maps the encoded environment observation to a categorical
+probability distribution over the available discrete actions.
+
+Current environment:
+    Observation: binary vector
+    Actions: discrete high-level finance actions
 """
+
+import math
 
 import torch
 import torch.nn as nn
+from torch.distributions import Categorical
 
 
 class PolicyNetwork(nn.Module):
     """
     Actor network used by PPO.
+
+    Input
+    -----
+    Environment observation vector.
+
+    Output
+    ------
+    Raw logits for each discrete action.
     """
 
     def __init__(
@@ -24,41 +39,135 @@ class PolicyNetwork(nn.Module):
     ):
         super().__init__()
 
+        if observation_size <= 0:
+            raise ValueError("observation_size must be greater than 0.")
+
+        if action_size <= 0:
+            raise ValueError("action_size must be greater than 0.")
+
+        if hidden_size <= 0:
+            raise ValueError("hidden_size must be greater than 0.")
+
+        self.observation_size = int(observation_size)
+
+        self.action_size = int(action_size)
+
+        self.hidden_size = int(hidden_size)
+
+        # ==========================================================
+        # Network
+        # ==========================================================
+
         self.network = nn.Sequential(
             nn.Linear(
-                observation_size,
-                hidden_size,
+                self.observation_size,
+                self.hidden_size,
             ),
             nn.ReLU(),
             nn.Linear(
-                hidden_size,
-                hidden_size,
+                self.hidden_size,
+                self.hidden_size,
             ),
             nn.ReLU(),
             nn.Linear(
-                hidden_size,
-                action_size,
+                self.hidden_size,
+                self.action_size,
             ),
+        )
+
+        # ==========================================================
+        # PPO-Friendly Initialization
+        # ==========================================================
+
+        self._initialize_weights()
+
+    # ==========================================================
+    # Weight Initialization
+    # ==========================================================
+
+    def _initialize_weights(self):
+        """
+        Orthogonal initialization is commonly used with PPO.
+
+        Hidden layers use sqrt(2) gain.
+
+        The policy output layer uses a small gain so the
+        initial action distribution begins close to uniform
+        rather than strongly preferring arbitrary actions.
+        """
+
+        # First hidden layer
+        nn.init.orthogonal_(
+            self.network[0].weight,
+            gain=math.sqrt(2),
+        )
+
+        nn.init.constant_(
+            self.network[0].bias,
+            0.0,
+        )
+
+        # Second hidden layer
+        nn.init.orthogonal_(
+            self.network[2].weight,
+            gain=math.sqrt(2),
+        )
+
+        nn.init.constant_(
+            self.network[2].bias,
+            0.0,
+        )
+
+        # Policy output layer
+        nn.init.orthogonal_(
+            self.network[4].weight,
+            gain=0.01,
+        )
+
+        nn.init.constant_(
+            self.network[4].bias,
+            0.0,
         )
 
     # ==========================================================
     # Forward Pass
     # ==========================================================
 
-    def forward(self, state):
+    def forward(
+        self,
+        state,
+    ):
         """
-        Returns raw action logits.
+        Return raw action logits.
 
         Parameters
         ----------
         state : torch.Tensor
-            Encoded environment state.
+
+            Expected shape:
+
+                (batch_size, observation_size)
+
+            or:
+
+                (observation_size,)
 
         Returns
         -------
         torch.Tensor
-            Action logits.
+
+            Action logits:
+
+                (batch_size, action_size)
         """
+
+        if state.shape[-1] != self.observation_size:
+
+            raise ValueError(
+                "PolicyNetwork expected observation size "
+                f"{self.observation_size}, "
+                f"received {state.shape[-1]}."
+            )
 
         return self.network(state)
 
@@ -66,30 +175,31 @@ class PolicyNetwork(nn.Module):
     # Action Distribution
     # ==========================================================
 
-    def get_distribution(self, state):
+    def get_distribution(
+        self,
+        state,
+    ):
         """
-        Create a categorical distribution over actions.
-
-        Parameters
-        ----------
-        state : torch.Tensor
-
-        Returns
-        -------
-        torch.distributions.Categorical
+        Create categorical probability distribution over
+        the discrete finance actions.
         """
 
         logits = self.forward(state)
 
-        return torch.distributions.Categorical(logits=logits)
+        return Categorical(logits=logits)
 
     # ==========================================================
     # Sample Action
     # ==========================================================
 
-    def sample_action(self, state):
+    def sample_action(
+        self,
+        state,
+    ):
         """
-        Sample an action from the current policy.
+        Sample an action from the policy.
+
+        Mainly useful during PPO training.
 
         Returns
         -------
@@ -113,19 +223,22 @@ class PolicyNetwork(nn.Module):
         )
 
     # ==========================================================
-    # Greedy Action
+    # Deterministic Action
     # ==========================================================
 
-    def predict(self, state):
+    def predict(
+        self,
+        state,
+    ):
         """
-        Deterministic action selection.
+        Return the highest-probability action.
 
         Used during evaluation.
         """
 
-        logits = self.forward(state)
+        distribution = self.get_distribution(state)
 
         return torch.argmax(
-            logits,
+            distribution.probs,
             dim=-1,
         )

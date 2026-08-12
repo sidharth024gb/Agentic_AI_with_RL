@@ -1,230 +1,417 @@
 """
 planner.py
 
-LLM planning component for the LLM + PPO agent.
-
-Uses Ollama to run a local Llama 3 model.
+Ollama-based high-level finance task planner.
 
 Responsibilities:
-    - Connect to the local Ollama server.
-    - Send planning prompts to Llama 3.
-    - Return the raw LLM response.
-    - Measure LLM inference latency.
-    - Report whether the LLM request succeeded.
+    - build planner prompts
+    - communicate with Ollama
+    - parse and validate plans
+    - use persistent plan cache
+    - measure LLM latency
 
-This module does NOT:
-    - select RL actions
-    - execute backend actions
-    - calculate rewards
-    - parse the LLM response
+The planner does NOT execute environment actions.
 """
 
+import os
 import time
-from typing import Any, Dict, Optional
+
+from typing import Optional
 
 import requests
 
 from config.config import config
 
+from llm.cache import LLMPlanCache
+
+from llm.parser import (
+    PlanParseError,
+    parse_plan_response,
+)
+
+from llm.prompts import (
+    PROMPT_VERSION,
+    SYSTEM_PROMPT,
+    build_planner_prompt,
+)
+
 
 class LLMPlanner:
     """
-    Communicates with a locally running Ollama Llama 3 model.
+    High-level task planner using Ollama.
     """
 
     def __init__(
         self,
-        base_url: Optional[str] = None,
-        model: Optional[str] = None,
-        temperature: Optional[float] = None,
-        timeout: Optional[int] = None,
+        model=None,
+        base_url=None,
+        timeout=None,
+        temperature=None,
+        use_cache=None,
+        cache=None,
     ):
-        """
-        Initialize the Ollama planner.
 
-        Parameters
-        ----------
-        base_url : str, optional
-            Ollama server URL.
+        # ==========================================================
+        # LLM Configuration
+        # ==========================================================
 
-        model : str, optional
-            Ollama model name.
-
-        temperature : float, optional
-            LLM sampling temperature.
-
-        timeout : int, optional
-            Maximum time allowed for an LLM request.
-        """
-
-        self.base_url = base_url if base_url is not None else config.llm.BASE_URL
-
-        self.model = model if model is not None else config.llm.MODEL
-
-        self.temperature = (
-            temperature if temperature is not None else config.llm.TEMPERATURE
+        self.model = (
+            model
+            if model is not None
+            else config.llm.MODEL
         )
 
-        self.timeout = timeout if timeout is not None else config.llm.TIMEOUT
+        self.base_url = (
+            base_url
+            if base_url is not None
+            else config.llm.BASE_URL
+        ).rstrip("/")
 
-        # Remove a trailing slash so that endpoint
-        # construction remains consistent.
-        self.base_url = self.base_url.rstrip("/")
+        self.timeout = int(
+            timeout
+            if timeout is not None
+            else config.llm.TIMEOUT
+        )
 
-        self.generate_url = f"{self.base_url}/api/generate"
+        self.temperature = float(
+            temperature
+            if temperature is not None
+            else config.llm.TEMPERATURE
+        )
+
+        self.use_cache = bool(
+            use_cache
+            if use_cache is not None
+            else config.llm.USE_CACHE
+        )
+
+        # ==========================================================
+        # Ollama Endpoint
+        # ==========================================================
+
+        self.generate_endpoint = (
+            f"{self.base_url}/api/generate"
+        )
+
+        # ==========================================================
+        # HTTP Session
+        # ==========================================================
+
+        self.session = requests.Session()
+
+        self.session.headers.update(
+            {
+                "Content-Type":
+                    "application/json",
+            }
+        )
+
+        # ==========================================================
+        # Cache
+        # ==========================================================
+
+        self.cache = (
+            cache
+            if cache is not None
+            else LLMPlanCache(
+                enabled=self.use_cache
+            )
+        )
+
+        # ==========================================================
+        # Planner Metrics
+        # ==========================================================
+
+        self.total_calls = 0
+
+        self.failed_calls = 0
+
+        self.total_latency_ms = 0.0
 
     # ==========================================================
-    # Generate Plan
+    # Generate Cache Key
     # ==========================================================
 
-    def generate_plan(
+    def _cache_key(
         self,
-        system_prompt: str,
-        user_prompt: str,
-    ) -> Dict[str, Any]:
+        goal,
+        state,
+    ):
+
+        return self.cache.make_key(
+            model=self.model,
+            goal=goal,
+            state=state,
+            prompt_version=PROMPT_VERSION,
+        )
+
+    # ==========================================================
+    # Ollama Request
+    # ==========================================================
+
+    def _call_ollama(
+        self,
+        prompt,
+    ):
         """
-        Send a planning request to Ollama.
-
-        Parameters
-        ----------
-        system_prompt : str
-            System-level instructions.
-
-        user_prompt : str
-            Current environment state and task.
+        Send one request to Ollama.
 
         Returns
         -------
-        dict
-            Contains:
-
-            response
-                Raw LLM response.
-
-            success
-                Whether the request succeeded.
-
-            latency
-                LLM inference time in seconds.
-
-            error
-                Error message if the request failed.
+        tuple
+            raw_text, latency_ms
         """
 
         payload = {
             "model": self.model,
-            "system": system_prompt,
-            "prompt": user_prompt,
+            "system": SYSTEM_PROMPT,
+            "prompt": prompt,
             "stream": False,
+            # Ask Ollama to produce JSON.
+            "format": "json",
             "options": {
                 "temperature": self.temperature,
             },
         }
 
-        start_time = time.perf_counter()
+        started = time.perf_counter()
 
-        try:
+        response = self.session.post(
+            self.generate_endpoint,
+            json=payload,
+            timeout=self.timeout,
+        )
 
-            response = requests.post(
-                self.generate_url,
-                json=payload,
-                timeout=self.timeout,
-            )
+        latency_ms = (time.perf_counter() - started) * 1000.0
 
-            latency = time.perf_counter() - start_time
+        response.raise_for_status()
 
-            response.raise_for_status()
+        data = response.json()
 
-            data = response.json()
+        raw_text = data.get("response")
 
-            llm_response = data.get(
-                "response",
-                "",
-            ).strip()
+        if not raw_text:
 
-            return {
-                "response": llm_response,
-                "success": True,
-                "latency": latency,
-                "error": None,
-            }
+            raise RuntimeError("Ollama returned an empty response.")
 
-        except requests.RequestException as exc:
-
-            latency = time.perf_counter() - start_time
-
-            return {
-                "response": "",
-                "success": False,
-                "latency": latency,
-                "error": str(exc),
-            }
-
-        except ValueError as exc:
-
-            latency = time.perf_counter() - start_time
-
-            return {
-                "response": "",
-                "success": False,
-                "latency": latency,
-                "error": (f"Invalid Ollama response: {exc}"),
-            }
+        return (
+            raw_text,
+            latency_ms,
+        )
 
     # ==========================================================
-    # Simple Planning Interface
+    # Plan
     # ==========================================================
 
     def plan(
         self,
-        prompt: str,
-        system_prompt: str,
-    ) -> Dict[str, Any]:
+        goal,
+        state,
+        force_refresh=False,
+    ):
         """
-        Generate a planning recommendation.
+        Generate a validated high-level plan.
 
         Parameters
         ----------
-        prompt : str
-            Planning prompt generated by prompts.py.
+        goal : str
 
-        system_prompt : str
-            System instructions.
+        state : dict
+            Current binary environment state.
+
+        force_refresh : bool
+            Ignore any cached plan.
 
         Returns
         -------
         dict
-            Ollama planning result.
+
+        Success result:
+
+        {
+            "success": True,
+            "cached": False,
+            "model": "llama3",
+            "action_names": [...],
+            "action_ids": [...],
+            "prerequisites": {...},
+            "llm_plan": [...],
+            "latency_ms": ...
+        }
+
+        Failure result:
+
+        {
+            "success": False,
+            "error": "...",
+            ...
+        }
         """
 
-        return self.generate_plan(
-            system_prompt=system_prompt,
-            user_prompt=prompt,
+        if (
+            not isinstance(
+                goal,
+                str,
+            )
+            or not goal.strip()
+        ):
+
+            return {
+                "success": False,
+                "error": "Planner goal is empty.",
+                "cached": False,
+                "model": self.model,
+            }
+
+        if state is None:
+
+            state = {}
+
+        key = self._cache_key(
+            goal,
+            state,
         )
 
-    # ==========================================================
-    # Ollama Health Check
-    # ==========================================================
+        # ======================================================
+        # Cache Lookup
+        # ======================================================
 
-    def is_available(self) -> bool:
-        """
-        Check whether the Ollama server is available.
+        if self.use_cache and not force_refresh:
 
-        Returns
-        -------
-        bool
-            True if Ollama is reachable.
-        """
+            cached_result = self.cache.get(key)
+
+            if cached_result is not None:
+
+                cached_result["cached"] = True
+
+                return cached_result
+
+        # ======================================================
+        # Build Prompt
+        # ======================================================
+
+        prompt = build_planner_prompt(
+            goal=goal,
+            state=state,
+        )
+
+        self.total_calls += 1
+
+        # ======================================================
+        # Ollama
+        # ======================================================
 
         try:
 
-            response = requests.get(
-                self.base_url,
-                timeout=5,
+            (
+                raw_response,
+                latency_ms,
+            ) = self._call_ollama(prompt)
+
+            self.total_latency_ms += latency_ms
+
+        except (
+            requests.RequestException,
+            ValueError,
+            RuntimeError,
+        ) as exc:
+
+            self.failed_calls += 1
+
+            return {
+                "success": False,
+                "cached": False,
+                "model": self.model,
+                "error": f"Ollama request failed: {exc}",
+            }
+
+        # ======================================================
+        # Parse Plan
+        # ======================================================
+
+        try:
+
+            parsed_plan = parse_plan_response(raw_response)
+
+        except PlanParseError as exc:
+
+            self.failed_calls += 1
+
+            return {
+                "success": False,
+                "cached": False,
+                "model": self.model,
+                "latency_ms": latency_ms,
+                "raw_response": raw_response,
+                "error": f"Plan parsing failed: {exc}",
+            }
+
+        # ======================================================
+        # Result
+        # ======================================================
+
+        result = {
+            "success": True,
+            "cached": False,
+            "model": self.model,
+            "prompt_version": PROMPT_VERSION,
+            "latency_ms": float(latency_ms),
+            "action_names": parsed_plan.action_names,
+            "action_ids": parsed_plan.action_ids,
+            "prerequisites": parsed_plan.prerequisites,
+            # This can be stored directly in Episode.llmPlan
+            "llm_plan": parsed_plan.action_names,
+            "raw_response": raw_response,
+        }
+
+        # ======================================================
+        # Cache Successful Plan
+        # ======================================================
+
+        if self.use_cache:
+
+            self.cache.set(
+                key,
+                result,
             )
 
-            return response.ok
+        return result
 
-        except requests.RequestException:
+    # ==========================================================
+    # Planner Metrics
+    # ==========================================================
 
-            return False
+    def get_metrics(
+        self,
+    ):
+        """
+        Return LLM planner metrics.
+        """
+
+        successful_calls = self.total_calls - self.failed_calls
+
+        average_latency_ms = 0.0
+
+        if successful_calls > 0:
+
+            average_latency_ms = self.total_latency_ms / successful_calls
+
+        return {
+            "model": self.model,
+            "total_calls": self.total_calls,
+            "failed_calls": self.failed_calls,
+            "successful_calls": successful_calls,
+            "total_latency_ms": self.total_latency_ms,
+            "average_latency_ms": average_latency_ms,
+            "cache": self.cache.get_stats(),
+        }
+
+    # ==========================================================
+    # Close
+    # ==========================================================
+
+    def close(
+        self,
+    ):
+
+        self.session.close()

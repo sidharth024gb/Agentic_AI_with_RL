@@ -828,3 +828,6 @@ Research Results
 ```
 
 The implementation intentionally focuses on **PPO and LLM-augmented PPO**, as the primary research question is whether LLM reasoning can improve RL training or task execution.
+
+python main.py train --episodes 100 --eval-episodes 20
+python main.py train

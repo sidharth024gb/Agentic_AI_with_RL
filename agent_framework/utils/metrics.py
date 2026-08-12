@@ -1,767 +1,648 @@
 """
 metrics.py
 
-Metrics utilities for the finance RL agent project.
+PPO metrics and Excel export.
 
-This module calculates and aggregates metrics used to evaluate
-and compare:
-
-    - PPO
-    - LLM + PPO
-
-Main research metrics include:
-
-    - episode reward
-    - success rate
-    - average steps
-    - convergence episode
-    - training time
-    - evaluation time
-    - LLM calls
-    - LLM latency
-    - LLM overhead
+Backend Episode records are treated as the authoritative
+source for episode-level performance.
 """
 
-from typing import Any, Dict, List, Optional
+import json
 
-# ==============================================================
-# Basic Statistical Functions
-# ==============================================================
+from pathlib import Path
 
+import numpy as np
+import pandas as pd
 
-def mean(
-    values: List[float],
-) -> float:
-    """
-    Calculate the arithmetic mean.
+from openpyxl.styles import (
+    Alignment,
+    Font,
+    PatternFill,
+)
 
-    None values are ignored.
-    """
+from config.config import config
 
-    valid_values = [value for value in values if value is not None]
-
-    if not valid_values:
-        return 0.0
-
-    return sum(valid_values) / len(valid_values)
+# ==========================================================
+# Helpers
+# ==========================================================
 
 
-def median(
-    values: List[float],
-) -> float:
-    """
-    Calculate the median.
+def _json_string(
+    value,
+):
 
-    None values are ignored.
-    """
+    if value is None:
+        return ""
 
-    valid_values = sorted(value for value in values if value is not None)
-
-    if not valid_values:
-        return 0.0
-
-    count = len(valid_values)
-
-    middle = count // 2
-
-    if count % 2 == 0:
-
-        return (valid_values[middle - 1] + valid_values[middle]) / 2
-
-    return valid_values[middle]
+    return json.dumps(
+        value,
+        default=str,
+        sort_keys=True,
+    )
 
 
-def minimum(
-    values: List[float],
-) -> float:
-    """
-    Return the minimum value.
-    """
-
-    valid_values = [value for value in values if value is not None]
-
-    if not valid_values:
-        return 0.0
-
-    return min(valid_values)
+# ==========================================================
+# Episode DataFrame
+# ==========================================================
 
 
-def maximum(
-    values: List[float],
-) -> float:
-    """
-    Return the maximum value.
-    """
+def episodes_to_dataframe(
+    episodes,
+):
 
-    valid_values = [value for value in values if value is not None]
+    rows = []
 
-    if not valid_values:
-        return 0.0
+    for episode in episodes:
 
-    return max(valid_values)
+        rows.append(
+            {
+                "episodeId": str(
+                    episode.get(
+                        "_id",
+                        "",
+                    )
+                ),
+                "episodeNumber": episode.get("episodeNumber"),
+                "experimentName": episode.get("experimentName"),
+                "phase": episode.get("phase"),
+                "agentType": episode.get("agentType"),
+                "algorithm": episode.get("algorithm"),
+                "seed": episode.get("seed"),
+                "goal": episode.get("goal"),
+                "totalReward": float(
+                    episode.get(
+                        "totalReward",
+                        0,
+                    )
+                    or 0
+                ),
+                "totalBaseReward": float(
+                    episode.get(
+                        "totalBaseReward",
+                        0,
+                    )
+                    or 0
+                ),
+                "totalGuidanceBonus": float(
+                    episode.get(
+                        "totalGuidanceBonus",
+                        0,
+                    )
+                    or 0
+                ),
+                "totalSteps": int(
+                    episode.get(
+                        "totalSteps",
+                        0,
+                    )
+                    or 0
+                ),
+                "successfulActions": int(
+                    episode.get(
+                        "successfulActions",
+                        0,
+                    )
+                    or 0
+                ),
+                "failedActions": int(
+                    episode.get(
+                        "failedActions",
+                        0,
+                    )
+                    or 0
+                ),
+                "noOpActions": int(
+                    episode.get(
+                        "noOpActions",
+                        0,
+                    )
+                    or 0
+                ),
+                "environmentErrors": int(
+                    episode.get(
+                        "environmentErrors",
+                        0,
+                    )
+                    or 0
+                ),
+                "completed": bool(
+                    episode.get(
+                        "completed",
+                        False,
+                    )
+                ),
+                "terminatedReason": episode.get("terminatedReason"),
+                "executionTimeMs": float(
+                    episode.get(
+                        "executionTimeMs",
+                        0,
+                    )
+                    or 0
+                ),
+                "initialState": _json_string(episode.get("initialState")),
+                "finalState": _json_string(episode.get("finalState")),
+                "createdAt": episode.get("createdAt"),
+            }
+        )
+
+    dataframe = pd.DataFrame(rows)
+
+    if not dataframe.empty and "episodeNumber" in dataframe.columns:
+
+        dataframe = dataframe.sort_values("episodeNumber").reset_index(drop=True)
+
+    return dataframe
 
 
-# ==============================================================
-# Episode Metrics
-# ==============================================================
+# ==========================================================
+# Steps DataFrame
+# ==========================================================
 
 
-def calculate_episode_metrics(
-    episode_results: List[Dict[str, Any]],
-) -> Dict[str, Any]:
-    """
-    Calculate aggregate metrics from episode results.
+def steps_to_dataframe(
+    episodes,
+):
 
-    Expected episode result format:
+    rows = []
 
-        {
-            "reward": 10,
-            "steps": 5,
-            "completed": True,
-            "terminated_reason": "GOAL_ACHIEVED"
-        }
-    """
+    for episode in episodes:
 
-    if not episode_results:
+        episode_number = episode.get("episodeNumber")
+
+        phase = episode.get("phase")
+
+        for step in episode.get(
+            "actionSequence",
+            [],
+        ):
+
+            rows.append(
+                {
+                    "episodeNumber": episode_number,
+                    "phase": phase,
+                    "stepNumber": step.get("stepNumber"),
+                    "action": step.get("action"),
+                    "endpoint": step.get("endpoint"),
+                    "baseReward": float(
+                        step.get(
+                            "baseReward",
+                            0,
+                        )
+                        or 0
+                    ),
+                    "guidanceBonus": float(
+                        step.get(
+                            "guidanceBonus",
+                            0,
+                        )
+                        or 0
+                    ),
+                    "reward": float(
+                        step.get(
+                            "reward",
+                            0,
+                        )
+                        or 0
+                    ),
+                    "success": bool(
+                        step.get(
+                            "success",
+                            False,
+                        )
+                    ),
+                    "usefulAction": bool(
+                        step.get(
+                            "usefulAction",
+                            True,
+                        )
+                    ),
+                    "environmentError": bool(
+                        step.get(
+                            "environmentError",
+                            False,
+                        )
+                    ),
+                    "procedureFollowed": step.get("procedureFollowed"),
+                    "durationMs": float(
+                        step.get(
+                            "durationMs",
+                            0,
+                        )
+                        or 0
+                    ),
+                    "message": step.get("message"),
+                    "stateBefore": _json_string(step.get("stateBefore")),
+                    "stateAfter": _json_string(step.get("stateAfter")),
+                }
+            )
+
+    return pd.DataFrame(rows)
+
+
+# ==========================================================
+# Convergence
+# ==========================================================
+
+
+def calculate_convergence_episode(
+    training_df,
+    window_size=None,
+    success_threshold=None,
+):
+
+    if training_df.empty:
+        return None
+
+    window_size = window_size or config.training.CONVERGENCE_WINDOW
+
+    success_threshold = (
+        success_threshold
+        if success_threshold is not None
+        else config.training.CONVERGENCE_SUCCESS_THRESHOLD
+    )
+
+    if len(training_df) < window_size:
+
+        return None
+
+    rolling_success = (
+        training_df["completed"]
+        .astype(float)
+        .rolling(
+            window=window_size,
+        )
+        .mean()
+    )
+
+    matches = rolling_success[rolling_success >= success_threshold]
+
+    if matches.empty:
+
+        return None
+
+    index = matches.index[0]
+
+    return int(
+        training_df.loc[
+            index,
+            "episodeNumber",
+        ]
+    )
+
+
+# ==========================================================
+# Summary
+# ==========================================================
+
+
+def calculate_episode_summary(
+    dataframe,
+):
+
+    if dataframe.empty:
 
         return {
             "episodes": 0,
+            "completed": 0,
+            "success_rate": 0.0,
             "average_reward": 0.0,
             "median_reward": 0.0,
+            "reward_std": 0.0,
             "best_reward": 0.0,
             "worst_reward": 0.0,
             "average_steps": 0.0,
             "median_steps": 0.0,
-            "success_rate": 0.0,
-            "completed_episodes": 0,
+            "average_execution_ms": 0.0,
+            "environment_errors": 0,
+            "no_op_actions": 0,
+            "failed_actions": 0,
         }
 
-    rewards = [
-        episode.get(
-            "reward",
-            0.0,
-        )
-        for episode in episode_results
-    ]
+    completed = int(dataframe["completed"].sum())
 
-    steps = [
-        episode.get(
-            "steps",
-            0,
-        )
-        for episode in episode_results
-    ]
+    return {
+        "episodes": len(dataframe),
+        "completed": completed,
+        "success_rate": completed / len(dataframe),
+        "average_reward": float(dataframe["totalReward"].mean()),
+        "median_reward": float(dataframe["totalReward"].median()),
+        "reward_std": float(dataframe["totalReward"].std(ddof=0)),
+        "best_reward": float(dataframe["totalReward"].max()),
+        "worst_reward": float(dataframe["totalReward"].min()),
+        "average_steps": float(dataframe["totalSteps"].mean()),
+        "median_steps": float(dataframe["totalSteps"].median()),
+        "average_execution_ms": float(dataframe["executionTimeMs"].mean()),
+        "environment_errors": int(dataframe["environmentErrors"].sum()),
+        "no_op_actions": int(dataframe["noOpActions"].sum()),
+        "failed_actions": int(dataframe["failedActions"].sum()),
+    }
 
-    completed = [
-        bool(
-            episode.get(
-                "completed",
-                False,
+
+# ==========================================================
+# Full Metrics Tables
+# ==========================================================
+
+
+def build_metric_tables(
+    training_episodes,
+    evaluation_episodes,
+    ppo_updates,
+    training_time,
+    evaluation_time,
+):
+
+    training_df = episodes_to_dataframe(training_episodes)
+
+    evaluation_df = episodes_to_dataframe(evaluation_episodes)
+
+    all_episodes = list(training_episodes) + list(evaluation_episodes)
+
+    steps_df = steps_to_dataframe(all_episodes)
+
+    updates_df = pd.DataFrame(ppo_updates)
+
+    training_summary = calculate_episode_summary(training_df)
+
+    evaluation_summary = calculate_episode_summary(evaluation_df)
+
+    convergence_episode = calculate_convergence_episode(training_df)
+
+    training_summary["convergence_episode"] = convergence_episode
+
+    training_summary["wall_clock_seconds"] = training_time
+
+    evaluation_summary["wall_clock_seconds"] = evaluation_time
+
+    # ------------------------------------------------------
+    # Summary table
+    # ------------------------------------------------------
+
+    metrics = sorted(set(training_summary.keys()) | set(evaluation_summary.keys()))
+
+    summary_df = pd.DataFrame(
+        [
+            {
+                "metric": metric,
+                "training": training_summary.get(metric),
+                "evaluation": evaluation_summary.get(metric),
+            }
+            for metric in metrics
+        ]
+    )
+
+    # ------------------------------------------------------
+    # Action summary
+    # ------------------------------------------------------
+
+    if not steps_df.empty:
+
+        action_summary = (
+            steps_df.groupby(
+                [
+                    "phase",
+                    "action",
+                ],
+                dropna=False,
             )
-        )
-        for episode in episode_results
-    ]
-
-    completed_count = sum(completed)
-
-    episode_count = len(episode_results)
-
-    return {
-        "episodes": episode_count,
-        "average_reward": mean(rewards),
-        "median_reward": median(rewards),
-        "best_reward": maximum(rewards),
-        "worst_reward": minimum(rewards),
-        "average_steps": mean(steps),
-        "median_steps": median(steps),
-        "success_rate": (completed_count / episode_count),
-        "completed_episodes": (completed_count),
-    }
-
-
-# ==============================================================
-# Success Rate
-# ==============================================================
-
-
-def calculate_success_rate(
-    completed_episodes: int,
-    total_episodes: int,
-) -> float:
-    """
-    Calculate episode success rate.
-    """
-
-    if total_episodes <= 0:
-
-        return 0.0
-
-    return completed_episodes / total_episodes
-
-
-# ==============================================================
-# Convergence
-# ==============================================================
-
-
-def calculate_convergence_episode(
-    rewards: List[float],
-    success_flags: Optional[List[bool]] = None,
-    window_size: int = 50,
-    reward_threshold: Optional[float] = None,
-    success_threshold: float = 1.0,
-) -> Optional[int]:
-    """
-    Estimate the episode at which the agent converges.
-
-    Convergence is detected when a moving window satisfies:
-
-        - reward threshold, if supplied
-        - success-rate threshold, if supplied
-
-    If success_flags are not supplied, convergence is based
-    only on reward.
-
-    Parameters
-    ----------
-    rewards :
-        Reward obtained at each episode.
-
-    success_flags :
-        Whether each episode completed successfully.
-
-    window_size :
-        Number of episodes in the moving window.
-
-    reward_threshold :
-        Required average reward.
-
-    success_threshold :
-        Required moving-window success rate.
-
-    Returns
-    -------
-    int or None
-        First episode satisfying the convergence criteria.
-    """
-
-    if not rewards:
-
-        return None
-
-    if window_size <= 0:
-
-        raise ValueError("window_size must be greater than zero.")
-
-    if success_flags is not None and len(success_flags) != len(rewards):
-
-        raise ValueError("rewards and success_flags " "must have the same length.")
-
-    if len(rewards) < window_size:
-
-        return None
-
-    for index in range(
-        window_size,
-        len(rewards) + 1,
-    ):
-
-        reward_window = rewards[index - window_size : index]
-
-        average_reward = mean(reward_window)
-
-        # ------------------------------------------------------
-        # Reward criterion
-        # ------------------------------------------------------
-
-        if reward_threshold is not None and average_reward < reward_threshold:
-
-            continue
-
-        # ------------------------------------------------------
-        # Success criterion
-        # ------------------------------------------------------
-
-        if success_flags is not None:
-
-            success_window = success_flags[index - window_size : index]
-
-            success_rate = sum(success_window) / window_size
-
-            if success_rate < success_threshold:
-
-                continue
-
-        return index
-
-    return None
-
-
-# ==============================================================
-# Training Metrics
-# ==============================================================
-
-
-def calculate_training_metrics(
-    episode_results: List[Dict[str, Any]],
-    training_time: float,
-    convergence_window: int = 50,
-    reward_threshold: Optional[float] = None,
-    success_threshold: float = 1.0,
-) -> Dict[str, Any]:
-    """
-    Calculate complete training metrics.
-
-    This is intended to be used by the training pipeline
-    after a training run has completed.
-    """
-
-    base_metrics = calculate_episode_metrics(episode_results)
-
-    rewards = [
-        episode.get(
-            "reward",
-            0.0,
-        )
-        for episode in episode_results
-    ]
-
-    success_flags = [
-        bool(
-            episode.get(
-                "completed",
-                False,
+            .agg(
+                count=(
+                    "action",
+                    "size",
+                ),
+                successful=(
+                    "success",
+                    "sum",
+                ),
+                useful=(
+                    "usefulAction",
+                    "sum",
+                ),
+                environment_errors=(
+                    "environmentError",
+                    "sum",
+                ),
+                total_reward=(
+                    "reward",
+                    "sum",
+                ),
+                average_reward=(
+                    "reward",
+                    "mean",
+                ),
+                average_duration_ms=(
+                    "durationMs",
+                    "mean",
+                ),
             )
-        )
-        for episode in episode_results
-    ]
-
-    convergence_episode = calculate_convergence_episode(
-        rewards=rewards,
-        success_flags=success_flags,
-        window_size=convergence_window,
-        reward_threshold=reward_threshold,
-        success_threshold=success_threshold,
-    )
-
-    base_metrics["convergence_episode"] = convergence_episode
-
-    base_metrics["training_time"] = training_time
-
-    return base_metrics
-
-
-# ==============================================================
-# Evaluation Metrics
-# ==============================================================
-
-
-def calculate_evaluation_metrics(
-    episode_results: List[Dict[str, Any]],
-    evaluation_time: float,
-) -> Dict[str, Any]:
-    """
-    Calculate evaluation metrics.
-
-    Evaluation does not modify the agent.
-    """
-
-    metrics = calculate_episode_metrics(episode_results)
-
-    metrics["evaluation_time"] = evaluation_time
-
-    return metrics
-
-
-# ==============================================================
-# LLM Metrics
-# ==============================================================
-
-
-def calculate_llm_metrics(
-    llm_calls: int,
-    llm_failures: int,
-    total_llm_latency: float,
-) -> Dict[str, Any]:
-    """
-    Calculate LLM-related metrics.
-
-    These metrics are particularly important for comparing
-    PPO against LLM + PPO.
-    """
-
-    if llm_calls > 0:
-
-        average_latency = total_llm_latency / llm_calls
-
-        llm_success_rate = (llm_calls - llm_failures) / llm_calls
-
-    else:
-
-        average_latency = 0.0
-
-        llm_success_rate = 0.0
-
-    return {
-        "llm_calls": llm_calls,
-        "llm_failures": (llm_failures),
-        "llm_success_rate": (llm_success_rate),
-        "average_llm_latency": (average_latency),
-        "total_llm_latency": (total_llm_latency),
-    }
-
-
-# ==============================================================
-# Training Efficiency
-# ==============================================================
-
-
-def calculate_training_efficiency(
-    convergence_episode: Optional[int],
-    training_time: float,
-) -> Dict[str, Any]:
-    """
-    Calculate training efficiency.
-
-    Lower convergence episode generally indicates faster
-    learning.
-
-    Lower training time indicates lower computational cost.
-    """
-
-    if convergence_episode is not None and convergence_episode > 0:
-
-        episodes_per_second = (
-            convergence_episode / training_time if training_time > 0 else 0.0
+            .reset_index()
         )
 
     else:
 
-        episodes_per_second = 0.0
+        action_summary = pd.DataFrame()
 
-    return {
-        "convergence_episode": (convergence_episode),
-        "training_time": (training_time),
-        "episodes_to_convergence": (convergence_episode),
-        "episodes_per_second": (episodes_per_second),
-    }
+    # ------------------------------------------------------
+    # Termination summary
+    # ------------------------------------------------------
 
+    combined_df = pd.concat(
+        [
+            training_df,
+            evaluation_df,
+        ],
+        ignore_index=True,
+    )
 
-# ==============================================================
-# LLM Overhead
-# ==============================================================
+    if not combined_df.empty:
 
-
-def calculate_llm_overhead(
-    ppo_training_time: float,
-    llm_ppo_training_time: float,
-    llm_latency: float,
-) -> Dict[str, Any]:
-    """
-    Calculate the additional cost introduced by LLM guidance.
-
-    This allows the experiment to distinguish:
-
-        learning improvement
-
-    from:
-
-        additional computational/latency cost.
-    """
-
-    training_time_difference = llm_ppo_training_time - ppo_training_time
-
-    if ppo_training_time > 0:
-
-        percentage_overhead = (training_time_difference / ppo_training_time) * 100.0
+        termination_summary = (
+            combined_df.groupby(
+                [
+                    "phase",
+                    "terminatedReason",
+                ],
+                dropna=False,
+            )
+            .size()
+            .reset_index(name="count")
+        )
 
     else:
 
-        percentage_overhead = 0.0
+        termination_summary = pd.DataFrame()
 
     return {
-        "ppo_training_time": (ppo_training_time),
-        "llm_ppo_training_time": (llm_ppo_training_time),
-        "llm_latency": (llm_latency),
-        "additional_training_time": (training_time_difference),
-        "training_time_overhead_percent": (percentage_overhead),
+        "summary": summary_df,
+        "training_episodes": training_df,
+        "evaluation_episodes": evaluation_df,
+        "steps": steps_df,
+        "ppo_updates": updates_df,
+        "action_summary": action_summary,
+        "termination_summary": termination_summary,
     }
 
 
-# ==============================================================
-# Agent Comparison
-# ==============================================================
+# ==========================================================
+# Config Snapshot
+# ==========================================================
 
 
-def compare_agents(
-    ppo_metrics: Dict[str, Any],
-    llm_ppo_metrics: Dict[str, Any],
-) -> Dict[str, Any]:
-    """
-    Compare PPO against LLM + PPO.
+def config_dataframe():
 
-    Positive improvement means the LLM + PPO result is better
-    for that metric.
-
-    For average steps and convergence episode, lower is better.
-
-    For reward and success rate, higher is better.
-    """
-
-    ppo_training = ppo_metrics.get("training", {})
-
-    llm_training = llm_ppo_metrics.get("training", {})
-
-    ppo_evaluation = ppo_metrics.get("evaluation", {})
-
-    llm_evaluation = llm_ppo_metrics.get("evaluation", {})
-
-    # ----------------------------------------------------------
-    # Training
-    # ----------------------------------------------------------
-
-    training_reward_improvement = _percentage_change(
-        ppo_training.get(
-            "average_reward",
-            0.0,
-        ),
-        llm_training.get(
-            "average_reward",
-            0.0,
-        ),
-    )
-
-    training_success_improvement = _percentage_change(
-        ppo_training.get(
-            "success_rate",
-            0.0,
-        ),
-        llm_training.get(
-            "success_rate",
-            0.0,
-        ),
-    )
-
-    training_steps_improvement = _percentage_reduction(
-        ppo_training.get(
-            "average_steps",
-            0.0,
-        ),
-        llm_training.get(
-            "average_steps",
-            0.0,
-        ),
-    )
-
-    # ----------------------------------------------------------
-    # Evaluation
-    # ----------------------------------------------------------
-
-    evaluation_reward_improvement = _percentage_change(
-        ppo_evaluation.get(
-            "average_reward",
-            0.0,
-        ),
-        llm_evaluation.get(
-            "average_reward",
-            0.0,
-        ),
-    )
-
-    evaluation_success_improvement = _percentage_change(
-        ppo_evaluation.get(
-            "success_rate",
-            0.0,
-        ),
-        llm_evaluation.get(
-            "success_rate",
-            0.0,
-        ),
-    )
-
-    evaluation_steps_improvement = _percentage_reduction(
-        ppo_evaluation.get(
-            "average_steps",
-            0.0,
-        ),
-        llm_evaluation.get(
-            "average_steps",
-            0.0,
-        ),
-    )
-
-    # ----------------------------------------------------------
-    # Convergence
-    # ----------------------------------------------------------
-
-    ppo_convergence = ppo_training.get("convergence_episode")
-
-    llm_convergence = llm_training.get("convergence_episode")
-
-    convergence_improvement = _percentage_reduction(
-        ppo_convergence,
-        llm_convergence,
-    )
-
-    # ----------------------------------------------------------
-    # Training time
-    # ----------------------------------------------------------
-
-    training_time_difference = llm_training.get(
-        "training_time",
-        0.0,
-    ) - ppo_training.get(
-        "training_time",
-        0.0,
-    )
-
-    training_time_overhead = _percentage_change(
-        ppo_training.get(
-            "training_time",
-            0.0,
-        ),
-        llm_training.get(
-            "training_time",
-            0.0,
-        ),
-    )
-
-    return {
-        "training": {
-            "reward_improvement_percent": (training_reward_improvement),
-            "success_rate_improvement_percent": (training_success_improvement),
-            "steps_reduction_percent": (training_steps_improvement),
-            "convergence_improvement_percent": (convergence_improvement),
-        },
-        "evaluation": {
-            "reward_improvement_percent": (evaluation_reward_improvement),
-            "success_rate_improvement_percent": (evaluation_success_improvement),
-            "steps_reduction_percent": (evaluation_steps_improvement),
-        },
-        "cost": {
-            "additional_training_time": (training_time_difference),
-            "training_time_overhead_percent": (training_time_overhead),
-        },
+    values = {
+        "TOTAL_EPISODES": config.training.TOTAL_EPISODES,
+        "EVALUATION_EPISODES": config.training.EVALUATION_EPISODES,
+        "GAMMA": config.training.GAMMA,
+        "GAE_LAMBDA": config.training.GAE_LAMBDA,
+        "CLIP_EPSILON": config.training.CLIP_EPSILON,
+        "LEARNING_RATE": config.training.LEARNING_RATE,
+        "BATCH_SIZE": config.training.BATCH_SIZE,
+        "UPDATE_INTERVAL": config.training.UPDATE_INTERVAL,
+        "EPOCHS": config.training.EPOCHS,
+        "HIDDEN_NEURON_SIZE": config.training.HIDDEN_NEURON_SIZE,
+        "MAX_STEPS_PER_EPISODE": config.environment.MAX_STEPS_PER_EPISODE,
+        "RANDOM_SEED": config.environment.RANDOM_SEED,
+        "ACTION_SPACE_SIZE": config.environment.ACTION_SPACE_SIZE,
     }
 
-
-# ==============================================================
-# Percentage Helpers
-# ==============================================================
-
-
-def _percentage_change(
-    baseline: Optional[float],
-    new_value: Optional[float],
-) -> float:
-    """
-    Calculate percentage change:
-
-        ((new - baseline) / baseline) * 100
-
-    Used when higher values are generally better.
-    """
-
-    if baseline is None:
-        return 0.0
-
-    if baseline == 0:
-
-        return 0.0
-
-    if new_value is None:
-
-        return 0.0
-
-    return ((new_value - baseline) / abs(baseline)) * 100.0
+    return pd.DataFrame(
+        [
+            {
+                "parameter": key,
+                "value": value,
+            }
+            for key, value in values.items()
+        ]
+    )
 
 
-def _percentage_reduction(
-    baseline: Optional[float],
-    new_value: Optional[float],
-) -> float:
-    """
-    Calculate percentage reduction:
-
-        ((baseline - new) / baseline) * 100
-
-    Used when lower values are better.
-    """
-
-    if baseline is None:
-        return 0.0
-
-    if baseline == 0:
-
-        return 0.0
-
-    if new_value is None:
-
-        return 0.0
-
-    return ((baseline - new_value) / abs(baseline)) * 100.0
+# ==========================================================
+# Excel Export
+# ==========================================================
 
 
-# ==============================================================
-# Run-Level Aggregation
-# ==============================================================
+def export_metrics_excel(
+    tables,
+    output_path,
+):
 
+    output_path = Path(output_path)
 
-def aggregate_runs(
-    runs: List[Dict[str, Any]],
-) -> Dict[str, Any]:
-    """
-    Aggregate metrics across multiple independent runs.
+    output_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
-    Each run is expected to contain:
+    with pd.ExcelWriter(
+        output_path,
+        engine="openpyxl",
+    ) as writer:
 
-        {
-            "training": {...},
-            "evaluation": {...}
-        }
-    """
+        tables["summary"].to_excel(
+            writer,
+            sheet_name="Summary",
+            index=False,
+        )
 
-    if not runs:
+        tables["training_episodes"].to_excel(
+            writer,
+            sheet_name="Training Episodes",
+            index=False,
+        )
 
-        return {}
+        tables["evaluation_episodes"].to_excel(
+            writer,
+            sheet_name="Evaluation Episodes",
+            index=False,
+        )
 
-    training = [run.get("training", {}) for run in runs]
+        tables["ppo_updates"].to_excel(
+            writer,
+            sheet_name="PPO Updates",
+            index=False,
+        )
 
-    evaluation = [run.get("evaluation", {}) for run in runs]
+        tables["action_summary"].to_excel(
+            writer,
+            sheet_name="Action Summary",
+            index=False,
+        )
 
-    return {
-        "runs": len(runs),
-        "training": {
-            "average_reward": mean([item.get("average_reward") for item in training]),
-            "success_rate": mean([item.get("success_rate") for item in training]),
-            "average_steps": mean([item.get("average_steps") for item in training]),
-            "convergence_episode": mean(
-                [item.get("convergence_episode") for item in training]
-            ),
-            "training_time": mean([item.get("training_time") for item in training]),
-        },
-        "evaluation": {
-            "average_reward": mean([item.get("average_reward") for item in evaluation]),
-            "success_rate": mean([item.get("success_rate") for item in evaluation]),
-            "average_steps": mean([item.get("average_steps") for item in evaluation]),
-            "evaluation_time": mean(
-                [item.get("evaluation_time") for item in evaluation]
-            ),
-        },
-    }
+        tables["termination_summary"].to_excel(
+            writer,
+            sheet_name="Termination Summary",
+            index=False,
+        )
 
+        tables["steps"].to_excel(
+            writer,
+            sheet_name="Steps",
+            index=False,
+        )
 
-"""
-| Metric                            | Interpretation                                   |
-| --------------------------------- | ------------------------------------------------ |
-| `success_rate`                    | Does the agent achieve the goal?                 |
-| `average_reward`                  | How good is the behaviour?                       |
-| `average_steps`                   | How efficiently is the goal reached?             |
-| `convergence_episode`             | How quickly does learning stabilize?             |
-| `training_time`                   | How expensive is training?                       |
-| `llm_latency`                     | What cost does LLM guidance introduce?           |
-| `steps_reduction_percent`         | Does LLM guidance make execution more efficient? |
-| `convergence_improvement_percent` | Does LLM guidance speed up learning?             |
-| `training_time_overhead_percent`  | How much extra cost does the LLM introduce?      |
+        config_dataframe().to_excel(
+            writer,
+            sheet_name="Configuration",
+            index=False,
+        )
 
-"""
+        workbook = writer.book
+
+        # ======================================================
+        # Workbook Styling
+        # ======================================================
+
+        header_fill = PatternFill(
+            "solid",
+            fgColor="D9EAF7",
+        )
+
+        header_font = Font(bold=True)
+
+        for worksheet in workbook.worksheets:
+
+            worksheet.freeze_panes = "A2"
+
+            worksheet.auto_filter.ref = worksheet.dimensions
+
+            for cell in worksheet[1]:
+
+                cell.font = header_font
+
+                cell.fill = header_fill
+
+                cell.alignment = Alignment(
+                    horizontal="center",
+                    vertical="center",
+                )
+
+            for column_cells in worksheet.columns:
+
+                max_length = 0
+
+                column_letter = column_cells[0].column_letter
+
+                for cell in column_cells:
+
+                    try:
+
+                        value = "" if cell.value is None else str(cell.value)
+
+                        max_length = max(
+                            max_length,
+                            len(value),
+                        )
+
+                    except Exception:
+
+                        pass
+
+                worksheet.column_dimensions[column_letter].width = min(
+                    max(
+                        max_length + 2,
+                        12,
+                    ),
+                    50,
+                )
+
+    return str(output_path)
