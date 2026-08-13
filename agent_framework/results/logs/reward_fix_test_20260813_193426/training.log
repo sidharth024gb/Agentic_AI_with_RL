@@ -1,0 +1,51 @@
+2026-08-13 19:34:26 | INFO | experiment.reward_fix_test_20260813_193426 | ========================================
+2026-08-13 19:34:26 | INFO | experiment.reward_fix_test_20260813_193426 | STARTING PPO EXPERIMENT
+2026-08-13 19:34:26 | INFO | experiment.reward_fix_test_20260813_193426 | Run name: reward_fix_test_20260813_193426
+2026-08-13 19:34:26 | INFO | experiment.reward_fix_test_20260813_193426 | Runtime config | agentType=RL | algorithm=PPO | guidance=NONE | guidanceBonus=0.00
+2026-08-13 19:34:26 | INFO | experiment.reward_fix_test_20260813_193426 | PPO config | gamma=0.99 | lr=0.0003 | rollout=256 | batch=64 | epochs=10 | entropy=0.01 | gradClip=0.5
+2026-08-13 19:34:26 | INFO | experiment.reward_fix_test_20260813_193426 | ========================================
+2026-08-13 19:34:26 | INFO | experiment.reward_fix_test_20260813_193426 | Authenticating AGENT_BOT.
+2026-08-13 19:34:26 | INFO | experiment.reward_fix_test_20260813_193426 | Backend authentication successful | role=AGENT_BOT
+2026-08-13 19:34:27 | INFO | experiment.reward_fix_test_20260813_193426 | Agent ready | type=PPO | base_observation=13 | policy_observation=13 | actions=8 | device=cpu
+2026-08-13 19:34:27 | INFO | experiment.reward_fix_test_20260813_193426 | PPO training started | episodes=50
+2026-08-13 19:34:28 | INFO | experiment.reward_fix_test_20260813_193426 | Episode 1/50 | reward=9.00 | steps=20 | completed=False | recent_reward=9.00 | recent_success=0.00% | env_errors=0 | buffer=20
+2026-08-13 19:34:35 | INFO | experiment.reward_fix_test_20260813_193426 | Episode 10/50 | reward=9.50 | steps=20 | completed=False | recent_reward=7.50 | recent_success=20.00% | env_errors=0 | buffer=178
+2026-08-13 19:34:42 | INFO | experiment.reward_fix_test_20260813_193426 | Episode 20/50 | reward=6.50 | steps=20 | completed=False | recent_reward=3.35 | recent_success=10.00% | env_errors=0 | buffer=120
+2026-08-13 19:34:50 | INFO | experiment.reward_fix_test_20260813_193426 | Episode 30/50 | reward=0.00 | steps=20 | completed=False | recent_reward=4.45 | recent_success=10.00% | env_errors=0 | buffer=64
+2026-08-13 19:34:58 | INFO | experiment.reward_fix_test_20260813_193426 | Episode 40/50 | reward=8.00 | steps=20 | completed=False | recent_reward=6.75 | recent_success=10.00% | env_errors=0 | buffer=2
+2026-08-13 19:35:09 | INFO | experiment.reward_fix_test_20260813_193426 | Episode 50/50 | reward=-2.00 | steps=20 | completed=False | recent_reward=4.85 | recent_success=0.00% | env_errors=0 | buffer=202
+2026-08-13 19:35:09 | INFO | experiment.reward_fix_test_20260813_193426 | PPO training complete | time=41.81s | steps=970 | updates=4 | valid_episodes=50 | env_errors=0
+2026-08-13 19:35:09 | INFO | experiment.reward_fix_test_20260813_193426 | PPO deterministic evaluation started | episodes=10
+2026-08-13 19:35:17 | INFO | experiment.reward_fix_test_20260813_193426 | PPO evaluation complete | success=0/10 valid | success_rate=0.00% | environment_errors=0 | time=8.17s
+2026-08-13 19:35:17 | INFO | experiment.reward_fix_test_20260813_193426 | Evaluation accounting | valid=10 | envErrors=0 | success=0 | successRate=0.00%
+2026-08-13 19:35:17 | INFO | experiment.reward_fix_test_20260813_193426 | Fetching authoritative TRAIN episodes.
+2026-08-13 19:35:18 | INFO | experiment.reward_fix_test_20260813_193426 | Training episodes retrieved: 50
+2026-08-13 19:35:18 | INFO | experiment.reward_fix_test_20260813_193426 | Fetching authoritative EVALUATION episodes.
+2026-08-13 19:35:18 | INFO | experiment.reward_fix_test_20260813_193426 | Evaluation episodes retrieved: 10
+2026-08-13 19:35:20 | INFO | experiment.reward_fix_test_20260813_193426 | 
+                    metric   training  evaluation
+      average_execution_ms 798.060000  781.800000
+            average_reward   5.380000    4.700000
+             average_steps  19.400000   20.000000
+               best_reward  34.500000    8.000000
+                 completed   5.000000    0.000000
+       convergence_episode        NaN         NaN
+environment_error_episodes   0.000000    0.000000
+        environment_errors   0.000000    0.000000
+                  episodes  50.000000   10.000000
+            failed_actions 488.000000   38.000000
+             median_reward   4.250000    8.000000
+              median_steps  20.000000   20.000000
+             no_op_actions 273.000000  136.000000
+                reward_std   9.989274    6.600000
+              success_rate   0.100000    0.000000
+      total_guidance_bonus   0.000000    0.000000
+            valid_episodes  50.000000   10.000000
+        wall_clock_seconds  41.807061    8.172437
+              worst_reward -10.000000   -8.500000
+2026-08-13 19:35:20 | INFO | experiment.reward_fix_test_20260813_193426 | ========================================
+2026-08-13 19:35:20 | INFO | experiment.reward_fix_test_20260813_193426 | PPO RUN COMPLETE
+2026-08-13 19:35:20 | INFO | experiment.reward_fix_test_20260813_193426 | Model   : C:\PY_Programs\MSc_Project\agent_framework\results\models\reward_fix_test_20260813_193426\ppo_final.pt
+2026-08-13 19:35:20 | INFO | experiment.reward_fix_test_20260813_193426 | Metrics : C:\PY_Programs\MSc_Project\agent_framework\results\metrics\reward_fix_test_20260813_193426\ppo_results.xlsx
+2026-08-13 19:35:20 | INFO | experiment.reward_fix_test_20260813_193426 | Graphs  : C:\PY_Programs\MSc_Project\agent_framework\results\graphs\reward_fix_test_20260813_193426
+2026-08-13 19:35:20 | INFO | experiment.reward_fix_test_20260813_193426 | ========================================

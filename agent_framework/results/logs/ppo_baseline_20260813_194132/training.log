@@ -1,0 +1,156 @@
+2026-08-13 19:41:32 | INFO | experiment.ppo_baseline_20260813_194132 | ========================================
+2026-08-13 19:41:32 | INFO | experiment.ppo_baseline_20260813_194132 | STARTING PPO EXPERIMENT
+2026-08-13 19:41:32 | INFO | experiment.ppo_baseline_20260813_194132 | Run name: ppo_baseline_20260813_194132
+2026-08-13 19:41:32 | INFO | experiment.ppo_baseline_20260813_194132 | Runtime config | agentType=RL | algorithm=PPO | guidance=NONE | guidanceBonus=0.00
+2026-08-13 19:41:32 | INFO | experiment.ppo_baseline_20260813_194132 | PPO config | gamma=0.99 | lr=0.0003 | rollout=256 | batch=64 | epochs=10 | entropy=0.01 | gradClip=0.5
+2026-08-13 19:41:32 | INFO | experiment.ppo_baseline_20260813_194132 | ========================================
+2026-08-13 19:41:32 | INFO | experiment.ppo_baseline_20260813_194132 | Authenticating AGENT_BOT.
+2026-08-13 19:41:33 | INFO | experiment.ppo_baseline_20260813_194132 | Backend authentication successful | role=AGENT_BOT
+2026-08-13 19:41:34 | INFO | experiment.ppo_baseline_20260813_194132 | Agent ready | type=PPO | base_observation=13 | policy_observation=13 | actions=8 | device=cpu
+2026-08-13 19:41:34 | INFO | experiment.ppo_baseline_20260813_194132 | PPO training started | episodes=1000
+2026-08-13 19:41:35 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 1/1000 | reward=9.00 | steps=20 | completed=False | recent_reward=9.00 | recent_success=0.00% | env_errors=0 | buffer=20
+2026-08-13 19:41:41 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 10/1000 | reward=10.50 | steps=20 | completed=False | recent_reward=3.30 | recent_success=0.00% | env_errors=0 | buffer=200
+2026-08-13 19:41:49 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 20/1000 | reward=5.50 | steps=20 | completed=False | recent_reward=0.90 | recent_success=0.00% | env_errors=0 | buffer=144
+2026-08-13 19:41:55 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 30/1000 | reward=10.50 | steps=20 | completed=False | recent_reward=5.05 | recent_success=0.00% | env_errors=0 | buffer=88
+2026-08-13 19:42:02 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 40/1000 | reward=6.00 | steps=20 | completed=False | recent_reward=2.70 | recent_success=0.00% | env_errors=0 | buffer=32
+2026-08-13 19:42:11 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 50/1000 | reward=10.50 | steps=20 | completed=False | recent_reward=6.85 | recent_success=0.00% | env_errors=0 | buffer=232
+2026-08-13 19:42:20 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 60/1000 | reward=9.00 | steps=20 | completed=False | recent_reward=7.60 | recent_success=0.00% | env_errors=0 | buffer=176
+2026-08-13 19:42:28 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 70/1000 | reward=9.00 | steps=20 | completed=False | recent_reward=7.45 | recent_success=10.00% | env_errors=0 | buffer=111
+2026-08-13 19:42:36 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 80/1000 | reward=13.00 | steps=20 | completed=False | recent_reward=8.30 | recent_success=0.00% | env_errors=0 | buffer=55
+2026-08-13 19:42:45 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 90/1000 | reward=11.00 | steps=20 | completed=False | recent_reward=9.70 | recent_success=0.00% | env_errors=0 | buffer=255
+2026-08-13 19:42:55 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 100/1000 | reward=11.00 | steps=20 | completed=False | recent_reward=11.20 | recent_success=10.00% | env_errors=0 | buffer=196
+2026-08-13 19:42:55 | INFO | experiment.ppo_baseline_20260813_194132 | Checkpoint saved: C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_20260813_194132\ppo_episode_100.pt
+2026-08-13 19:43:03 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 110/1000 | reward=34.50 | steps=7 | completed=True | recent_reward=10.25 | recent_success=10.00% | env_errors=0 | buffer=127
+2026-08-13 19:43:13 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 120/1000 | reward=11.00 | steps=20 | completed=False | recent_reward=8.50 | recent_success=0.00% | env_errors=0 | buffer=71
+2026-08-13 19:43:23 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 130/1000 | reward=2.00 | steps=20 | completed=False | recent_reward=10.10 | recent_success=0.00% | env_errors=0 | buffer=15
+2026-08-13 19:43:31 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 140/1000 | reward=11.00 | steps=20 | completed=False | recent_reward=13.50 | recent_success=10.00% | env_errors=0 | buffer=211
+2026-08-13 19:43:42 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 150/1000 | reward=9.00 | steps=20 | completed=False | recent_reward=11.90 | recent_success=10.00% | env_errors=0 | buffer=150
+2026-08-13 19:43:54 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 160/1000 | reward=10.50 | steps=20 | completed=False | recent_reward=10.25 | recent_success=0.00% | env_errors=0 | buffer=94
+2026-08-13 19:44:03 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 170/1000 | reward=16.50 | steps=20 | completed=False | recent_reward=13.05 | recent_success=10.00% | env_errors=0 | buffer=23
+2026-08-13 19:44:13 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 180/1000 | reward=11.00 | steps=20 | completed=False | recent_reward=10.05 | recent_success=0.00% | env_errors=0 | buffer=223
+2026-08-13 19:44:24 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 190/1000 | reward=10.50 | steps=20 | completed=False | recent_reward=10.50 | recent_success=0.00% | env_errors=0 | buffer=167
+2026-08-13 19:44:35 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 200/1000 | reward=8.50 | steps=20 | completed=False | recent_reward=11.85 | recent_success=10.00% | env_errors=0 | buffer=107
+2026-08-13 19:44:35 | INFO | experiment.ppo_baseline_20260813_194132 | Checkpoint saved: C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_20260813_194132\ppo_episode_200.pt
+2026-08-13 19:44:46 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 210/1000 | reward=29.50 | steps=10 | completed=True | recent_reward=12.05 | recent_success=10.00% | env_errors=0 | buffer=41
+2026-08-13 19:44:55 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 220/1000 | reward=9.50 | steps=20 | completed=False | recent_reward=10.60 | recent_success=0.00% | env_errors=0 | buffer=241
+2026-08-13 19:45:05 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 230/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=10.05 | recent_success=0.00% | env_errors=0 | buffer=185
+2026-08-13 19:45:14 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 240/1000 | reward=10.50 | steps=20 | completed=False | recent_reward=16.15 | recent_success=20.00% | env_errors=0 | buffer=106
+2026-08-13 19:45:24 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 250/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=10.90 | recent_success=10.00% | env_errors=0 | buffer=37
+2026-08-13 19:45:37 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 260/1000 | reward=11.50 | steps=20 | completed=False | recent_reward=9.40 | recent_success=0.00% | env_errors=0 | buffer=237
+2026-08-13 19:45:48 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 270/1000 | reward=10.00 | steps=20 | completed=False | recent_reward=9.80 | recent_success=0.00% | env_errors=0 | buffer=181
+2026-08-13 19:46:01 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 280/1000 | reward=3.50 | steps=20 | completed=False | recent_reward=11.65 | recent_success=10.00% | env_errors=0 | buffer=115
+2026-08-13 19:46:12 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 290/1000 | reward=10.00 | steps=20 | completed=False | recent_reward=12.45 | recent_success=10.00% | env_errors=0 | buffer=53
+2026-08-13 19:46:25 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 300/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=11.45 | recent_success=0.00% | env_errors=0 | buffer=253
+2026-08-13 19:46:25 | INFO | experiment.ppo_baseline_20260813_194132 | Checkpoint saved: C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_20260813_194132\ppo_episode_300.pt
+2026-08-13 19:46:38 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 310/1000 | reward=11.00 | steps=20 | completed=False | recent_reward=12.05 | recent_success=10.00% | env_errors=0 | buffer=180
+2026-08-13 19:46:51 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 320/1000 | reward=11.00 | steps=20 | completed=False | recent_reward=10.70 | recent_success=0.00% | env_errors=0 | buffer=124
+2026-08-13 19:47:02 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 330/1000 | reward=10.00 | steps=20 | completed=False | recent_reward=10.55 | recent_success=0.00% | env_errors=0 | buffer=68
+2026-08-13 19:47:13 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 340/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=9.75 | recent_success=0.00% | env_errors=0 | buffer=12
+2026-08-13 19:47:23 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 350/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=9.50 | recent_success=0.00% | env_errors=0 | buffer=212
+2026-08-13 19:47:32 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 360/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=9.45 | recent_success=0.00% | env_errors=0 | buffer=156
+2026-08-13 19:47:42 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 370/1000 | reward=11.00 | steps=20 | completed=False | recent_reward=11.15 | recent_success=0.00% | env_errors=0 | buffer=100
+2026-08-13 19:47:51 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 380/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=15.35 | recent_success=20.00% | env_errors=0 | buffer=20
+2026-08-13 19:47:59 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 390/1000 | reward=35.00 | steps=8 | completed=True | recent_reward=18.40 | recent_success=30.00% | env_errors=0 | buffer=197
+2026-08-13 19:48:10 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 400/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=15.60 | recent_success=30.00% | env_errors=0 | buffer=115
+2026-08-13 19:48:10 | INFO | experiment.ppo_baseline_20260813_194132 | Checkpoint saved: C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_20260813_194132\ppo_episode_400.pt
+2026-08-13 19:48:22 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 410/1000 | reward=11.50 | steps=20 | completed=False | recent_reward=11.30 | recent_success=0.00% | env_errors=0 | buffer=59
+2026-08-13 19:48:33 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 420/1000 | reward=7.00 | steps=20 | completed=False | recent_reward=9.85 | recent_success=0.00% | env_errors=0 | buffer=3
+2026-08-13 19:48:42 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 430/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=10.95 | recent_success=0.00% | env_errors=0 | buffer=203
+2026-08-13 19:48:53 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 440/1000 | reward=1.50 | steps=20 | completed=False | recent_reward=9.90 | recent_success=0.00% | env_errors=0 | buffer=147
+2026-08-13 19:49:02 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 450/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=14.10 | recent_success=10.00% | env_errors=0 | buffer=78
+2026-08-13 19:49:13 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 460/1000 | reward=3.00 | steps=20 | completed=False | recent_reward=10.25 | recent_success=0.00% | env_errors=0 | buffer=22
+2026-08-13 19:49:23 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 470/1000 | reward=0.50 | steps=20 | completed=False | recent_reward=20.10 | recent_success=40.00% | env_errors=0 | buffer=180
+2026-08-13 19:49:32 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 480/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=19.55 | recent_success=30.00% | env_errors=0 | buffer=107
+2026-08-13 19:49:47 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 490/1000 | reward=11.50 | steps=20 | completed=False | recent_reward=11.30 | recent_success=0.00% | env_errors=0 | buffer=51
+2026-08-13 19:49:59 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 500/1000 | reward=11.50 | steps=20 | completed=False | recent_reward=10.75 | recent_success=0.00% | env_errors=0 | buffer=251
+2026-08-13 19:49:59 | INFO | experiment.ppo_baseline_20260813_194132 | Checkpoint saved: C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_20260813_194132\ppo_episode_500.pt
+2026-08-13 19:50:11 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 510/1000 | reward=37.00 | steps=15 | completed=True | recent_reward=10.30 | recent_success=10.00% | env_errors=0 | buffer=190
+2026-08-13 19:50:23 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 520/1000 | reward=10.00 | steps=20 | completed=False | recent_reward=10.50 | recent_success=0.00% | env_errors=0 | buffer=134
+2026-08-13 19:50:35 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 530/1000 | reward=11.00 | steps=20 | completed=False | recent_reward=12.05 | recent_success=10.00% | env_errors=0 | buffer=77
+2026-08-13 19:50:49 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 540/1000 | reward=10.00 | steps=20 | completed=False | recent_reward=8.95 | recent_success=0.00% | env_errors=0 | buffer=21
+2026-08-13 19:51:02 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 550/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=11.70 | recent_success=10.00% | env_errors=0 | buffer=208
+2026-08-13 19:51:15 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 560/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=13.05 | recent_success=10.00% | env_errors=0 | buffer=144
+2026-08-13 19:51:29 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 570/1000 | reward=11.00 | steps=20 | completed=False | recent_reward=8.45 | recent_success=0.00% | env_errors=0 | buffer=88
+2026-08-13 19:51:41 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 580/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=11.80 | recent_success=0.00% | env_errors=0 | buffer=32
+2026-08-13 19:51:52 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 590/1000 | reward=36.50 | steps=12 | completed=True | recent_reward=10.95 | recent_success=10.00% | env_errors=0 | buffer=224
+2026-08-13 19:52:05 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 600/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=11.10 | recent_success=0.00% | env_errors=0 | buffer=168
+2026-08-13 19:52:05 | INFO | experiment.ppo_baseline_20260813_194132 | Checkpoint saved: C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_20260813_194132\ppo_episode_600.pt
+2026-08-13 19:52:18 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 610/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=14.95 | recent_success=20.00% | env_errors=0 | buffer=95
+2026-08-13 19:52:30 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 620/1000 | reward=11.50 | steps=20 | completed=False | recent_reward=10.50 | recent_success=0.00% | env_errors=0 | buffer=39
+2026-08-13 19:52:44 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 630/1000 | reward=17.00 | steps=20 | completed=False | recent_reward=14.90 | recent_success=10.00% | env_errors=0 | buffer=230
+2026-08-13 19:52:57 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 640/1000 | reward=3.00 | steps=20 | completed=False | recent_reward=13.00 | recent_success=10.00% | env_errors=0 | buffer=160
+2026-08-13 19:53:13 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 650/1000 | reward=11.50 | steps=20 | completed=False | recent_reward=16.10 | recent_success=20.00% | env_errors=0 | buffer=78
+2026-08-13 19:53:29 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 660/1000 | reward=1.50 | steps=20 | completed=False | recent_reward=10.30 | recent_success=0.00% | env_errors=0 | buffer=22
+2026-08-13 19:53:42 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 670/1000 | reward=11.00 | steps=20 | completed=False | recent_reward=16.80 | recent_success=20.00% | env_errors=0 | buffer=197
+2026-08-13 19:53:56 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 680/1000 | reward=37.00 | steps=7 | completed=True | recent_reward=17.00 | recent_success=20.00% | env_errors=0 | buffer=117
+2026-08-13 19:54:10 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 690/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=15.90 | recent_success=20.00% | env_errors=0 | buffer=38
+2026-08-13 19:54:25 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 700/1000 | reward=-3.50 | steps=20 | completed=False | recent_reward=8.70 | recent_success=0.00% | env_errors=0 | buffer=238
+2026-08-13 19:54:25 | INFO | experiment.ppo_baseline_20260813_194132 | Checkpoint saved: C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_20260813_194132\ppo_episode_700.pt
+2026-08-13 19:54:42 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 710/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=16.75 | recent_success=20.00% | env_errors=0 | buffer=155
+2026-08-13 19:54:55 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 720/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=13.15 | recent_success=10.00% | env_errors=0 | buffer=85
+2026-08-13 19:55:08 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 730/1000 | reward=11.50 | steps=20 | completed=False | recent_reward=10.15 | recent_success=0.00% | env_errors=0 | buffer=29
+2026-08-13 19:55:22 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 740/1000 | reward=37.00 | steps=10 | completed=True | recent_reward=12.95 | recent_success=10.00% | env_errors=0 | buffer=219
+2026-08-13 19:55:32 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 750/1000 | reward=11.50 | steps=20 | completed=False | recent_reward=16.90 | recent_success=20.00% | env_errors=0 | buffer=143
+2026-08-13 19:55:43 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 760/1000 | reward=11.50 | steps=20 | completed=False | recent_reward=11.65 | recent_success=10.00% | env_errors=0 | buffer=72
+2026-08-13 19:55:55 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 770/1000 | reward=2.50 | steps=20 | completed=False | recent_reward=12.95 | recent_success=10.00% | env_errors=0 | buffer=4
+2026-08-13 19:56:06 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 780/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=10.15 | recent_success=0.00% | env_errors=0 | buffer=204
+2026-08-13 19:56:17 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 790/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=11.55 | recent_success=0.00% | env_errors=0 | buffer=148
+2026-08-13 19:56:28 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 800/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=14.15 | recent_success=20.00% | env_errors=0 | buffer=69
+2026-08-13 19:56:28 | INFO | experiment.ppo_baseline_20260813_194132 | Checkpoint saved: C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_20260813_194132\ppo_episode_800.pt
+2026-08-13 19:56:38 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 810/1000 | reward=11.50 | steps=20 | completed=False | recent_reward=15.90 | recent_success=20.00% | env_errors=0 | buffer=249
+2026-08-13 19:56:50 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 820/1000 | reward=35.00 | steps=5 | completed=True | recent_reward=12.15 | recent_success=10.00% | env_errors=0 | buffer=178
+2026-08-13 19:57:01 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 830/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=15.80 | recent_success=20.00% | env_errors=0 | buffer=97
+2026-08-13 19:57:11 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 840/1000 | reward=11.50 | steps=20 | completed=False | recent_reward=17.95 | recent_success=30.00% | env_errors=0 | buffer=1
+2026-08-13 19:57:23 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 850/1000 | reward=11.50 | steps=20 | completed=False | recent_reward=12.65 | recent_success=10.00% | env_errors=0 | buffer=186
+2026-08-13 19:57:37 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 860/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=15.80 | recent_success=20.00% | env_errors=0 | buffer=106
+2026-08-13 19:57:49 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 870/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=11.60 | recent_success=10.00% | env_errors=0 | buffer=36
+2026-08-13 19:58:02 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 880/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=7.70 | recent_success=0.00% | env_errors=0 | buffer=236
+2026-08-13 19:58:16 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 890/1000 | reward=11.50 | steps=20 | completed=False | recent_reward=14.20 | recent_success=10.00% | env_errors=0 | buffer=166
+2026-08-13 19:58:29 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 900/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=19.10 | recent_success=30.00% | env_errors=0 | buffer=78
+2026-08-13 19:58:29 | INFO | experiment.ppo_baseline_20260813_194132 | Checkpoint saved: C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_20260813_194132\ppo_episode_900.pt
+2026-08-13 19:58:41 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 910/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=14.15 | recent_success=10.00% | env_errors=0 | buffer=7
+2026-08-13 19:58:57 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 920/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=10.85 | recent_success=0.00% | env_errors=0 | buffer=207
+2026-08-13 19:59:11 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 930/1000 | reward=37.00 | steps=12 | completed=True | recent_reward=14.45 | recent_success=10.00% | env_errors=0 | buffer=143
+2026-08-13 19:59:25 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 940/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=11.80 | recent_success=10.00% | env_errors=0 | buffer=82
+2026-08-13 19:59:38 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 950/1000 | reward=11.50 | steps=20 | completed=False | recent_reward=10.85 | recent_success=0.00% | env_errors=0 | buffer=26
+2026-08-13 19:59:47 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 960/1000 | reward=36.50 | steps=8 | completed=True | recent_reward=22.65 | recent_success=50.00% | env_errors=0 | buffer=161
+2026-08-13 20:00:01 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 970/1000 | reward=35.00 | steps=5 | completed=True | recent_reward=15.40 | recent_success=20.00% | env_errors=0 | buffer=77
+2026-08-13 20:00:15 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 980/1000 | reward=10.00 | steps=20 | completed=False | recent_reward=13.80 | recent_success=30.00% | env_errors=0 | buffer=241
+2026-08-13 20:00:28 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 990/1000 | reward=37.00 | steps=7 | completed=True | recent_reward=15.30 | recent_success=20.00% | env_errors=0 | buffer=161
+2026-08-13 20:00:44 | INFO | experiment.ppo_baseline_20260813_194132 | Episode 1000/1000 | reward=12.00 | steps=20 | completed=False | recent_reward=10.55 | recent_success=0.00% | env_errors=0 | buffer=105
+2026-08-13 20:00:44 | INFO | experiment.ppo_baseline_20260813_194132 | Checkpoint saved: C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_20260813_194132\ppo_episode_1000.pt
+2026-08-13 20:00:44 | INFO | experiment.ppo_baseline_20260813_194132 | PPO training complete | time=1150.66s | steps=19049 | updates=75 | valid_episodes=1000 | env_errors=0
+2026-08-13 20:00:44 | INFO | experiment.ppo_baseline_20260813_194132 | PPO deterministic evaluation started | episodes=100
+2026-08-13 20:02:07 | INFO | experiment.ppo_baseline_20260813_194132 | PPO evaluation complete | success=0/100 valid | success_rate=0.00% | environment_errors=0 | time=82.68s
+2026-08-13 20:02:07 | INFO | experiment.ppo_baseline_20260813_194132 | Evaluation accounting | valid=100 | envErrors=0 | success=0 | successRate=0.00%
+2026-08-13 20:02:07 | INFO | experiment.ppo_baseline_20260813_194132 | Fetching authoritative TRAIN episodes.
+2026-08-13 20:02:08 | INFO | experiment.ppo_baseline_20260813_194132 | Training episodes retrieved: 1000
+2026-08-13 20:02:08 | INFO | experiment.ppo_baseline_20260813_194132 | Fetching authoritative EVALUATION episodes.
+2026-08-13 20:02:08 | INFO | experiment.ppo_baseline_20260813_194132 | Evaluation episodes retrieved: 100
+2026-08-13 20:02:18 | INFO | experiment.ppo_baseline_20260813_194132 | 
+                    metric     training  evaluation
+      average_execution_ms  1106.282000  783.040000
+            average_reward    11.980500   10.155000
+             average_steps    19.049000   20.000000
+               best_reward    41.000000   12.000000
+                 completed    88.000000    0.000000
+       convergence_episode          NaN         NaN
+environment_error_episodes     0.000000    0.000000
+        environment_errors     0.000000    0.000000
+                  episodes  1000.000000  100.000000
+            failed_actions  2243.000000  171.000000
+             median_reward    11.500000   12.000000
+              median_steps    20.000000   20.000000
+             no_op_actions 11336.000000 1365.000000
+                reward_std     8.477905    5.866726
+              success_rate     0.088000    0.000000
+      total_guidance_bonus     0.000000    0.000000
+            valid_episodes  1000.000000  100.000000
+        wall_clock_seconds  1150.658151   82.679380
+              worst_reward   -10.000000   -8.500000
+2026-08-13 20:02:18 | INFO | experiment.ppo_baseline_20260813_194132 | ========================================
+2026-08-13 20:02:18 | INFO | experiment.ppo_baseline_20260813_194132 | PPO RUN COMPLETE
+2026-08-13 20:02:18 | INFO | experiment.ppo_baseline_20260813_194132 | Model   : C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_20260813_194132\ppo_final.pt
+2026-08-13 20:02:18 | INFO | experiment.ppo_baseline_20260813_194132 | Metrics : C:\PY_Programs\MSc_Project\agent_framework\results\metrics\ppo_baseline_20260813_194132\ppo_results.xlsx
+2026-08-13 20:02:18 | INFO | experiment.ppo_baseline_20260813_194132 | Graphs  : C:\PY_Programs\MSc_Project\agent_framework\results\graphs\ppo_baseline_20260813_194132
+2026-08-13 20:02:18 | INFO | experiment.ppo_baseline_20260813_194132 | ========================================
