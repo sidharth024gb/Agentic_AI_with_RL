@@ -3,7 +3,9 @@ import Supplier from "../models/Supplier.js";
 
 import { REWARDS } from "../utils/rewards.js";
 
-// Create Invoice
+// ==========================================================
+// CREATE INVOICE
+// ==========================================================
 
 export async function createInvoice(req, res) {
   try {
@@ -17,99 +19,90 @@ export async function createInvoice(req, res) {
       category,
     } = req.body;
 
-    if (!supplierId || !amount || !dueDate) {
+    if (!supplierId || amount == null || !dueDate) {
       return res.status(400).json({
         success: false,
-
+        environmentError: false,
         reward: REWARDS.INVALID_ACTION,
-
+        errorType: "INVALID_REQUEST",
         message: "Supplier, amount and due date are required.",
       });
     }
 
-    const supplier = await Supplier.findById({ _id: supplierId });
+    const supplier = await Supplier.findById(supplierId);
 
     if (!supplier) {
       return res.status(404).json({
         success: false,
-        message: "Supplier not found",
-        reward: REWARDS.SUPPLIER_INACTIVE,
+        environmentError: false,
+        reward: REWARDS.SUPPLIER_NOT_FOUND,
+        errorType: "SUPPLIER_NOT_FOUND",
+        message: "Supplier not found.",
       });
     }
 
     const invoice = await Invoice.create({
       supplier: supplier._id,
-
       amount,
-
       dueDate,
-
       description,
-
       paymentMethod,
-
       priority,
-
       category,
-
       createdBy: req.user._id,
     });
 
     return res.status(201).json({
       success: true,
-
+      environmentError: false,
       reward: REWARDS.SUCCESS,
-
       message: "Invoice created successfully.",
-
       invoice,
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-
       environmentError: true,
-
+      retryable: true,
       reward: null,
-
       message: error.message,
     });
   }
 }
 
-// Get all invoices
+// ==========================================================
+// GET ALL INVOICES
+// ==========================================================
 
 export async function getInvoices(req, res) {
   try {
     const invoices = await Invoice.find({})
-      .populate("supplier", "supplierName riskScore active")
+      .populate("supplier", "supplierName riskScore active rating")
       .sort({
         createdAt: -1,
       });
 
     return res.status(200).json({
       success: true,
-
+      environmentError: false,
       reward: REWARDS.INVOICE_FOUND,
-
       count: invoices.length,
-
       invoices,
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-
       environmentError: true,
-
+      retryable: true,
       reward: null,
-
       message: error.message,
     });
   }
 }
 
-// Get single invoice
+// ==========================================================
+// GET SINGLE INVOICE
+// ==========================================================
 
 export async function getInvoice(req, res) {
   try {
@@ -120,34 +113,33 @@ export async function getInvoice(req, res) {
     if (!invoice) {
       return res.status(404).json({
         success: false,
-
+        environmentError: false,
         reward: REWARDS.INVOICE_NOT_FOUND,
-
+        errorType: "INVOICE_NOT_FOUND",
         message: "Invoice not found.",
       });
     }
 
     return res.status(200).json({
       success: true,
-
+      environmentError: false,
       reward: REWARDS.INVOICE_FOUND,
-
       invoice,
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-
       environmentError: true,
-
+      retryable: true,
       reward: null,
-
       message: error.message,
     });
   }
 }
 
-// Update invoice status
+// ==========================================================
+// UPDATE INVOICE STATUS
+// ==========================================================
 
 export async function updateStatus(req, res) {
   try {
@@ -158,9 +150,9 @@ export async function updateStatus(req, res) {
     if (!invoice) {
       return res.status(404).json({
         success: false,
-
+        environmentError: false,
         reward: REWARDS.INVOICE_NOT_FOUND,
-
+        errorType: "INVOICE_NOT_FOUND",
         message: "Invoice not found.",
       });
     }
@@ -170,9 +162,9 @@ export async function updateStatus(req, res) {
     if (!allowedStatus.includes(status)) {
       return res.status(400).json({
         success: false,
-
+        environmentError: false,
         reward: REWARDS.INVALID_ACTION,
-
+        errorType: "INVALID_STATUS",
         message: "Invalid invoice status.",
       });
     }
@@ -187,93 +179,181 @@ export async function updateStatus(req, res) {
 
     return res.status(200).json({
       success: true,
-
+      environmentError: false,
       reward: REWARDS.SUCCESS,
-
-      message: `Invoice status changed to ${status}`,
-
+      message: `Invoice status changed to ${status}.`,
       invoice,
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-
       environmentError: true,
-
+      retryable: true,
       reward: null,
-
       message: error.message,
     });
   }
 }
 
-// Check duplicate invoice
+// ==========================================================
+// CHECK DUPLICATE INVOICE
+// ==========================================================
 
 export async function checkDuplicate(req, res) {
   try {
-    const { supplierId, amount, dueDate } = req.body;
+    const { invoiceId, supplierId, amount, dueDate } = req.body;
 
-    if (!supplierId || !amount || !dueDate) {
+    if (!supplierId || amount == null || !dueDate) {
       return res.status(400).json({
         success: false,
-
-        reward: REWARDS.INVALID_ACTION,
-
-        message: "SupplierId and amount and dueDate are required.",
+        environmentError: false,
+        reward: null,
+        errorType: "INVALID_REQUEST",
+        message: "supplierId, amount and dueDate are required.",
       });
     }
 
-    const duplicate = await Invoice.findOne({
-      supplier: supplierId,
-  
-      amount,
+    // ======================================================
+    // Validate Date
+    // ======================================================
 
+    const parsedDueDate = new Date(dueDate);
+
+    if (Number.isNaN(parsedDueDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        environmentError: false,
+        reward: null,
+        errorType: "INVALID_REQUEST",
+        message: "Invalid dueDate.",
+      });
+    }
+
+    // ======================================================
+    // Load Current Invoice When ID Is Available
+    //
+    // This lets us:
+    //
+    // 1. respect seeded duplicateFlag
+    // 2. exclude the invoice from matching itself
+    // ======================================================
+
+    let currentInvoice = null;
+
+    if (invoiceId) {
+      currentInvoice = await Invoice.findById(invoiceId);
+
+      if (!currentInvoice) {
+        return res.status(404).json({
+          success: false,
+          environmentError: false,
+          reward: null,
+          errorType: "INVOICE_NOT_FOUND",
+          message: "Invoice not found.",
+        });
+      }
+    }
+
+    // ======================================================
+    // Find Matching Invoices
+    // ======================================================
+
+    const query = {
+      supplier: supplierId,
+      amount,
       status: {
         $ne: "REJECTED",
       },
+      dueDate: parsedDueDate,
+    };
 
-      dueDate: {
-        $eq: dueDate,
-      },
-    });
+    // CRITICAL:
+    // Do not let an invoice detect itself as its duplicate.
 
-    if (duplicate) {
-      return res.status(200).json({
-        success: false,
-
-        reward: REWARDS.DUPLICATE_INVOICE,
-
-        duplicate: true,
-
-        message: "Duplicate invoice detected.",
-
-        invoiceId: duplicate._id,
-      });
+    if (invoiceId) {
+      query._id = {
+        $ne: invoiceId,
+      };
     }
+
+    const matchingInvoices = await Invoice.find(query).select(
+      "_id duplicateFlag invoiceNumber",
+    );
+
+    // ======================================================
+    // Determine Duplicate
+    // ======================================================
+
+    let duplicate = false;
+
+    // Seeded / explicit duplicate flag.
+    if (currentInvoice?.duplicateFlag) {
+      duplicate = true;
+    }
+
+    // Another matching invoice exists.
+    if (invoiceId && matchingInvoices.length > 0) {
+      duplicate = true;
+    }
+
+    // Backwards-compatible behaviour if invoiceId was not sent.
+    //
+    // Since the current invoice is part of the matching query,
+    // more than one matching invoice means a genuine duplicate.
+    if (!invoiceId) {
+      if (matchingInvoices.length > 1) {
+        duplicate = true;
+      }
+
+      if (matchingInvoices.some((invoice) => invoice.duplicateFlag === true)) {
+        duplicate = true;
+      }
+    }
+
+    // ======================================================
+    // IMPORTANT RL SEMANTICS
+    //
+    // The duplicate-check ACTION succeeded whether the invoice
+    // is duplicate or not.
+    //
+    // duplicate=true is a discovered business condition.
+    // It is NOT an action failure.
+    // ======================================================
 
     return res.status(200).json({
       success: true,
+      environmentError: false,
 
-      reward: REWARDS.SUCCESS,
+      reward: REWARDS.NONE,
 
-      duplicate: false,
+      duplicate,
 
-      message: "No duplicate invoice found.",
+      valid: !duplicate,
+
+      reason: duplicate ? "DUPLICATE_INVOICE" : null,
+
+      invoiceId: invoiceId || null,
+
+      matchingInvoiceIds: matchingInvoices.map((invoice) => invoice._id),
+
+      message: duplicate
+        ? "Duplicate invoice detected."
+        : "No duplicate invoice found.",
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-
       environmentError: true,
-
+      retryable: true,
       reward: null,
-
       message: error.message,
     });
   }
 }
 
-// Archive invoice
+// ==========================================================
+// ARCHIVE INVOICE
+// ==========================================================
 
 export async function archiveInvoice(req, res) {
   try {
@@ -282,9 +362,9 @@ export async function archiveInvoice(req, res) {
     if (!invoiceId) {
       return res.status(400).json({
         success: false,
-
-        reward: REWARDS.INVALID_ACTION,
-
+        environmentError: false,
+        reward: null,
+        errorType: "INVALID_REQUEST",
         message: "Invoice ID is required.",
       });
     }
@@ -294,9 +374,9 @@ export async function archiveInvoice(req, res) {
     if (!invoice) {
       return res.status(404).json({
         success: false,
-
-        reward: REWARDS.INVOICE_NOT_FOUND,
-
+        environmentError: false,
+        reward: null,
+        errorType: "INVOICE_NOT_FOUND",
         message: "Invoice not found.",
       });
     }
@@ -307,19 +387,16 @@ export async function archiveInvoice(req, res) {
 
     return res.status(200).json({
       success: true,
-
+      environmentError: false,
       reward: REWARDS.SUCCESS,
-
       message: "Invoice archived successfully.",
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-
       environmentError: true,
-
+      retryable: true,
       reward: null,
-
       message: error.message,
     });
   }

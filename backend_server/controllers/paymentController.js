@@ -1,24 +1,49 @@
 import Invoice from "../models/Invoice.js";
 import Transaction from "../models/Transaction.js";
 import Account from "../models/Account.js";
-import Budget from "../models/Budget.js"
+import Budget from "../models/Budget.js";
 
 import { REWARDS } from "../utils/rewards.js";
 
+// ==========================================================
+// Configuration
+// ==========================================================
+
+const HIGH_RISK_THRESHOLD = 70;
+
+// ==========================================================
 // PAY INVOICE
+// ==========================================================
+
 export async function payInvoice(req, res) {
   try {
     const { invoiceId, accountId } = req.body;
 
-    // =====================================================
+    // ======================================================
+    // Validate Request
+    // ======================================================
+
+    if (!invoiceId || !accountId) {
+      return res.status(400).json({
+        success: false,
+        environmentError: false,
+        reward: null,
+        done: false,
+        errorType: "INVALID_REQUEST",
+        message: "invoiceId and accountId are required.",
+      });
+    }
+
+    // ======================================================
     // 1. FIND INVOICE
-    // =====================================================
+    // ======================================================
 
     const invoice = await Invoice.findById(invoiceId).populate("supplier");
 
     if (!invoice) {
       return res.status(404).json({
         success: false,
+        environmentError: false,
 
         reward: REWARDS.INVOICE_NOT_FOUND,
 
@@ -30,13 +55,14 @@ export async function payInvoice(req, res) {
       });
     }
 
-    // =====================================================
+    // ======================================================
     // 2. INVOICE MUST BE APPROVED
-    // =====================================================
+    // ======================================================
 
     if (invoice.status !== "APPROVED") {
       return res.status(409).json({
         success: false,
+        environmentError: false,
 
         reward: REWARDS.INVALID_WORKFLOW,
 
@@ -48,13 +74,14 @@ export async function payInvoice(req, res) {
       });
     }
 
-    // =====================================================
-    // 3. DUPLICATE INVOICE CHECK
-    // =====================================================
+    // ======================================================
+    // 3. DUPLICATE INVOICE
+    // ======================================================
 
     if (invoice.duplicateFlag) {
       return res.status(409).json({
         success: false,
+        environmentError: false,
 
         reward: REWARDS.DUPLICATE_INVOICE,
 
@@ -66,13 +93,33 @@ export async function payInvoice(req, res) {
       });
     }
 
-    // =====================================================
-    // 4. SUPPLIER VALIDATION
-    // =====================================================
+    // ======================================================
+    // 4. SUPPLIER EXISTS
+    // ======================================================
 
-    if (!invoice.supplier || !invoice.supplier.active) {
+    if (!invoice.supplier) {
       return res.status(409).json({
         success: false,
+        environmentError: false,
+
+        reward: REWARDS.SUPPLIER_NOT_FOUND,
+
+        done: false,
+
+        errorType: "SUPPLIER_NOT_FOUND",
+
+        message: "Supplier does not exist.",
+      });
+    }
+
+    // ======================================================
+    // 5. SUPPLIER ACTIVE
+    // ======================================================
+
+    if (!invoice.supplier.active) {
+      return res.status(409).json({
+        success: false,
+        environmentError: false,
 
         reward: REWARDS.SUPPLIER_INACTIVE,
 
@@ -80,34 +127,43 @@ export async function payInvoice(req, res) {
 
         errorType: "SUPPLIER_INACTIVE",
 
-        message: "Supplier inactive.",
+        message: "Supplier is inactive.",
       });
     }
 
-    // =====================================================
-    // 5. BUDGET CHECK
+    // ======================================================
+    // 6. SUPPLIER RISK
     //
-    // Invoice category maps directly to
-    // Budget department.
-    //
-    // Example:
-    //
-    // invoice.category = "SOFTWARE"
-    //
-    //        ↓
-    //
-    // budget.department = "SOFTWARE"
-    // =====================================================
+    // Must match supplierController validation.
+    // ======================================================
+
+    if (Number(invoice.supplier.riskScore) > HIGH_RISK_THRESHOLD) {
+      return res.status(409).json({
+        success: false,
+        environmentError: false,
+
+        reward: REWARDS.SUPPLIER_HIGH_RISK,
+
+        done: false,
+
+        errorType: "SUPPLIER_HIGH_RISK",
+
+        message: "High-risk supplier cannot be paid.",
+      });
+    }
+
+    // ======================================================
+    // 7. FIND BUDGET
+    // ======================================================
 
     const budget = await Budget.findOne({
       department: invoice.category,
     });
 
-    // No matching budget
-
     if (!budget) {
       return res.status(409).json({
         success: false,
+        environmentError: false,
 
         reward: REWARDS.INVALID_ACTION,
 
@@ -119,13 +175,14 @@ export async function payInvoice(req, res) {
       });
     }
 
-    // =====================================================
-    // 6. CHECK REMAINING BUDGET
-    // =====================================================
+    // ======================================================
+    // 8. CHECK REMAINING BUDGET
+    // ======================================================
 
-    if (budget.remainingBudget < invoice.amount) {
+    if (Number(budget.remainingBudget) < Number(invoice.amount)) {
       return res.status(409).json({
         success: false,
+        environmentError: false,
 
         reward: REWARDS.BUDGET_EXCEEDED,
 
@@ -141,15 +198,16 @@ export async function payInvoice(req, res) {
       });
     }
 
-    // =====================================================
-    // 7. FIND PAYMENT ACCOUNT
-    // =====================================================
+    // ======================================================
+    // 9. FIND PAYMENT ACCOUNT
+    // ======================================================
 
     const account = await Account.findById(accountId);
 
     if (!account) {
       return res.status(404).json({
         success: false,
+        environmentError: false,
 
         reward: REWARDS.INVALID_ACTION,
 
@@ -161,13 +219,14 @@ export async function payInvoice(req, res) {
       });
     }
 
-    // =====================================================
-    // 8. ACCOUNT FROZEN CHECK
-    // =====================================================
+    // ======================================================
+    // 10. ACCOUNT FROZEN
+    // ======================================================
 
     if (account.frozen) {
       return res.status(409).json({
         success: false,
+        environmentError: false,
 
         reward: REWARDS.INVALID_WORKFLOW,
 
@@ -179,13 +238,14 @@ export async function payInvoice(req, res) {
       });
     }
 
-    // =====================================================
-    // 9. ACCOUNT BALANCE CHECK
-    // =====================================================
+    // ======================================================
+    // 11. ACCOUNT BALANCE
+    // ======================================================
 
-    if (account.balance < invoice.amount) {
+    if (Number(account.balance) < Number(invoice.amount)) {
       return res.status(409).json({
         success: false,
+        environmentError: false,
 
         reward: REWARDS.INSUFFICIENT_BALANCE,
 
@@ -197,14 +257,11 @@ export async function payInvoice(req, res) {
       });
     }
 
-    // =====================================================
-    // 10. EXECUTE PAYMENT
-    // =====================================================
+    // ======================================================
+    // 12. EXECUTE PAYMENT
+    // ======================================================
 
     account.balance -= invoice.amount;
-
-    // Deduct the invoice amount from
-    // the category's remaining budget.
 
     budget.remainingBudget -= invoice.amount;
 
@@ -212,9 +269,9 @@ export async function payInvoice(req, res) {
 
     invoice.paymentAttempts += 1;
 
-    // =====================================================
-    // 11. SAVE UPDATED DATA
-    // =====================================================
+    // ======================================================
+    // 13. SAVE BUSINESS STATE
+    // ======================================================
 
     await account.save();
 
@@ -222,9 +279,9 @@ export async function payInvoice(req, res) {
 
     await invoice.save();
 
-    // =====================================================
-    // 12. CREATE TRANSACTION
-    // =====================================================
+    // ======================================================
+    // 14. CREATE TRANSACTION
+    // ======================================================
 
     const transaction = await Transaction.create({
       transactionId: `TX-${Date.now()}`,
@@ -240,12 +297,13 @@ export async function payInvoice(req, res) {
       status: "SUCCESS",
     });
 
-    // =====================================================
-    // 13. SUCCESS RESPONSE
-    // =====================================================
+    // ======================================================
+    // 15. SUCCESS
+    // ======================================================
 
     return res.status(200).json({
       success: true,
+      environmentError: false,
 
       reward: REWARDS.PAYMENT_SUCCESS,
 
@@ -255,35 +313,39 @@ export async function payInvoice(req, res) {
 
       state: {
         invoice,
-
         transaction,
-
         account,
-
         budget,
       },
     });
   } catch (error) {
-    // Environment/system error.
-    // Do NOT give the RL agent a negative reward.
-
     return res.status(500).json({
       success: false,
-
       environmentError: true,
-
       retryable: true,
-
       reward: null,
-
       message: error.message,
     });
   }
 }
+
+// ==========================================================
 // REFUND PAYMENT
+// ==========================================================
+
 export async function refund(req, res) {
   try {
     const { transactionId } = req.body;
+
+    if (!transactionId) {
+      return res.status(400).json({
+        success: false,
+        environmentError: false,
+        reward: null,
+        errorType: "INVALID_REQUEST",
+        message: "transactionId is required.",
+      });
+    }
 
     const transaction =
       await Transaction.findById(transactionId).populate("invoice");
@@ -291,11 +353,10 @@ export async function refund(req, res) {
     if (!transaction) {
       return res.status(404).json({
         success: false,
-
+        environmentError: false,
         reward: REWARDS.INVALID_ACTION,
-
         done: false,
-
+        errorType: "TRANSACTION_NOT_FOUND",
         message: "Transaction not found.",
       });
     }
@@ -303,16 +364,25 @@ export async function refund(req, res) {
     if (transaction.status !== "SUCCESS") {
       return res.status(409).json({
         success: false,
-
+        environmentError: false,
         reward: REWARDS.INVALID_WORKFLOW,
-
         done: false,
-
+        errorType: "INVALID_WORKFLOW",
         message: "Only successful payments can be refunded.",
       });
     }
 
     const account = await Account.findById(transaction.account);
+
+    if (!account) {
+      return res.status(404).json({
+        success: false,
+        environmentError: false,
+        reward: null,
+        errorType: "ACCOUNT_NOT_FOUND",
+        message: "Account not found.",
+      });
+    }
 
     account.balance += transaction.amount;
 
@@ -322,56 +392,62 @@ export async function refund(req, res) {
 
     await transaction.save();
 
-    await Invoice.findByIdAndUpdate(
-      transaction.invoice,
-
-      {
-        status: "APPROVED",
-      },
-    );
+    await Invoice.findByIdAndUpdate(transaction.invoice, {
+      status: "APPROVED",
+    });
 
     return res.status(200).json({
       success: true,
-
+      environmentError: false,
       reward: REWARDS.SUCCESS,
-
       done: false,
 
       message: "Payment refunded.",
 
       state: {
         transactionStatus: transaction.status,
+
         accountBalance: account.balance,
       },
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-
       environmentError: true,
-
       retryable: true,
-
+      reward: null,
       message: error.message,
     });
   }
 }
 
+// ==========================================================
 // CANCEL PAYMENT
+// ==========================================================
+
 export async function cancelPayment(req, res) {
   try {
     const { transactionId } = req.body;
+
+    if (!transactionId) {
+      return res.status(400).json({
+        success: false,
+        environmentError: false,
+        reward: null,
+        errorType: "INVALID_REQUEST",
+        message: "transactionId is required.",
+      });
+    }
 
     const transaction = await Transaction.findById(transactionId);
 
     if (!transaction) {
       return res.status(404).json({
         success: false,
-
+        environmentError: false,
         reward: REWARDS.INVALID_ACTION,
-
         done: false,
-
+        errorType: "TRANSACTION_NOT_FOUND",
         message: "Transaction not found.",
       });
     }
@@ -379,11 +455,10 @@ export async function cancelPayment(req, res) {
     if (transaction.status !== "PENDING") {
       return res.status(409).json({
         success: false,
-
+        environmentError: false,
         reward: REWARDS.INVALID_WORKFLOW,
-
         done: false,
-
+        errorType: "INVALID_WORKFLOW",
         message: "Only pending payments can be cancelled.",
       });
     }
@@ -396,9 +471,8 @@ export async function cancelPayment(req, res) {
 
     return res.status(200).json({
       success: true,
-
+      environmentError: false,
       reward: REWARDS.SUCCESS,
-
       done: false,
 
       message: "Payment cancelled.",
@@ -410,31 +484,41 @@ export async function cancelPayment(req, res) {
   } catch (error) {
     return res.status(500).json({
       success: false,
-
       environmentError: true,
-
       retryable: true,
-
+      reward: null,
       message: error.message,
     });
   }
 }
 
+// ==========================================================
 // RETRY PAYMENT
+// ==========================================================
+
 export async function retryPayment(req, res) {
   try {
     const { invoiceId } = req.body;
+
+    if (!invoiceId) {
+      return res.status(400).json({
+        success: false,
+        environmentError: false,
+        reward: null,
+        errorType: "INVALID_REQUEST",
+        message: "invoiceId is required.",
+      });
+    }
 
     const invoice = await Invoice.findById(invoiceId);
 
     if (!invoice) {
       return res.status(404).json({
         success: false,
-
+        environmentError: false,
         reward: REWARDS.INVOICE_NOT_FOUND,
-
         done: false,
-
+        errorType: "INVOICE_NOT_FOUND",
         message: "Invoice not found.",
       });
     }
@@ -442,11 +526,10 @@ export async function retryPayment(req, res) {
     if (invoice.status === "PAID") {
       return res.status(409).json({
         success: false,
-
+        environmentError: false,
         reward: REWARDS.INVALID_ACTION,
-
         done: false,
-
+        errorType: "INVOICE_ALREADY_PAID",
         message: "Invoice already paid.",
       });
     }
@@ -457,9 +540,8 @@ export async function retryPayment(req, res) {
 
     return res.status(200).json({
       success: true,
-
+      environmentError: false,
       reward: REWARDS.SUCCESS,
-
       done: false,
 
       message: "Payment retry initiated.",
@@ -469,11 +551,9 @@ export async function retryPayment(req, res) {
   } catch (error) {
     return res.status(500).json({
       success: false,
-
       environmentError: true,
-
       retryable: true,
-
+      reward: null,
       message: error.message,
     });
   }

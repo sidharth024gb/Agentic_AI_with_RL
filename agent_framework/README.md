@@ -840,3 +840,32 @@ LLM + PPO:
 Short test:
 
     python main.py train --agent llm_rl --episodes 50 --eval-episodes 10
+
+
+1. invoiceController.js
+2. supplierController.js
+3. accountController.js
+4. paymentController.js
+5. api_client.py
+
+         ↓ backend semantics now correct
+
+6. reward_processor.py
+7. finance_env.py
+8. state_encoder.py
+
+         ↓ environment now correct
+
+9. config.py
+10. ppo_agent.py
+11. train.py
+
+         ↓ PPO exploration/training now correct
+
+12. Test PPO baseline
+
+         ↓ only after PPO converges
+
+13. Test LLM INPUT
+14. Test LLM REWARD_SHAPING
+15. Test LLM INPUT_AND_REWARD

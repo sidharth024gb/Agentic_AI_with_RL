@@ -1,11 +1,19 @@
 import Supplier from "../models/Supplier.js";
+
 import { REWARDS } from "../utils/rewards.js";
 
-// Get all suppliers
+// ==========================================================
+// Configuration
+// ==========================================================
+
+const HIGH_RISK_THRESHOLD = 70;
+
+// ==========================================================
+// GET ALL SUPPLIERS
+// ==========================================================
 
 export async function getSuppliers(req, res) {
   try {
-    // Optional: Reject unsupported query parameters
     const allowedParams = [];
 
     const receivedParams = Object.keys(req.query);
@@ -17,11 +25,9 @@ export async function getSuppliers(req, res) {
     if (invalidParams.length > 0) {
       return res.status(400).json({
         success: false,
-
-        reward: null,
-
         environmentError: false,
-
+        reward: null,
+        errorType: "INVALID_REQUEST",
         message: `Invalid query parameters: ${invalidParams.join(", ")}`,
       });
     }
@@ -30,37 +36,34 @@ export async function getSuppliers(req, res) {
 
     return res.status(200).json({
       success: true,
-
       environmentError: false,
-
-      reward: REWARDS.SUCCESS,
-
+      reward: REWARDS.NONE,
       count: suppliers.length,
-
       suppliers,
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-
       environmentError: true,
-
       retryable: true,
-
       reward: null,
-
       message: error.message,
     });
   }
 }
 
-// Validate supplier before payment
+// ==========================================================
+// VALIDATE SUPPLIER
+// ==========================================================
 
 export async function validateSupplier(req, res) {
   try {
     const { supplierId } = req.body;
 
-    // Bad request
+    // ======================================================
+    // Invalid API Request
+    // ======================================================
+
     if (!supplierId) {
       return res.status(400).json({
         success: false,
@@ -71,50 +74,114 @@ export async function validateSupplier(req, res) {
       });
     }
 
+    // ======================================================
+    // Find Supplier
+    // ======================================================
+
     const supplier = await Supplier.findById(supplierId);
 
-    // Supplier doesn't exist
+    // ======================================================
+    // Supplier Missing
+    //
+    // The validation operation itself completed successfully.
+    //
+    // The supplier is simply not eligible.
+    // ======================================================
+
     if (!supplier) {
-      return res.status(404).json({
-        success: false,
-        reward: REWARDS.SUPPLIER_NOT_FOUND, // create this reward instead of INVOICE_NOT_FOUND
-        errorType: "SUPPLIER_NOT_FOUND",
+      return res.status(200).json({
+        success: true,
+        environmentError: false,
+        reward: REWARDS.NONE,
+
+        valid: false,
+        eligible: false,
+
+        reason: "SUPPLIER_NOT_FOUND",
+
+        supplier: null,
+
         message: "Supplier does not exist.",
       });
     }
 
-    // Business rule: inactive supplier
+    // ======================================================
+    // Supplier Inactive
+    // ======================================================
+
     if (!supplier.active) {
       return res.status(200).json({
-        success: false,
-        reward: REWARDS.SUPPLIER_INACTIVE,
-        errorType: "SUPPLIER_INACTIVE",
+        success: true,
+        environmentError: false,
+        reward: REWARDS.NONE,
+
+        valid: false,
+        eligible: false,
+
+        reason: "SUPPLIER_INACTIVE",
+
         supplier,
-        message: "Supplier is blacklisted or inactive.",
+
+        validation: {
+          active: false,
+          riskScore: supplier.riskScore,
+          rating: supplier.rating,
+        },
+
+        message: "Supplier is inactive and cannot be used for payment.",
       });
     }
 
-    // Business rule: high-risk supplier
-    if (supplier.riskScore > 70) {
+    // ======================================================
+    // High Risk Supplier
+    // ======================================================
+
+    if (supplier.riskScore > HIGH_RISK_THRESHOLD) {
       return res.status(200).json({
-        success: false,
-        reward: REWARDS.SUPPLIER_HIGH_RISK,
-        errorType: "HIGH_RISK_SUPPLIER",
+        success: true,
+        environmentError: false,
+        reward: REWARDS.NONE,
+
+        valid: false,
+        eligible: false,
+
+        // Standardized name.
+        reason: "SUPPLIER_HIGH_RISK",
+
         supplier,
-        message: "Supplier requires additional review [High Risk Supplier]",
+
+        validation: {
+          active: true,
+          riskScore: supplier.riskScore,
+          rating: supplier.rating,
+        },
+
+        message: "Supplier is high risk and is not eligible for payment.",
       });
     }
 
-    // Success
+    // ======================================================
+    // Valid Supplier
+    // ======================================================
+
     return res.status(200).json({
       success: true,
+      environmentError: false,
       reward: REWARDS.SUPPLIER_VALIDATED,
+
+      valid: true,
+      eligible: true,
+
+      reason: null,
+
       supplier,
+
       validation: {
         active: true,
         riskScore: supplier.riskScore,
         rating: supplier.rating,
       },
+
       message: "Supplier validated successfully.",
     });
   } catch (error) {
@@ -122,39 +189,36 @@ export async function validateSupplier(req, res) {
       success: false,
       environmentError: true,
       retryable: true,
+      reward: null,
       message: error.message,
     });
   }
 }
 
-// Blacklist supplier
+// ==========================================================
+// BLACKLIST SUPPLIER
+// ==========================================================
 
 export async function blacklistSupplier(req, res) {
   try {
     const { supplierId, reason } = req.body;
 
-    // Validate required parameter
     if (!supplierId) {
       return res.status(400).json({
         success: false,
-
-        reward: null,
-
         environmentError: false,
-
+        reward: null,
+        errorType: "INVALID_REQUEST",
         message: "supplierId is required.",
       });
     }
 
-    // Validate parameter types
     if (typeof supplierId !== "string") {
       return res.status(400).json({
         success: false,
-
-        reward: null,
-
         environmentError: false,
-
+        reward: null,
+        errorType: "INVALID_REQUEST",
         message: "Invalid supplierId format.",
       });
     }
@@ -162,11 +226,9 @@ export async function blacklistSupplier(req, res) {
     if (reason !== undefined && typeof reason !== "string") {
       return res.status(400).json({
         success: false,
-
-        reward: null,
-
         environmentError: false,
-
+        reward: null,
+        errorType: "INVALID_REQUEST",
         message: "Reason must be a string.",
       });
     }
@@ -176,13 +238,9 @@ export async function blacklistSupplier(req, res) {
     if (!supplier) {
       return res.status(404).json({
         success: false,
-
-        reward: REWARDS.INVOICE_NOT_FOUND,
-
         environmentError: false,
-
+        reward: null,
         errorType: "SUPPLIER_NOT_FOUND",
-
         message: "Supplier not found.",
       });
     }
@@ -193,29 +251,22 @@ export async function blacklistSupplier(req, res) {
 
     return res.status(200).json({
       success: true,
-
       environmentError: false,
-
-      reward: 10,
+      reward: REWARDS.SUCCESS,
 
       supplierId: supplier._id,
-
       supplierName: supplier.supplierName,
 
       message: "Supplier blacklisted successfully.",
 
-      reason: reason || "No reason provided",
+      reason: reason || "No reason provided.",
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-
       environmentError: true,
-
       retryable: true,
-
       reward: null,
-
       message: error.message,
     });
   }
