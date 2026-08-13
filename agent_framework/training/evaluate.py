@@ -1,20 +1,82 @@
 """
 evaluate.py
 
-Deterministic PPO evaluation.
+Shared deterministic evaluation for:
+
+    - PPO
+    - LLM + PPO
 """
 
 import time
 
 from config.config import config
 
+from training.train import (
+    execute_agent_step,
+    is_llm_agent,
+    prepare_episode,
+)
 
-def evaluate_ppo(
+# ==========================================================
+# Numeric LLM Metric Difference
+# ==========================================================
+
+
+def _llm_metric_delta(
+    before,
+    after,
+):
+    """
+    Convert cumulative planner metrics into evaluation-only
+    metrics.
+    """
+
+    if before is None or after is None:
+
+        return None
+
+    result = {}
+
+    for key, value in after.items():
+
+        before_value = before.get(key)
+
+        if (
+            isinstance(
+                value,
+                (int, float),
+            )
+            and isinstance(
+                before_value,
+                (int, float),
+            )
+            and not isinstance(
+                value,
+                bool,
+            )
+        ):
+
+            result[key] = value - before_value
+
+        else:
+
+            result[key] = value
+
+    return result
+
+
+# ==========================================================
+# Evaluation
+# ==========================================================
+
+
+def evaluate_agent(
     agent,
     env,
     run_name,
     logger,
     evaluation_episodes=None,
+    agent_label="ppo",
 ):
 
     evaluation_episodes = (
@@ -25,6 +87,12 @@ def evaluate_ppo(
 
     was_training = agent.training
 
+    llm_before = None
+
+    if is_llm_agent(agent):
+
+        llm_before = agent.get_llm_metrics()
+
     agent.eval()
 
     results = []
@@ -34,9 +102,14 @@ def evaluate_ppo(
     start_time = time.perf_counter()
 
     logger.info(
-        "PPO evaluation started | episodes=%s",
+        ("%s deterministic evaluation " "started | episodes=%s"),
+        agent_label.upper(),
         evaluation_episodes,
     )
+
+    # ==========================================================
+    # Episodes
+    # ==========================================================
 
     for episode_index in range(
         1,
@@ -45,17 +118,12 @@ def evaluate_ppo(
 
         episode_seed = config.environment.RANDOM_SEED + 100_000 + episode_index
 
-        state = env.reset(
-            seed=episode_seed,
-            options={
-                "phase": "EVALUATION",
-                "experiment_name": run_name,
-                "agent_type": "RL",
-                "algorithm": "PPO",
-                "guidance_mode": "NONE",
-                "llm_model": None,
-                "llm_plan": [],
-            },
+        state = prepare_episode(
+            agent=agent,
+            env=env,
+            episode_seed=episode_seed,
+            run_name=run_name,
+            phase="EVALUATION",
         )
 
         episode_ids.append(env.episode_id)
@@ -64,9 +132,19 @@ def evaluate_ppo(
 
         episode_reward = 0.0
 
+        episode_guidance_bonus = 0.0
+
         episode_steps = 0
 
+        procedure_attempts = 0
+
+        procedure_followed_count = 0
+
         final_info = {}
+
+        # ======================================================
+        # Episode
+        # ======================================================
 
         while not done:
 
@@ -81,11 +159,31 @@ def evaluate_ppo(
                 reward,
                 done,
                 info,
-            ) = env.step(action)
+            ) = execute_agent_step(
+                agent=agent,
+                env=env,
+                action=action,
+            )
 
-            if reward is not None:
+            episode_reward += float(reward or 0.0)
 
-                episode_reward += float(reward)
+            episode_guidance_bonus += float(
+                info.get(
+                    "guidance_bonus",
+                    0.0,
+                )
+                or 0.0
+            )
+
+            procedure_followed = info.get("procedure_followed")
+
+            if procedure_followed is not None:
+
+                procedure_attempts += 1
+
+                if procedure_followed:
+
+                    procedure_followed_count += 1
 
             episode_steps += 1
 
@@ -93,10 +191,21 @@ def evaluate_ppo(
 
             final_info = info
 
+        # ======================================================
+        # Result
+        # ======================================================
+
+        adherence = None
+
+        if procedure_attempts:
+
+            adherence = procedure_followed_count / procedure_attempts
+
         results.append(
             {
                 "episode": episode_index,
                 "reward": episode_reward,
+                "guidanceBonus": episode_guidance_bonus,
                 "steps": episode_steps,
                 "completed": bool(env.state["task_completed"]),
                 "terminatedReason": final_info.get("terminated_reason"),
@@ -106,6 +215,9 @@ def evaluate_ppo(
                         False,
                     )
                 ),
+                "procedureAttempts": procedure_attempts,
+                "procedureFollowed": procedure_followed_count,
+                "procedureAdherence": adherence,
             }
         )
 
@@ -113,18 +225,36 @@ def evaluate_ppo(
 
     success_count = sum(1 for row in results if row["completed"])
 
+    success_rate = success_count / evaluation_episodes if evaluation_episodes else 0.0
+
     logger.info(
         (
-            "PPO evaluation complete | "
+            "%s evaluation complete | "
             "success=%s/%s | "
             "success_rate=%.2f%% | "
             "time=%.2fs"
         ),
+        agent_label.upper(),
         success_count,
         evaluation_episodes,
-        (success_count / evaluation_episodes * 100.0),
+        success_rate * 100.0,
         evaluation_time,
     )
+
+    # ==========================================================
+    # LLM Evaluation Metrics
+    # ==========================================================
+
+    evaluation_llm_metrics = None
+
+    if is_llm_agent(agent):
+
+        llm_after = agent.get_llm_metrics()
+
+        evaluation_llm_metrics = _llm_metric_delta(
+            llm_before,
+            llm_after,
+        )
 
     if was_training:
 
@@ -134,4 +264,28 @@ def evaluate_ppo(
         "evaluation_time": evaluation_time,
         "episode_ids": episode_ids,
         "local_episodes": results,
+        "llm_metrics": evaluation_llm_metrics,
     }
+
+
+# ==========================================================
+# Backwards-Compatible PPO Name
+# ==========================================================
+
+
+def evaluate_ppo(
+    agent,
+    env,
+    run_name,
+    logger,
+    evaluation_episodes=None,
+):
+
+    return evaluate_agent(
+        agent=agent,
+        env=env,
+        run_name=run_name,
+        logger=logger,
+        evaluation_episodes=evaluation_episodes,
+        agent_label="ppo",
+    )

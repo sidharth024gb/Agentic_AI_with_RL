@@ -1,19 +1,35 @@
 """
 visualization.py
 
-Visualizations for PPO training/evaluation.
+Visualizations shared by:
+
+    - PPO
+    - LLM + PPO
 """
 
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-import pandas as pd
 
 from config.config import config
 
 # ==========================================================
-# Save Helper
+# Helpers
 # ==========================================================
+
+
+def _safe_name(
+    value,
+):
+
+    return (
+        str(value)
+        .lower()
+        .replace(" ", "_")
+        .replace("+", "_plus_")
+        .replace("/", "_")
+        .replace("\\", "_")
+    )
 
 
 def _save(
@@ -43,7 +59,7 @@ def _save(
 
 
 # ==========================================================
-# Reward Curve
+# Reward
 # ==========================================================
 
 
@@ -51,6 +67,7 @@ def plot_reward_curve(
     training_df,
     output_directory,
     window,
+    agent_name,
 ):
 
     dataframe = training_df.copy()
@@ -76,14 +93,14 @@ def plot_reward_curve(
     plt.plot(
         dataframe["episodeNumber"],
         dataframe["movingReward"],
-        label=f"{window}-episode moving average",
+        label=(f"{window}-episode " "moving average"),
     )
 
     plt.xlabel("Episode")
 
     plt.ylabel("Reward")
 
-    plt.title("PPO Training Reward")
+    plt.title(f"{agent_name} Training Reward")
 
     plt.legend()
 
@@ -92,12 +109,12 @@ def plot_reward_curve(
     return _save(
         figure,
         output_directory,
-        "ppo_reward_curve.png",
+        (f"{_safe_name(agent_name)}" "_reward_curve.png"),
     )
 
 
 # ==========================================================
-# Success Curve
+# Success
 # ==========================================================
 
 
@@ -105,9 +122,10 @@ def plot_success_curve(
     training_df,
     output_directory,
     window,
+    agent_name,
 ):
 
-    values = (
+    rolling = (
         training_df["completed"]
         .astype(float)
         .rolling(
@@ -121,7 +139,7 @@ def plot_success_curve(
 
     plt.plot(
         training_df["episodeNumber"],
-        values,
+        rolling,
     )
 
     plt.xlabel("Episode")
@@ -133,19 +151,19 @@ def plot_success_curve(
         1.05,
     )
 
-    plt.title("PPO Training Success Rate")
+    plt.title(f"{agent_name} Training Success Rate")
 
     plt.grid(alpha=0.25)
 
     return _save(
         figure,
         output_directory,
-        "ppo_success_rate.png",
+        (f"{_safe_name(agent_name)}" "_success_rate.png"),
     )
 
 
 # ==========================================================
-# Steps Curve
+# Steps
 # ==========================================================
 
 
@@ -153,6 +171,7 @@ def plot_steps_curve(
     training_df,
     output_directory,
     window,
+    agent_name,
 ):
 
     dataframe = training_df.copy()
@@ -178,14 +197,14 @@ def plot_steps_curve(
     plt.plot(
         dataframe["episodeNumber"],
         dataframe["movingSteps"],
-        label=f"{window}-episode moving average",
+        label=(f"{window}-episode " "moving average"),
     )
 
     plt.xlabel("Episode")
 
     plt.ylabel("Steps")
 
-    plt.title("PPO Steps per Episode")
+    plt.title(f"{agent_name} Steps per Episode")
 
     plt.legend()
 
@@ -194,17 +213,21 @@ def plot_steps_curve(
     return _save(
         figure,
         output_directory,
-        "ppo_steps_curve.png",
+        (f"{_safe_name(agent_name)}" "_steps_curve.png"),
     )
 
 
 # ==========================================================
-# PPO Loss
+# PPO Updates
 # ==========================================================
 
 
-def plot_policy_loss(
+def _plot_update_metric(
     updates_df,
+    column,
+    ylabel,
+    title,
+    filename,
     output_directory,
 ):
 
@@ -212,75 +235,21 @@ def plot_policy_loss(
 
     plt.plot(
         updates_df["update"],
-        updates_df["policy_loss"],
+        updates_df[column],
     )
 
     plt.xlabel("PPO Update")
 
-    plt.ylabel("Policy loss")
+    plt.ylabel(ylabel)
 
-    plt.title("PPO Policy Loss")
+    plt.title(title)
 
     plt.grid(alpha=0.25)
 
     return _save(
         figure,
         output_directory,
-        "ppo_policy_loss.png",
-    )
-
-
-def plot_value_loss(
-    updates_df,
-    output_directory,
-):
-
-    figure = plt.figure(figsize=(11, 6))
-
-    plt.plot(
-        updates_df["update"],
-        updates_df["value_loss"],
-    )
-
-    plt.xlabel("PPO Update")
-
-    plt.ylabel("Value loss")
-
-    plt.title("PPO Value Loss")
-
-    plt.grid(alpha=0.25)
-
-    return _save(
-        figure,
-        output_directory,
-        "ppo_value_loss.png",
-    )
-
-
-def plot_entropy(
-    updates_df,
-    output_directory,
-):
-
-    figure = plt.figure(figsize=(11, 6))
-
-    plt.plot(
-        updates_df["update"],
-        updates_df["entropy"],
-    )
-
-    plt.xlabel("PPO Update")
-
-    plt.ylabel("Policy entropy")
-
-    plt.title("PPO Policy Entropy")
-
-    plt.grid(alpha=0.25)
-
-    return _save(
-        figure,
-        output_directory,
-        "ppo_entropy.png",
+        filename,
     )
 
 
@@ -292,6 +261,7 @@ def plot_entropy(
 def plot_action_frequency(
     steps_df,
     output_directory,
+    agent_name,
 ):
 
     training_steps = steps_df[steps_df["phase"] == "TRAIN"]
@@ -309,7 +279,7 @@ def plot_action_frequency(
 
     plt.ylabel("Action")
 
-    plt.title("PPO Training Action Frequency")
+    plt.title(f"{agent_name} Training Action Frequency")
 
     plt.grid(
         axis="x",
@@ -319,18 +289,19 @@ def plot_action_frequency(
     return _save(
         figure,
         output_directory,
-        "ppo_action_frequency.png",
+        (f"{_safe_name(agent_name)}" "_action_frequency.png"),
     )
 
 
 # ==========================================================
-# Termination Reasons
+# Termination
 # ==========================================================
 
 
 def plot_termination_reasons(
     training_df,
     output_directory,
+    agent_name,
 ):
 
     counts = training_df["terminatedReason"].fillna("UNKNOWN").value_counts()
@@ -346,7 +317,7 @@ def plot_termination_reasons(
 
     plt.ylabel("Episodes")
 
-    plt.title("PPO Training Episode Termination")
+    plt.title(f"{agent_name} Episode Termination")
 
     plt.xticks(
         rotation=30,
@@ -361,18 +332,19 @@ def plot_termination_reasons(
     return _save(
         figure,
         output_directory,
-        "ppo_termination_reasons.png",
+        (f"{_safe_name(agent_name)}" "_termination.png"),
     )
 
 
 # ==========================================================
-# Evaluation Reward
+# Evaluation
 # ==========================================================
 
 
 def plot_evaluation_rewards(
     evaluation_df,
     output_directory,
+    agent_name,
 ):
 
     figure = plt.figure(figsize=(11, 6))
@@ -389,25 +361,117 @@ def plot_evaluation_rewards(
 
     plt.ylabel("Reward")
 
-    plt.title("PPO Deterministic Evaluation Reward")
+    plt.title((f"{agent_name} " "Deterministic Evaluation"))
 
     plt.grid(alpha=0.25)
 
     return _save(
         figure,
         output_directory,
-        "ppo_evaluation_reward.png",
+        (f"{_safe_name(agent_name)}" "_evaluation_reward.png"),
     )
 
 
 # ==========================================================
-# Generate Everything
+# LLM Procedure Adherence
 # ==========================================================
 
 
-def generate_ppo_visualizations(
+def plot_procedure_adherence(
+    steps_df,
+    output_directory,
+    agent_name,
+):
+
+    guided = steps_df[
+        (steps_df["phase"] == "TRAIN") & (steps_df["procedureFollowed"].notna())
+    ].copy()
+
+    if guided.empty:
+
+        return None
+
+    guided["procedureFollowed"] = guided["procedureFollowed"].astype(float)
+
+    episode_adherence = guided.groupby("episodeNumber")["procedureFollowed"].mean()
+
+    figure = plt.figure(figsize=(11, 6))
+
+    plt.plot(
+        episode_adherence.index,
+        episode_adherence.values,
+    )
+
+    plt.xlabel("Episode")
+
+    plt.ylabel("Procedure adherence")
+
+    plt.ylim(
+        0,
+        1.05,
+    )
+
+    plt.title((f"{agent_name} " "LLM Procedure Adherence"))
+
+    plt.grid(alpha=0.25)
+
+    return _save(
+        figure,
+        output_directory,
+        (f"{_safe_name(agent_name)}" "_procedure_adherence.png"),
+    )
+
+
+# ==========================================================
+# Guidance Bonus
+# ==========================================================
+
+
+def plot_guidance_bonus(
+    steps_df,
+    output_directory,
+    agent_name,
+):
+
+    guided = steps_df[steps_df["phase"] == "TRAIN"]
+
+    if guided.empty or guided["guidanceBonus"].sum() == 0:
+
+        return None
+
+    bonuses = guided.groupby("episodeNumber")["guidanceBonus"].sum()
+
+    figure = plt.figure(figsize=(11, 6))
+
+    plt.plot(
+        bonuses.index,
+        bonuses.values,
+    )
+
+    plt.xlabel("Episode")
+
+    plt.ylabel("Guidance bonus")
+
+    plt.title((f"{agent_name} " "Guidance Reward per Episode"))
+
+    plt.grid(alpha=0.25)
+
+    return _save(
+        figure,
+        output_directory,
+        (f"{_safe_name(agent_name)}" "_guidance_bonus.png"),
+    )
+
+
+# ==========================================================
+# Generate
+# ==========================================================
+
+
+def generate_agent_visualizations(
     tables,
     output_directory,
+    agent_name,
 ):
 
     paths = {}
@@ -422,60 +486,133 @@ def generate_ppo_visualizations(
 
     window = config.training.MOVING_AVERAGE_WINDOW
 
+    # ======================================================
+    # Episode Graphs
+    # ======================================================
+
     if not training_df.empty:
 
         paths["reward"] = plot_reward_curve(
             training_df,
             output_directory,
             window,
+            agent_name,
         )
 
         paths["success"] = plot_success_curve(
             training_df,
             output_directory,
             window,
+            agent_name,
         )
 
         paths["steps"] = plot_steps_curve(
             training_df,
             output_directory,
             window,
+            agent_name,
         )
 
         paths["termination"] = plot_termination_reasons(
             training_df,
             output_directory,
+            agent_name,
         )
+
+    # ======================================================
+    # PPO Graphs
+    # ======================================================
 
     if not updates_df.empty:
 
-        paths["policy_loss"] = plot_policy_loss(
+        safe = _safe_name(agent_name)
+
+        paths["policy_loss"] = _plot_update_metric(
             updates_df,
+            "policy_loss",
+            "Policy loss",
+            (f"{agent_name} " "PPO Policy Loss"),
+            f"{safe}_policy_loss.png",
             output_directory,
         )
 
-        paths["value_loss"] = plot_value_loss(
+        paths["value_loss"] = _plot_update_metric(
             updates_df,
+            "value_loss",
+            "Value loss",
+            (f"{agent_name} " "PPO Value Loss"),
+            f"{safe}_value_loss.png",
             output_directory,
         )
 
-        paths["entropy"] = plot_entropy(
+        paths["entropy"] = _plot_update_metric(
             updates_df,
+            "entropy",
+            "Policy entropy",
+            (f"{agent_name} " "PPO Policy Entropy"),
+            f"{safe}_entropy.png",
             output_directory,
         )
+
+    # ======================================================
+    # Actions
+    # ======================================================
 
     if not steps_df.empty:
 
         paths["actions"] = plot_action_frequency(
             steps_df,
             output_directory,
+            agent_name,
         )
+
+        adherence_path = plot_procedure_adherence(
+            steps_df,
+            output_directory,
+            agent_name,
+        )
+
+        if adherence_path:
+
+            paths["procedure_adherence"] = adherence_path
+
+        bonus_path = plot_guidance_bonus(
+            steps_df,
+            output_directory,
+            agent_name,
+        )
+
+        if bonus_path:
+
+            paths["guidance_bonus"] = bonus_path
+
+    # ======================================================
+    # Evaluation
+    # ======================================================
 
     if not evaluation_df.empty:
 
         paths["evaluation_reward"] = plot_evaluation_rewards(
             evaluation_df,
             output_directory,
+            agent_name,
         )
 
     return paths
+
+
+# ==========================================================
+# Backwards Compatibility
+# ==========================================================
+
+
+def generate_ppo_visualizations(
+    tables,
+    output_directory,
+):
+
+    return generate_agent_visualizations(
+        tables=tables,
+        output_directory=output_directory,
+        agent_name="PPO",
+    )

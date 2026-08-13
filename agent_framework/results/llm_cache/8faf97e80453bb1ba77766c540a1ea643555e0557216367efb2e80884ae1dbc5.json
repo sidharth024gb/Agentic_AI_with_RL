@@ -3,7 +3,7 @@
   "cached": false,
   "model": "llama3",
   "prompt_version": "finance_planner_v2",
-  "latency_ms": 65538.71380002238,
+  "latency_ms": 79276.91310003866,
   "action_names": [
     "GET_INVOICES",
     "CHECK_DUPLICATE",

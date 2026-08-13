@@ -83,7 +83,7 @@ generate_folder_structure(
         "POC/__pycache__",
         "POC/logs",
         "POC/test_module/__pycache__",
-        "agent/logs",
+        "agent_framework/archive",
         "backend_server/logs",
         "backend_server/node_modules",
     ],

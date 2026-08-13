@@ -262,26 +262,79 @@ class LLMConfig:
 class ExperimentConfig:
     """Experiment metadata."""
 
-    EXPERIMENT_NAME: str = "llm_ppo" # llm_ppo / ppo_baseline
+    # ==========================================================
+    # EXPERIMENT CONFIGURATION PRESETS
+    # ==========================================================
 
-    DESCRIPTION: str = "Baseline PPO agent with LLM planning."
+    # ----------------------------------------------------------
+    # 1. BASELINE PPO
+    # ----------------------------------------------------------
+    #
+    # EXPERIMENT_NAME = "ppo_baseline"
+    #
+    # DESCRIPTION = (
+    #     "Baseline PPO agent without LLM planning or guidance."
+    # )
+    #
+    # GUIDANCE_MODE = "NONE"
+    #
+    #
+    # ----------------------------------------------------------
+    # 2. LLM + PPO - REWARD SHAPING ONLY
+    # ----------------------------------------------------------
+    #
+    # EXPERIMENT_NAME = "llm_ppo_reward"
+    #
+    # DESCRIPTION = (
+    #     "PPO agent with LLM-generated procedural guidance "
+    #     "used only for positive reward shaping."
+    # )
+    #
+    # GUIDANCE_MODE = "REWARD_SHAPING"
+    #
+    #
+    # ----------------------------------------------------------
+    # 3. LLM + PPO - INPUT GUIDANCE ONLY
+    # ----------------------------------------------------------
+    #
+    # EXPERIMENT_NAME = "llm_ppo_input"
+    #
+    # DESCRIPTION = (
+    #     "PPO agent with LLM-generated procedural guidance "
+    #     "appended to the policy input without reward shaping."
+    # )
+    #
+    # GUIDANCE_MODE = "INPUT"
+    #
+    #
+    # ----------------------------------------------------------
+    # 4. LLM + PPO - INPUT + REWARD SHAPING
+    # ----------------------------------------------------------
+    #
+    # EXPERIMENT_NAME = "llm_ppo_input_reward"
+    #
+    # DESCRIPTION = (
+    #     "PPO agent with LLM-generated procedural guidance "
+    #     "provided as policy input and positive reward shaping."
+    # )
+    #
+    # GUIDANCE_MODE = "INPUT_AND_REWARD"
+    # ==========================================================
+
+    EXPERIMENT_NAME = "llm_ppo_input_reward"
+    
+    DESCRIPTION = (
+        "PPO agent with LLM-generated procedural guidance "
+        "provided as policy input and positive reward shaping."
+    )
+    
+    GUIDANCE_MODE = "INPUT_AND_REWARD"
 
     # ------------------------------------------------------
     # TRAIN / EVALUATION / TEST
     # ------------------------------------------------------
 
     PHASE: str = "TRAIN"
-
-    # ------------------------------------------------------
-    # Guidance Mode
-    #
-    # NONE
-    # INPUT
-    # REWARD_SHAPING
-    # INPUT_AND_REWARD
-    # ------------------------------------------------------
-
-    GUIDANCE_MODE: str = "INPUT_AND_REWARD"
 
     # ------------------------------------------------------
     # Extra reward given when the LLM procedure is followed.

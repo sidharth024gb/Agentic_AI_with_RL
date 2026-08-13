@@ -93,6 +93,16 @@ class FinanceEnvironment:
         self.llm_model = config.llm.MODEL if self.agent_type == "LLM_RL" else None
 
         # ==========================================================
+        # LLM Planner Episode Metadata
+        # ==========================================================
+
+        self.prompt_version = None
+
+        self.llm_plan_cached = False
+
+        self.llm_planning_time_ms = 0.0
+
+        # ==========================================================
         # Environment Components
         # ==========================================================
 
@@ -449,15 +459,27 @@ class FinanceEnvironment:
     ):
 
         payload = {
+            # ======================================================
+            # Agent / Experiment
+            # ======================================================
             "agentType": self.agent_type,
             "algorithm": self.algorithm,
             "goal": self.goal,
             "phase": self.phase,
             "experimentName": self.experiment_name,
             "seed": self.seed,
+            # ======================================================
+            # LLM Metadata
+            # ======================================================
             "llmModel": self.llm_model,
+            "promptVersion": self.prompt_version,
+            "llmPlanCached": self.llm_plan_cached,
+            "llmPlanningTimeMs": self.llm_planning_time_ms,
             "guidanceMode": self.guidance_mode,
             "llmPlan": self.llm_plan,
+            # ======================================================
+            # Environment
+            # ======================================================
             "initialState": self.get_state().copy(),
         }
 
@@ -623,6 +645,33 @@ class FinanceEnvironment:
         )
 
         # ======================================================
+        # LLM Planner Episode Metadata
+        #
+        # These are reset every episode so metadata from one
+        # episode cannot leak into another.
+        # ======================================================
+
+        self.prompt_version = options.get(
+            "prompt_version",
+            None,
+        )
+
+        self.llm_plan_cached = bool(
+            options.get(
+                "llm_plan_cached",
+                False,
+            )
+        )
+
+        self.llm_planning_time_ms = float(
+            options.get(
+                "llm_planning_time_ms",
+                0.0,
+            )
+            or 0.0
+        )
+
+        # ======================================================
         # Reward Guidance Configuration
         # ======================================================
 
@@ -649,6 +698,12 @@ class FinanceEnvironment:
 
             self.llm_model = None
 
+            self.prompt_version = None
+
+            self.llm_plan_cached = False
+
+            self.llm_planning_time_ms = 0.0
+            
         # ======================================================
         # Reset Reward Tracking
         # ======================================================

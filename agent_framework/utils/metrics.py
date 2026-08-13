@@ -1,17 +1,19 @@
 """
 metrics.py
 
-PPO metrics and Excel export.
+Metrics and Excel reporting for:
+
+    - PPO
+    - LLM + PPO
 
 Backend Episode records are treated as the authoritative
-source for episode-level performance.
+episode-level record.
 """
 
 import json
 
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 from openpyxl.styles import (
@@ -32,6 +34,7 @@ def _json_string(
 ):
 
     if value is None:
+
         return ""
 
     return json.dumps(
@@ -42,7 +45,7 @@ def _json_string(
 
 
 # ==========================================================
-# Episode DataFrame
+# Episodes
 # ==========================================================
 
 
@@ -69,6 +72,18 @@ def episodes_to_dataframe(
                 "algorithm": episode.get("algorithm"),
                 "seed": episode.get("seed"),
                 "goal": episode.get("goal"),
+                # ----------------------------------------------
+                # LLM metadata
+                # ----------------------------------------------
+                "llmModel": episode.get("llmModel"),
+                "guidanceMode": episode.get("guidanceMode"),
+                "promptVersion": episode.get("promptVersion"),
+                "llmPlanCached": episode.get("llmPlanCached"),
+                "llmPlanningTimeMs": episode.get("llmPlanningTimeMs"),
+                "llmPlan": _json_string(episode.get("llmPlan")),
+                # ----------------------------------------------
+                # Rewards
+                # ----------------------------------------------
                 "totalReward": float(
                     episode.get(
                         "totalReward",
@@ -90,6 +105,9 @@ def episodes_to_dataframe(
                     )
                     or 0
                 ),
+                # ----------------------------------------------
+                # Actions
+                # ----------------------------------------------
                 "totalSteps": int(
                     episode.get(
                         "totalSteps",
@@ -125,6 +143,9 @@ def episodes_to_dataframe(
                     )
                     or 0
                 ),
+                # ----------------------------------------------
+                # Completion
+                # ----------------------------------------------
                 "completed": bool(
                     episode.get(
                         "completed",
@@ -155,7 +176,7 @@ def episodes_to_dataframe(
 
 
 # ==========================================================
-# Steps DataFrame
+# Steps
 # ==========================================================
 
 
@@ -171,6 +192,10 @@ def steps_to_dataframe(
 
         phase = episode.get("phase")
 
+        agent_type = episode.get("agentType")
+
+        guidance_mode = episode.get("guidanceMode")
+
         for step in episode.get(
             "actionSequence",
             [],
@@ -180,6 +205,8 @@ def steps_to_dataframe(
                 {
                     "episodeNumber": episode_number,
                     "phase": phase,
+                    "agentType": agent_type,
+                    "guidanceMode": guidance_mode,
                     "stepNumber": step.get("stepNumber"),
                     "action": step.get("action"),
                     "endpoint": step.get("endpoint"),
@@ -251,6 +278,7 @@ def calculate_convergence_episode(
 ):
 
     if training_df.empty:
+
         return None
 
     window_size = window_size or config.training.CONVERGENCE_WINDOW
@@ -291,7 +319,7 @@ def calculate_convergence_episode(
 
 
 # ==========================================================
-# Summary
+# Episode Summary
 # ==========================================================
 
 
@@ -316,6 +344,7 @@ def calculate_episode_summary(
             "environment_errors": 0,
             "no_op_actions": 0,
             "failed_actions": 0,
+            "total_guidance_bonus": 0.0,
         }
 
     completed = int(dataframe["completed"].sum())
@@ -335,11 +364,103 @@ def calculate_episode_summary(
         "environment_errors": int(dataframe["environmentErrors"].sum()),
         "no_op_actions": int(dataframe["noOpActions"].sum()),
         "failed_actions": int(dataframe["failedActions"].sum()),
+        "total_guidance_bonus": float(dataframe["totalGuidanceBonus"].sum()),
     }
 
 
 # ==========================================================
-# Full Metrics Tables
+# Guidance Summary
+# ==========================================================
+
+
+def build_guidance_summary(
+    steps_df,
+):
+
+    columns = [
+        "phase",
+        "procedure_attempts",
+        "procedure_followed",
+        "procedure_adherence_rate",
+        "total_guidance_bonus",
+        "average_guidance_bonus",
+    ]
+
+    if steps_df.empty:
+
+        return pd.DataFrame(columns=columns)
+
+    guided = steps_df[steps_df["procedureFollowed"].notna()].copy()
+
+    if guided.empty:
+
+        return pd.DataFrame(columns=columns)
+
+    guided["procedureFollowed"] = guided["procedureFollowed"].astype(bool)
+
+    rows = []
+
+    for (
+        phase,
+        frame,
+    ) in guided.groupby("phase"):
+
+        attempts = len(frame)
+
+        followed = int(frame["procedureFollowed"].sum())
+
+        rows.append(
+            {
+                "phase": phase,
+                "procedure_attempts": attempts,
+                "procedure_followed": followed,
+                "procedure_adherence_rate": (followed / attempts if attempts else 0.0),
+                "total_guidance_bonus": float(frame["guidanceBonus"].sum()),
+                "average_guidance_bonus": float(frame["guidanceBonus"].mean()),
+            }
+        )
+
+    return pd.DataFrame(
+        rows,
+        columns=columns,
+    )
+
+
+# ==========================================================
+# LLM Metrics
+# ==========================================================
+
+
+def build_llm_metrics_dataframe(
+    training_llm_metrics=None,
+    evaluation_llm_metrics=None,
+):
+
+    training_llm_metrics = training_llm_metrics or {}
+
+    evaluation_llm_metrics = evaluation_llm_metrics or {}
+
+    keys = sorted(set(training_llm_metrics.keys()) | set(evaluation_llm_metrics.keys()))
+
+    return pd.DataFrame(
+        [
+            {
+                "metric": key,
+                "training": training_llm_metrics.get(key),
+                "evaluation": evaluation_llm_metrics.get(key),
+            }
+            for key in keys
+        ],
+        columns=[
+            "metric",
+            "training",
+            "evaluation",
+        ],
+    )
+
+
+# ==========================================================
+# Metric Tables
 # ==========================================================
 
 
@@ -349,6 +470,8 @@ def build_metric_tables(
     ppo_updates,
     training_time,
     evaluation_time,
+    training_llm_metrics=None,
+    evaluation_llm_metrics=None,
 ):
 
     training_df = episodes_to_dataframe(training_episodes)
@@ -361,21 +484,19 @@ def build_metric_tables(
 
     updates_df = pd.DataFrame(ppo_updates)
 
+    # ======================================================
+    # Episode Metrics
+    # ======================================================
+
     training_summary = calculate_episode_summary(training_df)
 
     evaluation_summary = calculate_episode_summary(evaluation_df)
 
-    convergence_episode = calculate_convergence_episode(training_df)
-
-    training_summary["convergence_episode"] = convergence_episode
+    training_summary["convergence_episode"] = calculate_convergence_episode(training_df)
 
     training_summary["wall_clock_seconds"] = training_time
 
     evaluation_summary["wall_clock_seconds"] = evaluation_time
-
-    # ------------------------------------------------------
-    # Summary table
-    # ------------------------------------------------------
 
     metrics = sorted(set(training_summary.keys()) | set(evaluation_summary.keys()))
 
@@ -390,9 +511,9 @@ def build_metric_tables(
         ]
     )
 
-    # ------------------------------------------------------
-    # Action summary
-    # ------------------------------------------------------
+    # ======================================================
+    # Action Summary
+    # ======================================================
 
     if not steps_df.empty:
 
@@ -429,6 +550,10 @@ def build_metric_tables(
                     "reward",
                     "mean",
                 ),
+                total_guidance_bonus=(
+                    "guidanceBonus",
+                    "sum",
+                ),
                 average_duration_ms=(
                     "durationMs",
                     "mean",
@@ -441,9 +566,9 @@ def build_metric_tables(
 
         action_summary = pd.DataFrame()
 
-    # ------------------------------------------------------
-    # Termination summary
-    # ------------------------------------------------------
+    # ======================================================
+    # Terminations
+    # ======================================================
 
     combined_df = pd.concat(
         [
@@ -471,6 +596,21 @@ def build_metric_tables(
 
         termination_summary = pd.DataFrame()
 
+    # ======================================================
+    # Guidance
+    # ======================================================
+
+    guidance_summary = build_guidance_summary(steps_df)
+
+    # ======================================================
+    # LLM Planner
+    # ======================================================
+
+    llm_metrics_df = build_llm_metrics_dataframe(
+        training_llm_metrics,
+        evaluation_llm_metrics,
+    )
+
     return {
         "summary": summary_df,
         "training_episodes": training_df,
@@ -479,17 +619,44 @@ def build_metric_tables(
         "ppo_updates": updates_df,
         "action_summary": action_summary,
         "termination_summary": termination_summary,
+        "guidance_summary": guidance_summary,
+        "llm_metrics": llm_metrics_df,
     }
 
 
 # ==========================================================
-# Config Snapshot
+# Configuration Snapshot
 # ==========================================================
 
 
-def config_dataframe():
+def config_dataframe(
+    agent_label=None,
+):
 
     values = {
+        # ------------------------------------------------------
+        # Agent
+        # ------------------------------------------------------
+        "RUN_AGENT": agent_label,
+        "CONFIG_AGENT_TYPE": config.agent.AGENT_TYPE,
+        "ALGORITHM": config.agent.ALGORITHM,
+        "TASK": config.agent.TASK,
+        # ------------------------------------------------------
+        # Experiment
+        # ------------------------------------------------------
+        "EXPERIMENT_NAME": config.experiment.EXPERIMENT_NAME,
+        "GUIDANCE_MODE": config.experiment.GUIDANCE_MODE,
+        "GUIDANCE_BONUS": config.experiment.GUIDANCE_BONUS,
+        # ------------------------------------------------------
+        # LLM
+        # ------------------------------------------------------
+        "LLM_MODEL": config.llm.MODEL,
+        "LLM_BASE_URL": config.llm.BASE_URL,
+        "LLM_TEMPERATURE": config.llm.TEMPERATURE,
+        "LLM_USE_CACHE": config.llm.USE_CACHE,
+        # ------------------------------------------------------
+        # PPO
+        # ------------------------------------------------------
         "TOTAL_EPISODES": config.training.TOTAL_EPISODES,
         "EVALUATION_EPISODES": config.training.EVALUATION_EPISODES,
         "GAMMA": config.training.GAMMA,
@@ -500,6 +667,9 @@ def config_dataframe():
         "UPDATE_INTERVAL": config.training.UPDATE_INTERVAL,
         "EPOCHS": config.training.EPOCHS,
         "HIDDEN_NEURON_SIZE": config.training.HIDDEN_NEURON_SIZE,
+        # ------------------------------------------------------
+        # Environment
+        # ------------------------------------------------------
         "MAX_STEPS_PER_EPISODE": config.environment.MAX_STEPS_PER_EPISODE,
         "RANDOM_SEED": config.environment.RANDOM_SEED,
         "ACTION_SPACE_SIZE": config.environment.ACTION_SPACE_SIZE,
@@ -511,19 +681,23 @@ def config_dataframe():
                 "parameter": key,
                 "value": value,
             }
-            for key, value in values.items()
+            for (
+                key,
+                value,
+            ) in values.items()
         ]
     )
 
 
 # ==========================================================
-# Excel Export
+# Excel
 # ==========================================================
 
 
 def export_metrics_excel(
     tables,
     output_path,
+    agent_label=None,
 ):
 
     output_path = Path(output_path)
@@ -538,59 +712,43 @@ def export_metrics_excel(
         engine="openpyxl",
     ) as writer:
 
-        tables["summary"].to_excel(
-            writer,
-            sheet_name="Summary",
-            index=False,
-        )
+        sheet_map = {
+            "summary": "Summary",
+            "training_episodes": "Training Episodes",
+            "evaluation_episodes": "Evaluation Episodes",
+            "ppo_updates": "PPO Updates",
+            "action_summary": "Action Summary",
+            "termination_summary": "Termination Summary",
+            "guidance_summary": "Guidance Summary",
+            "llm_metrics": "LLM Metrics",
+            "steps": "Steps",
+        }
 
-        tables["training_episodes"].to_excel(
-            writer,
-            sheet_name="Training Episodes",
-            index=False,
-        )
+        for (
+            key,
+            sheet_name,
+        ) in sheet_map.items():
 
-        tables["evaluation_episodes"].to_excel(
-            writer,
-            sheet_name="Evaluation Episodes",
-            index=False,
-        )
+            tables.get(
+                key,
+                pd.DataFrame(),
+            ).to_excel(
+                writer,
+                sheet_name=sheet_name,
+                index=False,
+            )
 
-        tables["ppo_updates"].to_excel(
-            writer,
-            sheet_name="PPO Updates",
-            index=False,
-        )
-
-        tables["action_summary"].to_excel(
-            writer,
-            sheet_name="Action Summary",
-            index=False,
-        )
-
-        tables["termination_summary"].to_excel(
-            writer,
-            sheet_name="Termination Summary",
-            index=False,
-        )
-
-        tables["steps"].to_excel(
-            writer,
-            sheet_name="Steps",
-            index=False,
-        )
-
-        config_dataframe().to_excel(
+        config_dataframe(agent_label).to_excel(
             writer,
             sheet_name="Configuration",
             index=False,
         )
 
-        workbook = writer.book
+        # ======================================================
+        # Styling
+        # ======================================================
 
-        # ======================================================
-        # Workbook Styling
-        # ======================================================
+        workbook = writer.book
 
         header_fill = PatternFill(
             "solid",
@@ -624,18 +782,12 @@ def export_metrics_excel(
 
                 for cell in column_cells:
 
-                    try:
+                    value = "" if cell.value is None else str(cell.value)
 
-                        value = "" if cell.value is None else str(cell.value)
-
-                        max_length = max(
-                            max_length,
-                            len(value),
-                        )
-
-                    except Exception:
-
-                        pass
+                    max_length = max(
+                        max_length,
+                        len(value),
+                    )
 
                 worksheet.column_dimensions[column_letter].width = min(
                     max(

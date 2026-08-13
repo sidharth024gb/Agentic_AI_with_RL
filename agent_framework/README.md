@@ -829,5 +829,14 @@ Research Results
 
 The implementation intentionally focuses on **PPO and LLM-augmented PPO**, as the primary research question is whether LLM reasoning can improve RL training or task execution.
 
-python main.py train --episodes 100 --eval-episodes 20
-python main.py train
+Baseline PPO:
+
+    python main.py train --agent ppo
+
+LLM + PPO:
+
+    python main.py train --agent llm_rl
+
+Short test:
+
+    python main.py train --agent llm_rl --episodes 50 --eval-episodes 10

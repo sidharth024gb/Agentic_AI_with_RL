@@ -1,7 +1,7 @@
 """
 logger.py
 
-Logging utilities for PPO training runs.
+Shared logging utilities for Finance RL experiments.
 """
 
 import logging
@@ -17,30 +17,45 @@ DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
 # ==========================================================
-# Helpers
+# Safe Name
 # ==========================================================
 
 
 def safe_name(
-    value: str,
-) -> str:
+    value,
+):
 
     return (
-        value.strip()
+        str(value)
+        .strip()
         .lower()
-        .replace(" ", "_")
-        .replace("+", "_plus_")
-        .replace("/", "_")
-        .replace("\\", "_")
+        .replace(
+            " ",
+            "_",
+        )
+        .replace(
+            "+",
+            "_plus_",
+        )
+        .replace(
+            "/",
+            "_",
+        )
+        .replace(
+            "\\",
+            "_",
+        )
     )
 
 
+# ==========================================================
+# Run Name
+# ==========================================================
+
+
 def create_run_name(
-    base_name: str,
-) -> str:
-    """
-    Create a unique experiment/run identifier.
-    """
+    base_name,
+):
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
@@ -48,12 +63,12 @@ def create_run_name(
 
 
 # ==========================================================
-# Run Directories
+# Directories
 # ==========================================================
 
 
 def prepare_run_directories(
-    run_name: str,
+    run_name,
 ):
 
     directories = {
@@ -79,11 +94,11 @@ def prepare_run_directories(
 
 
 def get_run_logger(
-    run_name: str,
+    run_name,
     log_directory,
 ):
 
-    logger_name = f"ppo.{safe_name(run_name)}"
+    logger_name = f"experiment." f"{safe_name(run_name)}"
 
     logger = logging.getLogger(logger_name)
 
@@ -91,7 +106,10 @@ def get_run_logger(
 
     logger.propagate = False
 
-    # Remove previous handlers if reused.
+    # ------------------------------------------------------
+    # Remove existing handlers.
+    # ------------------------------------------------------
+
     for handler in list(logger.handlers):
 
         handler.close()
@@ -103,9 +121,9 @@ def get_run_logger(
         DATE_FORMAT,
     )
 
-    # ------------------------------------------------------
+    # ======================================================
     # Console
-    # ------------------------------------------------------
+    # ======================================================
 
     console_handler = logging.StreamHandler()
 
@@ -113,9 +131,9 @@ def get_run_logger(
 
     logger.addHandler(console_handler)
 
-    # ------------------------------------------------------
+    # ======================================================
     # File
-    # ------------------------------------------------------
+    # ======================================================
 
     log_file = Path(log_directory) / "training.log"
 
@@ -129,6 +147,11 @@ def get_run_logger(
     logger.addHandler(file_handler)
 
     return logger
+
+
+# ==========================================================
+# Close
+# ==========================================================
 
 
 def close_logger(
