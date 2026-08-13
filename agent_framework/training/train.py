@@ -1,29 +1,18 @@
 """
 train.py
 
-Shared PPO training pipeline.
+Shared PPO training pipeline for baseline PPO and LLM + PPO.
 
-Supports:
-
-    - PPO baseline
-    - LLM + PPO
-
-The difference between the agents is isolated to episode
-preparation and environment stepping.
-
-PPO:
-    env.reset()
-    env.step()
-
-LLM_RL:
-    agent.prepare_episode()
-    agent.step_environment()
-
-All learning remains PPO.
+Corrections
+-----------
+- environment-error transitions are never stored;
+- the explicit ``trainable`` flag from FinanceEnvironment is respected;
+- environment-error episodes are recorded separately from valid agent
+  performance statistics;
+- backend/setup failures do not terminate the entire experiment.
 """
 
 import time
-
 from pathlib import Path
 
 from config.config import config
@@ -34,10 +23,6 @@ from config.config import config
 
 
 def is_llm_agent(agent):
-    """
-    Detect whether the agent exposes the LLM-RL interface.
-    """
-
     return (
         hasattr(agent, "prepare_episode")
         and hasattr(agent, "step_environment")
@@ -57,16 +42,7 @@ def prepare_episode(
     run_name,
     phase,
 ):
-    """
-    Prepare one episode for either PPO or LLM + PPO.
-    """
-
-    # ======================================================
-    # LLM + PPO
-    # ======================================================
-
     if is_llm_agent(agent):
-
         return agent.prepare_episode(
             env=env,
             seed=episode_seed,
@@ -74,10 +50,6 @@ def prepare_episode(
             experiment_name=run_name,
             goal=config.agent.TASK,
         )
-
-    # ======================================================
-    # PPO Baseline
-    # ======================================================
 
     state = env.reset(
         seed=episode_seed,
@@ -93,7 +65,6 @@ def prepare_episode(
     )
 
     agent.start_episode()
-
     return state
 
 
@@ -102,21 +73,8 @@ def prepare_episode(
 # ==========================================================
 
 
-def execute_agent_step(
-    agent,
-    env,
-    action,
-):
-    """
-    Execute one step using the correct observation interface.
-
-    LLM input modes may require a 21-element next observation,
-    while FinanceEnvironment itself returns the base
-    13-element state.
-    """
-
+def execute_agent_step(agent, env, action):
     if is_llm_agent(agent):
-
         return agent.step_environment(
             env=env,
             action=action,
@@ -139,111 +97,119 @@ def train_agent(
     total_episodes=None,
     agent_label="ppo",
 ):
-
     total_episodes = (
         total_episodes if total_episodes is not None else config.training.TOTAL_EPISODES
     )
 
     save_every = config.training.SAVE_EVERY
-
     log_every = config.training.LOG_EVERY
 
     agent.train()
 
     episode_ids = []
-
     local_episodes = []
-
     update_records = []
 
     training_start = time.perf_counter()
 
     logger.info(
-        ("%s training started | " "episodes=%s"),
+        "%s training started | episodes=%s",
         agent_label.upper(),
         total_episodes,
     )
 
-    # ==========================================================
-    # Episodes
-    # ==========================================================
-
-    for episode_index in range(
-        1,
-        total_episodes + 1,
-    ):
-
+    for episode_index in range(1, total_episodes + 1):
         episode_seed = config.environment.RANDOM_SEED + episode_index
 
         # ======================================================
         # Prepare Episode
         # ======================================================
 
-        state = prepare_episode(
-            agent=agent,
-            env=env,
-            episode_seed=episode_seed,
-            run_name=run_name,
-            phase="TRAIN",
-        )
+        try:
+            state = prepare_episode(
+                agent=agent,
+                env=env,
+                episode_seed=episode_seed,
+                run_name=run_name,
+                phase="TRAIN",
+            )
+        except Exception as exc:
+            logger.error(
+                "Episode %s setup failed: %s",
+                episode_index,
+                exc,
+            )
+
+            local_episodes.append(
+                {
+                    "episode": episode_index,
+                    "backendEpisodeId": getattr(
+                        env,
+                        "episode_id",
+                        None,
+                    ),
+                    "backendEpisodeNumber": getattr(
+                        env,
+                        "episode_number",
+                        None,
+                    ),
+                    "reward": 0.0,
+                    "baseReward": 0.0,
+                    "guidanceBonus": 0.0,
+                    "completionBonus": 0.0,
+                    "steps": 0,
+                    "completed": False,
+                    "terminatedReason": "SETUP_ERROR",
+                    "environmentError": True,
+                    "validForMetrics": False,
+                    "setupError": str(exc),
+                    "procedureAttempts": 0,
+                    "procedureFollowed": 0,
+                    "procedureAdherence": None,
+                }
+            )
+            continue
 
         backend_episode_id = env.episode_id
-
         backend_episode_number = env.episode_number
-
         episode_ids.append(backend_episode_id)
 
         episode_reward = 0.0
-
         episode_base_reward = 0.0
-
         episode_guidance_bonus = 0.0
-
         episode_completion_bonus = 0.0
-
         episode_steps = 0
 
         procedure_attempts = 0
-
         procedure_followed_count = 0
 
         done = False
-
         last_info = {}
+        episode_environment_error = False
 
         # ======================================================
         # Episode Steps
         # ======================================================
 
         while not done:
+            action, log_prob, value = agent.select_action(state)
 
-            (
-                action,
-                log_prob,
-                value,
-            ) = agent.select_action(state)
-
-            (
-                next_state,
-                reward,
-                done,
-                info,
-            ) = execute_agent_step(
+            next_state, reward, done, info = execute_agent_step(
                 agent=agent,
                 env=env,
                 action=action,
             )
 
-            environment_error = bool(
+            environment_error = bool(info.get("environment_error", False))
+            trainable = bool(
                 info.get(
-                    "environment_error",
-                    False,
+                    "trainable",
+                    not environment_error,
                 )
             )
 
-            # ==================================================
-            # Store Valid PPO Transition
-            # ==================================================
+            if environment_error:
+                episode_environment_error = True
 
             agent.store_transition(
                 state=state,
@@ -254,16 +220,12 @@ def train_agent(
                 log_prob=log_prob,
                 value=value,
                 environment_error=environment_error,
+                trainable=trainable,
             )
-
-            # ==================================================
-            # PPO Update
-            # ==================================================
 
             update_metrics = agent.learn()
 
             if update_metrics is not None:
-
                 update_records.append(
                     {
                         "episode": episode_index,
@@ -272,65 +234,27 @@ def train_agent(
                     }
                 )
 
-            # ==================================================
-            # Episode Metrics
-            # ==================================================
-
+            # Valid rewards are accumulated for logging. An
+            # infrastructure transition should already be reward=0.
             episode_reward += float(reward or 0.0)
-
-            episode_base_reward += float(
-                info.get(
-                    "base_reward",
-                    0.0,
-                )
-                or 0.0
-            )
-
-            episode_guidance_bonus += float(
-                info.get(
-                    "guidance_bonus",
-                    0.0,
-                )
-                or 0.0
-            )
-
-            episode_completion_bonus += float(
-                info.get(
-                    "completion_bonus",
-                    0.0,
-                )
-                or 0.0
-            )
+            episode_base_reward += float(info.get("base_reward", 0.0) or 0.0)
+            episode_guidance_bonus += float(info.get("guidance_bonus", 0.0) or 0.0)
+            episode_completion_bonus += float(info.get("completion_bonus", 0.0) or 0.0)
 
             procedure_followed = info.get("procedure_followed")
 
             if procedure_followed is not None:
-
                 procedure_attempts += 1
-
                 if procedure_followed:
-
                     procedure_followed_count += 1
 
             episode_steps += 1
-
             state = next_state
-
             last_info = info
 
-        # ======================================================
-        # Procedure Adherence
-        # ======================================================
-
         procedure_adherence = None
-
         if procedure_attempts > 0:
-
             procedure_adherence = procedure_followed_count / procedure_attempts
-
-        # ======================================================
-        # Local Episode Record
-        # ======================================================
 
         episode_record = {
             "episode": episode_index,
@@ -343,24 +267,19 @@ def train_agent(
             "steps": episode_steps,
             "completed": bool(env.state["task_completed"]),
             "terminatedReason": last_info.get("terminated_reason"),
-            "environmentError": bool(
-                last_info.get(
-                    "environment_error",
-                    False,
-                )
-            ),
+            "environmentError": episode_environment_error,
+            "validForMetrics": not episode_environment_error,
             "procedureAttempts": procedure_attempts,
             "procedureFollowed": procedure_followed_count,
             "procedureAdherence": procedure_adherence,
         }
 
         if is_llm_agent(agent):
-
             episode_record.update(
                 {
                     "llmPlan": agent.get_current_plan(),
                     "llmPlanCached": agent.current_plan_cached,
-                    "llmPlanningTimeMs": agent.current_plan_latency_ms,
+                    "llmPlanningTimeMs": (agent.current_plan_latency_ms),
                 }
             )
 
@@ -375,26 +294,34 @@ def train_agent(
             or (log_every > 0 and episode_index % log_every == 0)
             or episode_index == total_episodes
         ):
+            window_size = min(
+                log_every if log_every > 0 else 1,
+                len(local_episodes),
+            )
+            recent = local_episodes[-window_size:]
+            valid_recent = [row for row in recent if row.get("validForMetrics", True)]
 
-            recent = local_episodes[
-                -min(
-                    log_every if log_every > 0 else 1,
-                    len(local_episodes),
-                ) :
-            ]
+            if valid_recent:
+                recent_reward = sum(row["reward"] for row in valid_recent) / len(
+                    valid_recent
+                )
 
-            recent_reward = sum(row["reward"] for row in recent) / len(recent)
+                recent_success = sum(
+                    1 for row in valid_recent if row["completed"]
+                ) / len(valid_recent)
+            else:
+                recent_reward = 0.0
+                recent_success = 0.0
 
-            recent_success = sum(1 for row in recent if row["completed"]) / len(recent)
+            recent_env_errors = sum(
+                1 for row in recent if row.get("environmentError", False)
+            )
 
             logger.info(
                 (
-                    "Episode %s/%s | "
-                    "reward=%.2f | "
-                    "steps=%s | "
-                    "completed=%s | "
-                    "recent_reward=%.2f | "
-                    "recent_success=%.2f%% | "
+                    "Episode %s/%s | reward=%.2f | steps=%s | "
+                    "completed=%s | recent_reward=%.2f | "
+                    "recent_success=%.2f%% | env_errors=%s | "
                     "buffer=%s"
                 ),
                 episode_index,
@@ -404,15 +331,14 @@ def train_agent(
                 env.state["task_completed"],
                 recent_reward,
                 recent_success * 100.0,
+                recent_env_errors,
                 len(agent.buffer),
             )
 
             if is_llm_agent(agent):
-
                 logger.info(
                     (
-                        "LLM | cached=%s | "
-                        "plan=%s | "
+                        "LLM | cached=%s | plan=%s | "
                         "guidance_bonus=%.2f | "
                         "procedure_adherence=%s"
                     ),
@@ -431,26 +357,19 @@ def train_agent(
         # ======================================================
 
         if save_every > 0 and episode_index % save_every == 0:
-
             checkpoint = Path(model_directory) / (
-                f"{agent_label}_episode_" f"{episode_index}.pt"
+                f"{agent_label}_episode_{episode_index}.pt"
             )
-
             agent.save(checkpoint)
-
-            logger.info(
-                "Checkpoint saved: %s",
-                checkpoint,
-            )
+            logger.info("Checkpoint saved: %s", checkpoint)
 
     # ==========================================================
-    # Final Incomplete PPO Rollout
+    # Final PPO Update / Save
     # ==========================================================
 
     final_update = agent.learn(force=True)
 
     if final_update is not None:
-
         update_records.append(
             {
                 "episode": total_episodes,
@@ -459,32 +378,31 @@ def train_agent(
             }
         )
 
-    # ==========================================================
-    # Final Model
-    # ==========================================================
-
     final_checkpoint = Path(model_directory) / f"{agent_label}_final.pt"
-
     agent.save(final_checkpoint)
 
     training_time = time.perf_counter() - training_start
 
-    # ==========================================================
-    # LLM Metrics
-    # ==========================================================
-
     llm_metrics = None
-
     if is_llm_agent(agent):
-
         llm_metrics = agent.get_llm_metrics()
 
+    valid_episodes = [row for row in local_episodes if row.get("validForMetrics", True)]
+    environment_error_episodes = sum(
+        1 for row in local_episodes if row.get("environmentError", False)
+    )
+
     logger.info(
-        ("%s training complete | " "time=%.2fs | " "steps=%s | " "updates=%s"),
+        (
+            "%s training complete | time=%.2fs | steps=%s | "
+            "updates=%s | valid_episodes=%s | env_errors=%s"
+        ),
         agent_label.upper(),
         training_time,
         agent.total_steps,
         agent.update_count,
+        len(valid_episodes),
+        environment_error_episodes,
     )
 
     return {
@@ -493,6 +411,8 @@ def train_agent(
         "training_time": training_time,
         "episode_ids": episode_ids,
         "local_episodes": local_episodes,
+        "valid_episode_count": len(valid_episodes),
+        "environment_error_episodes": environment_error_episodes,
         "ppo_updates": update_records,
         "llm_metrics": llm_metrics,
         "final_checkpoint": str(final_checkpoint),
@@ -512,7 +432,6 @@ def train_ppo(
     logger,
     total_episodes=None,
 ):
-
     return train_agent(
         agent=agent,
         env=env,

@@ -869,3 +869,18 @@ Short test:
 13. Test LLM INPUT
 14. Test LLM REWARD_SHAPING
 15. Test LLM INPUT_AND_REWARD
+
+# First verify the corrected environment
+python main.py train --agent ppo --episodes 50 --eval-episodes 10
+
+# Final baseline
+python main.py train --agent ppo --episodes 1000 --eval-episodes 100
+
+# LLM input
+python main.py train --agent llm_rl --guidance-mode input --episodes 1000 --eval-episodes 100
+
+# LLM reward shaping
+python main.py train --agent llm_rl --guidance-mode reward_shaping --guidance-bonus 1.0 --episodes 1000 --eval-episodes 100
+
+# LLM input + reward
+python main.py train --agent llm_rl --guidance-mode input_and_reward --guidance-bonus 1.0 --episodes 1000 --eval-episodes 100

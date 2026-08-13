@@ -4,23 +4,24 @@ finance_env.py
 Finance reinforcement-learning environment.
 
 Supports:
-
     - PPO baseline
     - LLM + PPO input guidance
     - LLM + PPO reward shaping
     - LLM + PPO input + reward guidance
 
-Business actions report outcomes.
-
-RewardProcessor owns reward calculation.
-ProcedureTracker owns LLM procedure progress.
+Key corrections
+---------------
+- validation findings are treated as successful processing;
+- partial batch success is preserved instead of becoming a full loss;
+- no-op/repeated valid actions are neutral;
+- duplicate/supplier/budget exclusions persist across refreshes;
+- task completion means no valid/payable outstanding invoice remains;
+- budget allocation is sequential and can skip an invoice then include
+  a later smaller invoice;
+- environment errors never create trainable transitions.
 """
 
-from datetime import (
-    datetime,
-    timedelta,
-    UTC,
-)
+from datetime import datetime, timedelta, UTC
 
 import random
 import time
@@ -29,358 +30,191 @@ import numpy as np
 import pandas as pd
 
 from config.config import config
-
-from environment.action_space import (
-    ActionSpace,
-    FinanceAction,
-)
-
-from environment.state_encoder import (
-    StateEncoder,
-)
-
-from environment.reward_processor import (
-    RewardProcessor,
-)
-
-from environment.procedure_tracker import (
-    ProcedureTracker,
-)
+from environment.action_space import ActionSpace, FinanceAction
+from environment.state_encoder import StateEncoder
+from environment.reward_processor import RewardProcessor
+from environment.procedure_tracker import ProcedureTracker
 
 
 class FinanceEnvironment:
-
-    def __init__(
-        self,
-        api_client,
-        llm_plan=None,
-    ):
-
+    def __init__(self, api_client, llm_plan=None):
         self.api_client = api_client
 
-        # ==========================================================
-        # Environment Configuration
-        # ==========================================================
-
         self.max_steps = config.environment.MAX_STEPS_PER_EPISODE
-
         self.seed = config.environment.RANDOM_SEED
-
         self.observation_type = config.environment.OBSERVATION_TYPE
 
-        # ==========================================================
-        # Agent Configuration
-        # ==========================================================
-
         self.agent_type = config.agent.AGENT_TYPE
-
         self.algorithm = config.agent.ALGORITHM
-
         self.goal = config.agent.TASK
 
-        # ==========================================================
-        # Experiment Configuration
-        # ==========================================================
-
         self.phase = config.experiment.PHASE
-
         self.experiment_name = config.experiment.EXPERIMENT_NAME
-
         self.guidance_mode = config.experiment.GUIDANCE_MODE
-
         self.guidance_bonus = config.experiment.GUIDANCE_BONUS
-
         self.llm_model = config.llm.MODEL if self.agent_type == "LLM_RL" else None
 
-        # ==========================================================
-        # LLM Planner Episode Metadata
-        # ==========================================================
-
         self.prompt_version = None
-
         self.llm_plan_cached = False
-
         self.llm_planning_time_ms = 0.0
 
-        # ==========================================================
-        # Environment Components
-        # ==========================================================
-
         self.action_space_handler = ActionSpace()
-
         self.state_encoder = StateEncoder()
-
-        # ==========================================================
-        # Reward Processor
-        # ==========================================================
 
         self.reward_processor = RewardProcessor(
             use_guidance=self._uses_reward_guidance(),
             guidance_bonus=self.guidance_bonus,
         )
 
-        # ==========================================================
-        # LLM Procedure
-        # ==========================================================
-
         self.llm_plan = []
-
         self.llm_procedure = []
-
         self.procedure_tracker = ProcedureTracker(
             procedure=[],
             action_dim=self.action_space_handler.action_count,
         )
-
         self.set_llm_plan(llm_plan or [])
 
-        # ==========================================================
-        # Rewarded Actions
-        #
-        # Prevent positive reward farming.
-        # ==========================================================
-
-        self.rewarded_actions = set()
-
-        # ==========================================================
-        # Episode Tracking
-        # ==========================================================
-
         self.episode_id = None
-
         self.episode_number = None
-
         self.episode_active = False
-
-        # ==========================================================
-        # Step Tracking
-        # ==========================================================
-
         self.current_step = 0
 
-        # ==========================================================
-        # DataFrames
-        # ==========================================================
-
         self.all_invoices = pd.DataFrame()
-
         self.paid_invoices = pd.DataFrame()
-
         self.rejected_invoices = pd.DataFrame()
-
         self.pending_approval_invoices = pd.DataFrame()
-
         self.approved_invoices = pd.DataFrame()
-
         self.report_df = pd.DataFrame()
 
-        # ==========================================================
-        # State
-        # ==========================================================
+        # Episode-level exclusions. These are business findings, not
+        # failed actions.
+        self.duplicate_invoice_ids = set()
+        self.invalid_supplier_invoice_ids = set()
+        self.budget_excluded_invoice_ids = set()
 
         self.state = self._initial_state()
 
     # ==========================================================
-    # Guidance Modes
+    # Public dimensions
     # ==========================================================
 
-    def _uses_reward_guidance(
-        self,
-    ):
+    @property
+    def observation_size(self):
+        return self.state_encoder.get_state_size()
 
+    @property
+    def action_size(self):
+        return self.action_space_handler.action_count
+
+    # ==========================================================
+    # Guidance modes / plan
+    # ==========================================================
+
+    def _uses_reward_guidance(self):
         return self.agent_type == "LLM_RL" and self.guidance_mode in {
             "REWARD_SHAPING",
             "INPUT_AND_REWARD",
         }
 
-    def _uses_input_guidance(
-        self,
-    ):
-
+    def _uses_input_guidance(self):
         return self.agent_type == "LLM_RL" and self.guidance_mode in {
             "INPUT",
             "INPUT_AND_REWARD",
         }
 
-    # ==========================================================
-    # LLM Plan
-    # ==========================================================
-
-    def set_llm_plan(
-        self,
-        plan,
-    ):
-        """
-        Accept either:
-
-            action IDs:
-                [0, 1, 2, 3, 5, 4, 7]
-
-        or:
-
-            action names:
-                [
-                    "GET_INVOICES",
-                    ...
-                ]
-
-        Backend Episode.llmPlan stores action names.
-
-        ProcedureTracker stores action IDs.
-        """
-
+    def set_llm_plan(self, plan):
         names = []
-
         action_ids = []
 
         for item in plan or []:
-
-            if isinstance(
-                item,
-                str,
-            ):
-
-                name = (
-                    item.strip()
-                    .upper()
-                    .replace(
-                        "-",
-                        "_",
-                    )
-                    .replace(
-                        " ",
-                        "_",
-                    )
-                )
+            if isinstance(item, str):
+                name = item.strip().upper().replace("-", "_").replace(" ", "_")
 
                 try:
-
                     action = FinanceAction[name]
-
                 except KeyError as exc:
-
-                    raise ValueError("Unknown LLM action: " f"{item}") from exc
-
+                    raise ValueError(f"Unknown LLM action: {item}") from exc
             else:
-
                 try:
-
                     action = FinanceAction(int(item))
-
-                except (
-                    TypeError,
-                    ValueError,
-                ) as exc:
-
-                    raise ValueError("Invalid LLM action: " f"{item}") from exc
+                except (TypeError, ValueError) as exc:
+                    raise ValueError(f"Invalid LLM action: {item}") from exc
 
             names.append(action.name)
-
             action_ids.append(int(action.value))
 
         self.llm_plan = names
-
         self.llm_procedure = action_ids
-
         self.procedure_tracker.set_procedure(action_ids)
 
     # ==========================================================
-    # State
+    # State / observation
     # ==========================================================
 
-    def _initial_state(
-        self,
-    ):
-
+    def _initial_state(self):
         return {
             "get_invoices": False,
             "check_duplicate": False,
             "check_supplier": False,
             "approve_invoices": False,
-            "pay_invoices": False,
             "check_budget": False,
+            "pay_invoices": False,
             "generate_report": False,
             "check_payment_completed": False,
             "has_paid_invoices": False,
             "has_rejected_invoices": False,
             "has_pending_approval_invoices": False,
             "has_approved_invoices": False,
+            "has_excluded_invoices": False,
+            "has_duplicate_invoices": False,
+            "has_invalid_supplier_invoices": False,
+            "has_budget_excluded_invoices": False,
+            "has_payable_invoices": False,
             "task_completed": False,
         }
 
-    def _update_invoice_states(
-        self,
-    ):
-
+    def _update_invoice_states(self):
         self.state["has_paid_invoices"] = not self.paid_invoices.empty
-
         self.state["has_rejected_invoices"] = not self.rejected_invoices.empty
-
         self.state["has_pending_approval_invoices"] = (
             not self.pending_approval_invoices.empty
         )
-
         self.state["has_approved_invoices"] = not self.approved_invoices.empty
 
-    def get_state(
-        self,
-    ):
+        self.state["has_duplicate_invoices"] = bool(self.duplicate_invoice_ids)
+        self.state["has_invalid_supplier_invoices"] = bool(
+            self.invalid_supplier_invoice_ids
+        )
+        self.state["has_budget_excluded_invoices"] = bool(
+            self.budget_excluded_invoice_ids
+        )
+        self.state["has_excluded_invoices"] = bool(self._all_excluded_ids())
 
+        self.state["has_payable_invoices"] = bool(
+            not self.pending_approval_invoices.empty or not self.approved_invoices.empty
+        )
+
+    def get_state(self):
         self._update_invoice_states()
-
         return self.state.copy()
 
-    # ==========================================================
-    # PPO Observation
-    # ==========================================================
-
-    def get_observation(
-        self,
-    ):
-
+    def get_observation(self):
         return self.state_encoder.encode(self.get_state())
 
-    # ==========================================================
-    # LLM Guidance Input
-    # ==========================================================
-
-    def get_guidance_vector(
-        self,
-    ):
-
+    def get_guidance_vector(self):
         return np.asarray(
             self.procedure_tracker.get_guidance(),
             dtype=np.float32,
         )
 
-    def get_guided_observation(
-        self,
-    ):
-        """
-        Used by future LLM_RLAgent when guidance mode is:
-
-            INPUT
-            INPUT_AND_REWARD
-
-        Base state = 13 values
-        Guidance   = 8 values
-
-        Combined = 21 values.
-        """
-
+    def get_guided_observation(self):
         base = self.get_observation()
-
         guidance = self.get_guidance_vector()
 
-        return np.concatenate(
-            [
-                base,
-                guidance,
-            ]
-        ).astype(np.float32)
+        return np.concatenate([base, guidance]).astype(np.float32)
 
     # ==========================================================
-    # Standard Action Result
+    # Result helpers
     # ==========================================================
 
     @staticmethod
@@ -392,31 +226,22 @@ class FinanceEnvironment:
         environment_error=False,
         **extra,
     ):
-
         result = {
             "success": bool(success),
             "useful_action": bool(useful_action),
-            # Filled by step() after ProcedureTracker checks it.
             "procedure_followed": None,
             "error_type": error_type,
             "environment_error": bool(environment_error),
             "message": message,
         }
-
         result.update(extra)
-
         return result
-
-    # ==========================================================
-    # Environment Error Result
-    # ==========================================================
 
     def _environment_error_result(
         self,
         response,
         fallback_message,
     ):
-
         return self._action_result(
             success=False,
             useful_action=False,
@@ -428,15 +253,8 @@ class FinanceEnvironment:
             ),
         )
 
-    # ==========================================================
-    # Action Endpoint
-    # ==========================================================
-
     @staticmethod
-    def _get_action_endpoint(
-        action_name,
-    ):
-
+    def _get_action_endpoint(action_name):
         endpoints = {
             "GET_INVOICES": "GET /invoice",
             "CHECK_DUPLICATE": "POST /invoice/duplicate-check",
@@ -445,69 +263,49 @@ class FinanceEnvironment:
             "PAY_INVOICES": "POST /payment/pay",
             "CHECK_BUDGET": "POST /account/budget/check",
             "GENERATE_REPORT": "POST /report/generate-report",
-            "CHECK_PAYMENT_COMPLETED": ("GET /invoice + " "POST /account/budget/check"),
+            "CHECK_PAYMENT_COMPLETED": (
+                "GET /invoice + duplicate/supplier/budget validation"
+            ),
         }
-
         return endpoints.get(action_name)
 
     # ==========================================================
-    # Episode Start
+    # Episode lifecycle
     # ==========================================================
 
-    def _start_episode(
-        self,
-    ):
-
+    def _start_episode(self):
         payload = {
-            # ======================================================
-            # Agent / Experiment
-            # ======================================================
             "agentType": self.agent_type,
             "algorithm": self.algorithm,
             "goal": self.goal,
             "phase": self.phase,
             "experimentName": self.experiment_name,
             "seed": self.seed,
-            # ======================================================
-            # LLM Metadata
-            # ======================================================
             "llmModel": self.llm_model,
             "promptVersion": self.prompt_version,
             "llmPlanCached": self.llm_plan_cached,
             "llmPlanningTimeMs": self.llm_planning_time_ms,
             "guidanceMode": self.guidance_mode,
             "llmPlan": self.llm_plan,
-            # ======================================================
-            # Environment
-            # ======================================================
             "initialState": self.get_state().copy(),
         }
 
         response = self.api_client.start_episode(payload)
 
         if self._is_environment_error(response):
-
-            raise RuntimeError("Environment error while " "starting episode.")
+            raise RuntimeError("Environment error while starting episode.")
 
         if not self._response_succeeded(response):
-
             raise RuntimeError("Failed to start episode.")
 
         data = self._response_data(response)
-
         self.episode_id = data.get("episodeId")
-
         self.episode_number = data.get("episodeNumber")
 
         if not self.episode_id:
-
-            raise RuntimeError("Episode started but no " "episodeId was returned.")
+            raise RuntimeError("Episode started but no episodeId was returned.")
 
         self.episode_active = True
-
-    # ==========================================================
-    # Record Episode Step
-    # ==========================================================
 
     def _record_episode_step(
         self,
@@ -525,9 +323,7 @@ class FinanceEnvironment:
         state_after,
         duration_ms,
     ):
-
         if not self.episode_active or not self.episode_id:
-
             return None
 
         payload = {
@@ -551,17 +347,8 @@ class FinanceEnvironment:
             payload,
         )
 
-    # ==========================================================
-    # End Episode
-    # ==========================================================
-
-    def _end_episode(
-        self,
-        terminated_reason,
-    ):
-
+    def _end_episode(self, terminated_reason):
         if not self.episode_active or not self.episode_id:
-
             return None
 
         payload = {
@@ -576,199 +363,107 @@ class FinanceEnvironment:
         )
 
         self.episode_active = False
-
         return response
 
     # ==========================================================
     # Reset
     # ==========================================================
 
-    def reset(
-        self,
-        seed=None,
-        options=None,
-    ):
-
+    def reset(self, seed=None, options=None):
         options = options or {}
 
         if self.episode_active:
-
             self._end_episode("RESET")
 
-        # ======================================================
-        # Metadata
-        # ======================================================
-
         if seed is not None:
-
             self.seed = seed
 
         if self.seed is not None:
-
             np.random.seed(self.seed)
-
             random.seed(self.seed)
 
         self.agent_type = options.get(
             "agent_type",
             self.agent_type,
         )
-
         self.algorithm = options.get(
             "algorithm",
             self.algorithm,
         )
-
-        self.goal = options.get(
-            "goal",
-            self.goal,
-        )
-
-        self.phase = options.get(
-            "phase",
-            self.phase,
-        )
-
+        self.goal = options.get("goal", self.goal)
+        self.phase = options.get("phase", self.phase)
         self.experiment_name = options.get(
             "experiment_name",
             self.experiment_name,
         )
-
         self.guidance_mode = options.get(
             "guidance_mode",
             self.guidance_mode,
         )
-
         self.llm_model = options.get(
             "llm_model",
             (config.llm.MODEL if self.agent_type == "LLM_RL" else None),
         )
 
-        # ======================================================
-        # LLM Planner Episode Metadata
-        #
-        # These are reset every episode so metadata from one
-        # episode cannot leak into another.
-        # ======================================================
-
         self.prompt_version = options.get(
             "prompt_version",
             None,
         )
-
-        self.llm_plan_cached = bool(
-            options.get(
-                "llm_plan_cached",
-                False,
-            )
-        )
-
+        self.llm_plan_cached = bool(options.get("llm_plan_cached", False))
         self.llm_planning_time_ms = float(
-            options.get(
-                "llm_planning_time_ms",
-                0.0,
-            )
-            or 0.0
+            options.get("llm_planning_time_ms", 0.0) or 0.0
         )
-
-        # ======================================================
-        # Reward Guidance Configuration
-        # ======================================================
 
         self.reward_processor.configure_guidance(
             use_guidance=self._uses_reward_guidance(),
             guidance_bonus=self.guidance_bonus,
         )
 
-        # ======================================================
-        # LLM Procedure
-        # ======================================================
-
         if "llm_plan" in options:
-
             self.set_llm_plan(options["llm_plan"] or [])
-
         else:
-
             self.procedure_tracker.reset()
 
         if self.agent_type != "LLM_RL":
-
             self.set_llm_plan([])
-
             self.llm_model = None
-
             self.prompt_version = None
-
             self.llm_plan_cached = False
-
             self.llm_planning_time_ms = 0.0
-            
-        # ======================================================
-        # Reset Reward Tracking
-        # ======================================================
-
-        self.rewarded_actions.clear()
-
-        # ======================================================
-        # Reset Backend
-        # ======================================================
 
         response = self.api_client.reset_environment()
 
         if self._is_environment_error(response):
-
             raise RuntimeError("Backend environment reset failed.")
 
         if not self._response_succeeded(response):
-
             raise RuntimeError("Backend rejected environment reset.")
-
-        # ======================================================
-        # Reset Local Environment
-        # ======================================================
 
         self.current_step = 0
 
         self.all_invoices = pd.DataFrame()
-
         self.paid_invoices = pd.DataFrame()
-
         self.rejected_invoices = pd.DataFrame()
-
         self.pending_approval_invoices = pd.DataFrame()
-
         self.approved_invoices = pd.DataFrame()
-
         self.report_df = pd.DataFrame()
+
+        self.duplicate_invoice_ids.clear()
+        self.invalid_supplier_invoice_ids.clear()
+        self.budget_excluded_invoice_ids.clear()
 
         self.state = self._initial_state()
 
-        # ======================================================
-        # Backend Episode
-        # ======================================================
-
         self._start_episode()
-
         return self.get_observation()
 
     # ==========================================================
-    # STEP
+    # Step
     # ==========================================================
 
-    def step(
-        self,
-        action,
-    ):
-
-        # ======================================================
-        # Already Terminated
-        # ======================================================
-
+    def step(self, action):
         if self.current_step >= self.max_steps:
-
             if self.episode_active:
-
                 self._end_episode("MAX_STEPS")
 
             return (
@@ -778,58 +473,32 @@ class FinanceEnvironment:
                 {
                     "reason": "MAX_STEPS_REACHED",
                     "environment_error": False,
+                    "trainable": True,
                     "episode_id": self.episode_id,
                     "episode_number": self.episode_number,
                 },
             )
 
-        # ======================================================
-        # State Before
-        # ======================================================
-
         state_before = self.get_state().copy()
-
         self.current_step += 1
-
         start_time = time.perf_counter()
 
-        # ======================================================
-        # Resolve Action
-        # ======================================================
-
         try:
-
             action_name = self.action_space_handler.get_action_name(action)
-
             endpoint = self._get_action_endpoint(action_name)
-
-            result = self.action_space_handler.execute(
-                self,
-                action,
-            )
-
+            result = self.action_space_handler.execute(self, action)
         except ValueError as exc:
-
             action_name = f"INVALID_ACTION_{action}"
-
             endpoint = None
-
             result = self._action_result(
                 success=False,
                 useful_action=False,
                 error_type="INVALID_ACTION",
                 message=str(exc),
             )
-
         except Exception as exc:
-
-            action_name = locals().get(
-                "action_name",
-                str(action),
-            )
-
+            action_name = locals().get("action_name", str(action))
             endpoint = locals().get("endpoint")
-
             result = self._action_result(
                 success=False,
                 useful_action=False,
@@ -839,67 +508,22 @@ class FinanceEnvironment:
 
         duration_ms = (time.perf_counter() - start_time) * 1000.0
 
-        # ======================================================
-        # Outcome
-        # ======================================================
-
-        environment_error = bool(
-            result.get(
-                "environment_error",
-                False,
-            )
-        )
-
-        action_success = bool(
-            result.get(
-                "success",
-                False,
-            )
-        )
-
-        useful_action = bool(
-            result.get(
-                "useful_action",
-                False,
-            )
-        )
-
+        environment_error = bool(result.get("environment_error", False))
+        action_success = bool(result.get("success", False))
+        useful_action = bool(result.get("useful_action", False))
         error_type = result.get("error_type")
 
-        # ======================================================
-        # LLM Procedure
-        # ======================================================
-
         if self.agent_type == "LLM_RL" and self.procedure_tracker.has_procedure():
-
             procedure_followed = self.procedure_tracker.check_action(
                 action=action,
                 action_succeeded=(action_success and not environment_error),
             )
-
         else:
-
             procedure_followed = None
 
         result["procedure_followed"] = procedure_followed
 
-        # ======================================================
-        # Repeated Positive Action Detection
-        # ======================================================
-
-        repeated_action = (
-            action_name in self.rewarded_actions and action_success and useful_action
-        )
-
-        # ======================================================
-        # Task State After Action
-        # ======================================================
-
         task_completed = bool(self.state["task_completed"])
-
-        # ======================================================
-        # Reward
-        # ======================================================
 
         reward_result = self.reward_processor.process(
             action_name=action_name,
@@ -909,34 +533,16 @@ class FinanceEnvironment:
             error_type=error_type,
             task_completed=task_completed,
             procedure_followed=procedure_followed,
-            repeated_action=repeated_action,
+            repeated_action=False,
         )
 
         reward = reward_result["reward"]
-
         base_reward = reward_result["base_reward"]
-
         guidance_bonus = reward_result["guidance_bonus"]
-
         completion_bonus = reward_result["completion_bonus"]
-
-        # ======================================================
-        # Prevent Reward Farming
-        # ======================================================
-
-        if base_reward > 0 and action_success and useful_action and not repeated_action:
-
-            self.rewarded_actions.add(action_name)
-
-        # ======================================================
-        # State After
-        # ======================================================
+        trainable = bool(reward_result["trainable"])
 
         state_after = self.get_state().copy()
-
-        # ======================================================
-        # Episode Step Logging
-        # ======================================================
 
         logging_response = self._record_episode_step(
             action_name=action_name,
@@ -960,42 +566,25 @@ class FinanceEnvironment:
         )
 
         if logging_error:
-
             environment_error = True
-
             reward = 0.0
-
-        # ======================================================
-        # Done
-        # ======================================================
+            trainable = False
 
         goal_reached = bool(self.state["task_completed"])
-
         max_steps_reached = self.current_step >= self.max_steps
 
         done = goal_reached or max_steps_reached or environment_error
 
         terminated_reason = None
-
         if goal_reached:
-
             terminated_reason = "GOAL_REACHED"
-
         elif environment_error:
-
             terminated_reason = "ENVIRONMENT_ERROR"
-
         elif max_steps_reached:
-
             terminated_reason = "MAX_STEPS"
 
         if done and self.episode_active:
-
             self._end_episode(terminated_reason)
-
-        # ======================================================
-        # Info
-        # ======================================================
 
         info = {
             "action": action_name,
@@ -1004,6 +593,7 @@ class FinanceEnvironment:
             "useful_action": useful_action,
             "error_type": error_type,
             "environment_error": environment_error,
+            "trainable": trainable,
             "procedure_followed": procedure_followed,
             "base_reward": base_reward,
             "guidance_bonus": guidance_bonus,
@@ -1016,6 +606,9 @@ class FinanceEnvironment:
             "duration_ms": duration_ms,
             "guidance_vector": self.procedure_tracker.get_guidance(),
             "procedure_status": self.procedure_tracker.get_status(),
+            "processed_count": result.get("processed_count", 0),
+            "skipped_count": result.get("skipped_count", 0),
+            "excluded_count": len(self._all_excluded_ids()),
         }
 
         return (
@@ -1026,25 +619,19 @@ class FinanceEnvironment:
         )
 
     # ==========================================================
-    # ACTION 0
-    # GET INVOICES
+    # Action 0 - GET_INVOICES
     # ==========================================================
 
-    def get_invoices(
-        self,
-    ):
-
+    def get_invoices(self):
         response = self.api_client.get_invoices()
 
         if self._is_environment_error(response):
-
             return self._environment_error_result(
                 response,
                 "Environment error while loading invoices.",
             )
 
         if not self._response_succeeded(response):
-
             return self._action_result(
                 success=False,
                 useful_action=False,
@@ -1059,473 +646,298 @@ class FinanceEnvironment:
             )
 
         data = self._response_data(response)
-
         invoices = (
-            data.get(
-                "invoices",
-                data.get(
-                    "data",
-                    [],
-                ),
-            )
-            if isinstance(
-                data,
-                dict,
-            )
+            data.get("invoices", data.get("data", []))
+            if isinstance(data, dict)
             else data
         )
 
+        was_loaded = self.state["get_invoices"]
         self.all_invoices = pd.DataFrame(invoices)
 
-        if self.all_invoices.empty:
+        split_result = self._split_invoice_frames(
+            self.all_invoices,
+            apply_exclusions=True,
+        )
 
-            self.paid_invoices = pd.DataFrame()
+        if split_result is not None:
+            return split_result
 
-            self.rejected_invoices = pd.DataFrame()
+        self.state["get_invoices"] = True
+        self._update_invoice_states()
 
-            self.pending_approval_invoices = pd.DataFrame()
+        return self._action_result(
+            success=True,
+            useful_action=(not was_loaded),
+            message="Invoices loaded.",
+            processed_count=len(self.all_invoices),
+        )
 
-            self.approved_invoices = pd.DataFrame()
+    # ==========================================================
+    # Action 1 - CHECK_DUPLICATE
+    # ==========================================================
 
-        else:
-
-            status_column = self._find_column(
-                self.all_invoices,
-                [
-                    "status",
-                    "invoiceStatus",
-                ],
+    def check_duplicate(self):
+        if not self.state["get_invoices"]:
+            return self._action_result(
+                success=False,
+                useful_action=False,
+                error_type="INVALID_WORKFLOW",
+                message=("Invoices must be loaded before " "duplicate checking."),
             )
 
-            if status_column is None:
+        if self.state["check_duplicate"]:
+            return self._action_result(
+                success=True,
+                useful_action=False,
+                message="Duplicate checking already completed.",
+            )
 
+        candidates = self._candidate_invoices()
+
+        if candidates.empty:
+            self.state["check_duplicate"] = True
+            return self._action_result(
+                success=True,
+                useful_action=False,
+                message="No invoices available for duplicate checking.",
+            )
+
+        processed_count = 0
+        duplicate_ids = set()
+
+        for _, invoice in candidates.iterrows():
+            invoice_id = self._invoice_id(invoice)
+            supplier_id = self._get_value(
+                invoice,
+                ["supplierId", "supplier", "supplier_id"],
+            )
+            amount = self._get_value(
+                invoice,
+                ["amount", "totalAmount"],
+            )
+            due_date = self._get_value(
+                invoice,
+                ["dueDate", "due_date"],
+            )
+
+            if (
+                invoice_id is None
+                or supplier_id is None
+                or amount is None
+                or due_date is None
+            ):
                 return self._action_result(
                     success=False,
                     useful_action=False,
-                    error_type="INVALID_STATE_DATA",
-                    message=("Invoice response does not " "contain a status column."),
+                    error_type="MISSING_REQUIRED_FIELD",
+                    message=(
+                        "Invoice is missing data required " "for duplicate checking."
+                    ),
                 )
 
-            self.paid_invoices = self.all_invoices[
-                self.all_invoices[status_column] == "PAID"
-            ].copy()
-
-            self.rejected_invoices = self.all_invoices[
-                self.all_invoices[status_column] == "REJECTED"
-            ].copy()
-
-            self.pending_approval_invoices = self.all_invoices[
-                self.all_invoices[status_column] == "PENDING_APPROVAL"
-            ].copy()
-
-            self.approved_invoices = self.all_invoices[
-                self.all_invoices[status_column] == "APPROVED"
-            ].copy()
-
-        self.state["get_invoices"] = True
-
-        self._update_invoice_states()
-
-        return self._action_result(
-            success=True,
-            useful_action=True,
-            message="Invoices loaded.",
-        )
-
-    # ==========================================================
-    # ACTION 1
-    # CHECK DUPLICATE
-    # ==========================================================
-
-    def check_duplicate(
-        self,
-    ):
-
-        if not self.state["get_invoices"]:
-
-            return self._action_result(
-                success=False,
-                useful_action=False,
-                error_type="INVALID_WORKFLOW",
-                message=("Invoices must be loaded " "before duplicate checking."),
+            response = self.api_client.check_invoice_duplicate(
+                invoice_id,
+                supplier_id,
+                amount,
+                due_date,
             )
 
-        if self.pending_approval_invoices.empty and self.approved_invoices.empty:
-
-            self.state["check_duplicate"] = True
-
-            return self._action_result(
-                success=True,
-                useful_action=False,
-                message=("No invoices available " "for duplicate checking."),
-            )
-
-        frames = []
-
-        if not self.pending_approval_invoices.empty:
-
-            frames.append(
-                (
-                    "pending",
-                    self.pending_approval_invoices.copy(),
-                )
-            )
-
-        if not self.approved_invoices.empty:
-
-            frames.append(
-                (
-                    "approved",
-                    self.approved_invoices.copy(),
-                )
-            )
-
-        for (
-            frame_name,
-            frame,
-        ) in frames:
-
-            remove_indices = []
-
-            for (
-                index,
-                invoice,
-            ) in frame.iterrows():
-
-                supplier_id = self._get_value(
-                    invoice,
-                    [
-                        "supplierId",
-                        "supplier",
-                        "supplier_id",
-                    ],
+            if self._is_environment_error(response):
+                return self._environment_error_result(
+                    response,
+                    "Environment error during duplicate checking.",
                 )
 
-                amount = self._get_value(
-                    invoice,
-                    [
-                        "amount",
-                        "totalAmount",
-                    ],
-                )
-
-                due_date = self._get_value(
-                    invoice,
-                    [
-                        "dueDate",
-                        "due_date",
-                    ],
-                )
-
-                if supplier_id is None or amount is None or due_date is None:
-
-                    return self._action_result(
-                        success=False,
-                        useful_action=False,
-                        error_type="MISSING_REQUIRED_FIELD",
-                        message=(
-                            "Invoice is missing data "
-                            "required for duplicate checking."
-                        ),
-                    )
-
-                response = self.api_client.invoice_dupplicate_check(
-                    supplier_id,
-                    amount,
-                    due_date,
-                )
-
-                if self._is_environment_error(response):
-
-                    return self._environment_error_result(
+            if not self._response_succeeded(response):
+                return self._action_result(
+                    success=False,
+                    useful_action=False,
+                    error_type=self._response_error_type(
                         response,
-                        ("Environment error during " "duplicate checking."),
-                    )
+                        "INVALID_ACTION",
+                    ),
+                    message=self._response_message(
+                        response,
+                        "Duplicate check failed.",
+                    ),
+                )
 
-                data = self._response_data(response)
+            data = self._response_data(response)
+            duplicate = bool(
+                data.get("duplicate", False) if isinstance(data, dict) else False
+            )
 
-                error_type = self._response_error_type(response)
+            processed_count += 1
 
-                # Some backends may represent duplicate
-                # detection using a business error response.
-                if error_type == "DUPLICATE_INVOICE":
+            if duplicate:
+                duplicate_ids.add(str(invoice_id))
 
-                    duplicate = True
-
-                elif not self._response_succeeded(response):
-
-                    return self._action_result(
-                        success=False,
-                        useful_action=False,
-                        error_type=error_type or "INVALID_ACTION",
-                        message=self._response_message(
-                            response,
-                            "Duplicate check failed.",
-                        ),
-                    )
-
-                else:
-
-                    duplicate = bool(
-                        data.get(
-                            "duplicate",
-                            False,
-                        )
-                        if isinstance(
-                            data,
-                            dict,
-                        )
-                        else False
-                    )
-
-                if duplicate:
-
-                    remove_indices.append(index)
-
-            if frame_name == "pending":
-
-                self.pending_approval_invoices = frame.drop(remove_indices)
-
-            else:
-
-                self.approved_invoices = frame.drop(remove_indices)
+        self.duplicate_invoice_ids.update(duplicate_ids)
+        self._apply_known_exclusions_to_local_frames()
 
         self.state["check_duplicate"] = True
-
         self._update_invoice_states()
 
         return self._action_result(
             success=True,
-            useful_action=True,
+            useful_action=(processed_count > 0),
             message="Duplicate invoices checked.",
+            processed_count=processed_count,
+            skipped_count=len(duplicate_ids),
         )
 
     # ==========================================================
-    # ACTION 2
-    # CHECK SUPPLIER
+    # Action 2 - CHECK_SUPPLIER
     # ==========================================================
 
-    def check_supplier(
-        self,
-    ):
-
+    def check_supplier(self):
         if not self.state["get_invoices"]:
-
             return self._action_result(
                 success=False,
                 useful_action=False,
                 error_type="INVALID_WORKFLOW",
-                message=("Invoices must be loaded " "before supplier validation."),
+                message=("Invoices must be loaded before " "supplier validation."),
             )
 
-        if self.pending_approval_invoices.empty and self.approved_invoices.empty:
-
-            self.state["check_supplier"] = True
-
+        if self.state["check_supplier"]:
             return self._action_result(
                 success=True,
                 useful_action=False,
-                message=("No invoices available " "for supplier checking."),
+                message="Supplier validation already completed.",
             )
 
-        frames = []
+        candidates = self._candidate_invoices()
 
-        if not self.pending_approval_invoices.empty:
-
-            frames.append(
-                (
-                    "pending",
-                    self.pending_approval_invoices.copy(),
-                )
+        if candidates.empty:
+            self.state["check_supplier"] = True
+            return self._action_result(
+                success=True,
+                useful_action=False,
+                message="No invoices available for supplier checking.",
             )
 
-        if not self.approved_invoices.empty:
+        processed_count = 0
+        invalid_ids = set()
 
-            frames.append(
-                (
-                    "approved",
-                    self.approved_invoices.copy(),
-                )
-            )
-
-        supplier_rejection_errors = {
-            "SUPPLIER_NOT_FOUND",
-            "SUPPLIER_INACTIVE",
-            "SUPPLIER_HIGH_RISK",
-        }
-
-        for (
-            frame_name,
-            frame,
-        ) in frames:
-
-            remove_indices = []
-
-            for (
-                index,
+        for _, invoice in candidates.iterrows():
+            invoice_id = self._invoice_id(invoice)
+            supplier_id = self._get_value(
                 invoice,
-            ) in frame.iterrows():
+                ["supplierId", "supplier", "supplier_id"],
+            )
 
-                supplier_id = self._get_value(
-                    invoice,
-                    [
-                        "supplierId",
-                        "supplier",
-                        "supplier_id",
-                    ],
+            if invoice_id is None or supplier_id is None:
+                return self._action_result(
+                    success=False,
+                    useful_action=False,
+                    error_type="MISSING_REQUIRED_FIELD",
+                    message=(
+                        "Invoice is missing supplier data " "required for validation."
+                    ),
                 )
 
-                if supplier_id is None:
+            response = self.api_client.validate_supplier(supplier_id)
 
-                    remove_indices.append(index)
+            if self._is_environment_error(response):
+                return self._environment_error_result(
+                    response,
+                    "Environment error during supplier validation.",
+                )
 
-                    continue
-
-                response = self.api_client.validate_supplier(supplier_id)
-
-                if self._is_environment_error(response):
-
-                    return self._environment_error_result(
+            if not self._response_succeeded(response):
+                return self._action_result(
+                    success=False,
+                    useful_action=False,
+                    error_type=self._response_error_type(
                         response,
-                        ("Environment error during " "supplier validation."),
+                        "INVALID_ACTION",
+                    ),
+                    message=self._response_message(
+                        response,
+                        "Supplier validation failed.",
+                    ),
+                )
+
+            data = self._response_data(response)
+
+            valid = True
+            if isinstance(data, dict):
+                valid = bool(
+                    data.get(
+                        "valid",
+                        data.get("eligible", True),
                     )
+                )
 
-                error_type = self._response_error_type(response)
+            processed_count += 1
 
-                if error_type in supplier_rejection_errors:
+            if not valid:
+                invalid_ids.add(str(invoice_id))
 
-                    valid = False
-
-                elif not self._response_succeeded(response):
-
-                    return self._action_result(
-                        success=False,
-                        useful_action=False,
-                        error_type=error_type or "INVALID_ACTION",
-                        message=self._response_message(
-                            response,
-                            "Supplier validation failed.",
-                        ),
-                    )
-
-                else:
-
-                    data = self._response_data(response)
-
-                    valid = (
-                        data.get(
-                            "valid",
-                            data.get(
-                                "isValid",
-                                True,
-                            ),
-                        )
-                        if isinstance(
-                            data,
-                            dict,
-                        )
-                        else True
-                    )
-
-                if not valid:
-
-                    remove_indices.append(index)
-
-            if frame_name == "pending":
-
-                self.pending_approval_invoices = frame.drop(remove_indices)
-
-            else:
-
-                self.approved_invoices = frame.drop(remove_indices)
+        self.invalid_supplier_invoice_ids.update(invalid_ids)
+        self._apply_known_exclusions_to_local_frames()
 
         self.state["check_supplier"] = True
-
         self._update_invoice_states()
 
         return self._action_result(
             success=True,
-            useful_action=True,
+            useful_action=(processed_count > 0),
             message="Suppliers checked.",
+            processed_count=processed_count,
+            skipped_count=len(invalid_ids),
         )
 
     # ==========================================================
-    # ACTION 3
-    # APPROVE INVOICES
+    # Action 3 - APPROVE_INVOICES
     # ==========================================================
 
-    def approve_invoices(
-        self,
-    ):
-
+    def approve_invoices(self):
         if not self.state["get_invoices"]:
-
             return self._action_result(
                 success=False,
                 useful_action=False,
                 error_type="INVALID_WORKFLOW",
-                message=("Invoices must be loaded " "before approval."),
+                message="Invoices must be loaded before approval.",
             )
 
         if self.pending_approval_invoices.empty:
-
             self.state["approve_invoices"] = True
-
             return self._action_result(
                 success=True,
                 useful_action=False,
-                message=("No pending invoices " "to approve."),
+                message="No pending invoices to approve.",
             )
 
         approved_indices = []
-
         approved_rows = []
-
         errors = []
 
-        for (
-            index,
-            invoice,
-        ) in self.pending_approval_invoices.iterrows():
-
-            invoice_id = self._get_value(
-                invoice,
-                [
-                    "_id",
-                    "id",
-                    "invoiceId",
-                ],
-            )
+        for index, invoice in self.pending_approval_invoices.iterrows():
+            invoice_id = self._invoice_id(invoice)
 
             if invoice_id is None:
-
                 errors.append("MISSING_REQUIRED_FIELD")
-
                 continue
 
             response = self.api_client.approve_invoice(invoice_id)
 
             if self._is_environment_error(response):
-
                 return self._environment_error_result(
                     response,
-                    ("Environment error during " "invoice approval."),
+                    "Environment error during invoice approval.",
                 )
 
             if self._response_succeeded(response):
-
                 approved_indices.append(index)
-
                 approved_row = invoice.copy()
 
                 if "status" in approved_row.index:
-
                     approved_row["status"] = "APPROVED"
 
                 approved_rows.append(approved_row)
-
             else:
-
                 errors.append(
                     self._response_error_type(
                         response,
@@ -1534,7 +946,6 @@ class FinanceEnvironment:
                 )
 
         if approved_rows:
-
             self.approved_invoices = pd.concat(
                 [
                     self.approved_invoices,
@@ -1543,82 +954,82 @@ class FinanceEnvironment:
                 ignore_index=True,
             )
 
-        # IMPORTANT:
-        # Only remove successfully approved invoices.
         self.pending_approval_invoices = self.pending_approval_invoices.drop(
             approved_indices,
             errors="ignore",
         )
-
         self.pending_approval_invoices.reset_index(
             drop=True,
             inplace=True,
         )
 
-        self.state["approve_invoices"] = True
+        # Stage flag means the action was successfully able to make
+        # progress, or there was simply nothing to process.
+        if approved_indices:
+            self.state["approve_invoices"] = True
 
         self._update_invoice_states()
 
-        if errors:
-
+        # Critical correction: successful approvals are not erased by
+        # one or more other invoice failures.
+        if approved_indices:
             return self._action_result(
-                success=False,
-                useful_action=bool(approved_indices),
-                error_type=self._select_error_type(errors),
-                message=("One or more invoices " "could not be approved."),
+                success=True,
+                useful_action=True,
+                message=(
+                    f"Approved {len(approved_indices)} invoice(s); "
+                    f"{len(errors)} invoice(s) were skipped."
+                ),
+                processed_count=len(approved_indices),
+                skipped_count=len(errors),
             )
 
+        if errors:
+            return self._action_result(
+                success=False,
+                useful_action=False,
+                error_type=self._select_error_type(errors),
+                message="No pending invoice could be approved.",
+                skipped_count=len(errors),
+            )
+
+        self.state["approve_invoices"] = True
         return self._action_result(
             success=True,
-            useful_action=bool(approved_indices),
-            message="Invoices approved.",
+            useful_action=False,
+            message="No pending invoice required approval.",
         )
 
     # ==========================================================
-    # ACTION 4
-    # PAY INVOICES
+    # Action 4 - PAY_INVOICES
     # ==========================================================
 
-    def pay_invoices(
-        self,
-    ):
-
+    def pay_invoices(self):
         if not self.state["get_invoices"]:
-
             return self._action_result(
                 success=False,
                 useful_action=False,
                 error_type="INVALID_WORKFLOW",
-                message=("Invoices must be loaded " "before payment."),
+                message="Invoices must be loaded before payment.",
             )
 
         if self.approved_invoices.empty:
-
             self.state["pay_invoices"] = True
-
             return self._action_result(
                 success=True,
                 useful_action=False,
-                message=("No approved invoices " "to pay."),
+                message="No approved invoices to pay.",
             )
-
-        paid_indices = []
-
-        paid_rows = []
-
-        errors = []
 
         accounts_response = self.api_client.get_accounts()
 
         if self._is_environment_error(accounts_response):
-
             return self._environment_error_result(
                 accounts_response,
-                ("Environment error while " "loading payment accounts."),
+                "Environment error while loading payment accounts.",
             )
 
         if not self._response_succeeded(accounts_response):
-
             return self._action_result(
                 success=False,
                 useful_action=False,
@@ -1633,77 +1044,48 @@ class FinanceEnvironment:
             )
 
         account_data = self._response_data(accounts_response)
-
         accounts = (
-            account_data.get(
-                "accounts",
-                account_data.get(
-                    "data",
-                    [],
-                ),
-            )
-            if isinstance(
-                account_data,
-                dict,
-            )
+            account_data.get("accounts", account_data.get("data", []))
+            if isinstance(account_data, dict)
             else account_data
         )
 
         if not accounts:
-
             return self._action_result(
                 success=False,
                 useful_action=False,
                 error_type="ACCOUNT_NOT_FOUND",
-                message=("No payment account available."),
+                message="No payment account available.",
             )
 
         default_account_id = self._get_value(
             pd.Series(accounts[0]),
-            [
-                "_id",
-                "id",
-                "accountId",
-            ],
+            ["_id", "id", "accountId"],
         )
 
         if default_account_id is None:
-
             return self._action_result(
                 success=False,
                 useful_action=False,
                 error_type="ACCOUNT_NOT_FOUND",
-                message=("Payment account ID unavailable."),
+                message="Payment account ID unavailable.",
             )
 
-        for (
-            index,
-            invoice,
-        ) in self.approved_invoices.iterrows():
+        paid_indices = []
+        paid_rows = []
+        errors = []
 
-            invoice_id = self._get_value(
-                invoice,
-                [
-                    "_id",
-                    "id",
-                    "invoiceId",
-                ],
-            )
+        for index, invoice in self.approved_invoices.iterrows():
+            invoice_id = self._invoice_id(invoice)
 
             if invoice_id is None:
-
                 errors.append("MISSING_REQUIRED_FIELD")
-
                 continue
 
             account_id = (
                 self._get_value(
                     invoice,
-                    [
-                        "accountId",
-                        "account",
-                        "account_id",
-                    ],
+                    ["accountId", "account", "account_id"],
                 )
                 or default_account_id
             )
@@ -1714,34 +1096,20 @@ class FinanceEnvironment:
             )
 
             if self._is_environment_error(response):
-
                 return self._environment_error_result(
                     response,
-                    ("Environment error during " "invoice payment."),
+                    "Environment error during invoice payment.",
                 )
 
             if self._response_succeeded(response):
-
                 paid_indices.append(index)
-
                 paid_row = invoice.copy()
 
                 if "status" in paid_row.index:
-
                     paid_row["status"] = "PAID"
 
                 paid_rows.append(paid_row)
-
             else:
-
-                # Examples:
-                #
-                # BUDGET_EXCEEDED
-                # INSUFFICIENT_BALANCE
-                # INVOICE_NOT_APPROVED
-                # DUPLICATE_INVOICE
-                # SUPPLIER_INACTIVE
-                # ACCOUNT_FROZEN
                 errors.append(
                     self._response_error_type(
                         response,
@@ -1750,300 +1118,117 @@ class FinanceEnvironment:
                 )
 
         if paid_rows:
-
             self.paid_invoices = pd.concat(
-                [
-                    self.paid_invoices,
-                    pd.DataFrame(paid_rows),
-                ],
+                [self.paid_invoices, pd.DataFrame(paid_rows)],
                 ignore_index=True,
             )
 
-        # IMPORTANT:
-        # Failed invoices remain approved.
         self.approved_invoices = self.approved_invoices.drop(
             paid_indices,
             errors="ignore",
         )
-
         self.approved_invoices.reset_index(
             drop=True,
             inplace=True,
         )
 
-        self.state["pay_invoices"] = True
+        if paid_indices:
+            self.state["pay_invoices"] = True
 
         self._update_invoice_states()
 
-        # ======================================================
-        # Business Error
-        #
-        # We do NOT add one penalty for every failed invoice.
-        #
-        # One RL action -> one reward.
-        #
-        # Use the most severe error encountered.
-        # ======================================================
-
-        if errors:
-
-            selected_error = self._select_error_type(errors)
-
+        # Critical correction: partial payment success stays positive.
+        if paid_indices:
             return self._action_result(
-                success=False,
-                useful_action=bool(paid_indices),
-                error_type=selected_error,
-                message=("Payment action encountered " f"{selected_error}."),
-                paid_count=len(paid_indices),
+                success=True,
+                useful_action=True,
+                message=(
+                    f"Paid {len(paid_indices)} invoice(s); "
+                    f"{len(errors)} invoice(s) were skipped."
+                ),
+                processed_count=len(paid_indices),
+                skipped_count=len(errors),
             )
 
-        if not paid_indices:
-
+        if errors:
             return self._action_result(
                 success=False,
                 useful_action=False,
-                error_type="PAYMENT_FAILED",
-                message=("No approved invoice " "could be paid."),
+                error_type=self._select_error_type(errors),
+                message="No approved invoice could be paid.",
+                skipped_count=len(errors),
             )
 
+        self.state["pay_invoices"] = True
         return self._action_result(
             success=True,
-            useful_action=True,
-            message=("Approved invoices " "processed for payment."),
-            paid_count=len(paid_indices),
+            useful_action=False,
+            message="No approved invoice required payment.",
         )
 
     # ==========================================================
-    # ACTION 5
-    # CHECK BUDGET
+    # Action 5 - CHECK_BUDGET
     # ==========================================================
 
-    def check_budget(
-        self,
-    ):
-
+    def check_budget(self):
         if not self.state["get_invoices"]:
-
             return self._action_result(
                 success=False,
                 useful_action=False,
                 error_type="INVALID_WORKFLOW",
-                message=("Invoices must be loaded " "before budget checking."),
+                message="Invoices must be loaded before budget checking.",
             )
 
-        if self.approved_invoices.empty:
-
-            self.state["check_budget"] = True
-
+        if self.state["check_budget"]:
             return self._action_result(
                 success=True,
                 useful_action=False,
-                message=("No approved invoices " "to check against budget."),
+                message="Budget validation already completed.",
             )
 
-        department_column = self._find_column(
-            self.approved_invoices,
-            [
-                "department",
-                "category",
-                "function",
-            ],
-        )
-
-        amount_column = self._find_column(
-            self.approved_invoices,
-            [
-                "amount",
-                "totalAmount",
-            ],
-        )
-
-        if department_column is None:
-
+        if self.approved_invoices.empty:
+            self.state["check_budget"] = True
             return self._action_result(
-                success=False,
+                success=True,
                 useful_action=False,
-                error_type="INVALID_STATE_DATA",
-                message=("Department/category " "is missing."),
+                message="No approved invoices to check against budget.",
             )
 
-        if amount_column is None:
-
-            return self._action_result(
-                success=False,
-                useful_action=False,
-                error_type="INVALID_STATE_DATA",
-                message=("Invoice amount field " "is missing."),
-            )
-
-        departments = (
-            self.approved_invoices[department_column].dropna().unique().tolist()
+        allocation = self._allocate_budget(
+            self.approved_invoices,
+            replace_budget_exclusions=True,
         )
 
-        valid_indices = []
+        if allocation["environment_error"]:
+            return allocation["result"]
 
-        budget_results = {}
+        if allocation["error_result"] is not None:
+            return allocation["error_result"]
 
-        for department in departments:
-
-            department_invoices = self.approved_invoices[
-                self.approved_invoices[department_column] == department
-            ]
-
-            random_amount = round(
-                random.uniform(
-                    1.0,
-                    100.0,
-                ),
-                2,
-            )
-
-            response = self.api_client.check_budget(
-                random_amount,
-                department,
-            )
-
-            if self._is_environment_error(response):
-
-                return self._environment_error_result(
-                    response,
-                    ("Environment error during " "budget checking."),
-                )
-
-            data = self._response_data(response)
-
-            # Even if the HTTP-level response represents
-            # BUDGET_EXCEEDED, use returned budget information
-            # when available.
-            budget = (
-                data.get("budget")
-                if isinstance(
-                    data,
-                    dict,
-                )
-                else None
-            )
-
-            if not isinstance(
-                budget,
-                dict,
-            ):
-
-                return self._action_result(
-                    success=False,
-                    useful_action=False,
-                    error_type=self._response_error_type(
-                        response,
-                        "BUDGET_NOT_FOUND",
-                    ),
-                    message=("Budget information missing " f"for {department}."),
-                )
-
-            remaining_budget = budget.get("remainingBudget")
-
-            if remaining_budget is None:
-
-                return self._action_result(
-                    success=False,
-                    useful_action=False,
-                    error_type="INVALID_RESPONSE",
-                    message=("Remaining budget missing " f"for {department}."),
-                )
-
-            remaining_budget = float(remaining_budget)
-
-            current_total = 0.0
-
-            kept = []
-
-            removed = []
-
-            for (
-                index,
-                invoice,
-            ) in department_invoices.iterrows():
-
-                amount = pd.to_numeric(
-                    invoice[amount_column],
-                    errors="coerce",
-                )
-
-                if pd.isna(amount):
-
-                    removed.append(
-                        {
-                            "index": index,
-                            "reason": "INVALID_AMOUNT",
-                        }
-                    )
-
-                    continue
-
-                amount = float(amount)
-
-                if current_total + amount <= remaining_budget:
-
-                    valid_indices.append(index)
-
-                    current_total += amount
-
-                    kept.append(
-                        {
-                            "index": index,
-                            "amount": amount,
-                        }
-                    )
-
-                else:
-
-                    removed.append(
-                        {
-                            "index": index,
-                            "amount": amount,
-                            "reason": "BUDGET_EXCEEDED",
-                        }
-                    )
-
-            budget_results[department] = {
-                "remaining_budget": remaining_budget,
-                "kept_total": current_total,
-                "kept_invoices": kept,
-                "removed_invoices": removed,
-            }
-
-        self.approved_invoices = self.approved_invoices.loc[valid_indices].copy()
-
+        self.approved_invoices = allocation["kept"].copy()
         self.approved_invoices.reset_index(
             drop=True,
             inplace=True,
         )
 
         self.state["check_budget"] = True
-
         self._update_invoice_states()
 
-        # CHECK_BUDGET successfully finding invoices that exceed
-        # budget is NOT an agent error.
-        #
-        # It performed exactly the intended validation.
         return self._action_result(
             success=True,
-            useful_action=True,
+            useful_action=(allocation["processed_count"] > 0),
             message="Budget checked.",
-            budget_results=budget_results,
+            processed_count=allocation["processed_count"],
+            skipped_count=allocation["excluded_count"],
+            budget_results=allocation["budget_results"],
         )
 
     # ==========================================================
-    # ACTION 6
-    # GENERATE REPORT
+    # Action 6 - GENERATE_REPORT
     # ==========================================================
 
-    def generate_report(
-        self,
-    ):
-
+    def generate_report(self):
         end_date = datetime.now(UTC)
-
         start_date = end_date - timedelta(days=365)
 
         response = self.api_client.generate_report(
@@ -2053,14 +1238,12 @@ class FinanceEnvironment:
         )
 
         if self._is_environment_error(response):
-
             return self._environment_error_result(
                 response,
-                ("Environment error while " "generating report."),
+                "Environment error while generating report.",
             )
 
         if not self._response_succeeded(response):
-
             return self._action_result(
                 success=False,
                 useful_action=False,
@@ -2075,84 +1258,49 @@ class FinanceEnvironment:
             )
 
         data = self._response_data(response)
-
         report = (
-            data.get(
-                "report",
-                data.get(
-                    "data",
-                    [],
-                ),
-            )
-            if isinstance(
-                data,
-                dict,
-            )
-            else data
+            data.get("report", data.get("data", [])) if isinstance(data, dict) else data
         )
 
-        if isinstance(
-            report,
-            dict,
-        ):
-
+        if isinstance(report, dict):
             report = [report]
 
         self.report_df = pd.DataFrame(report)
-
+        was_generated = self.state["generate_report"]
         self.state["generate_report"] = True
 
         return self._action_result(
             success=True,
-            useful_action=True,
-            message=("One-year transaction " "report generated."),
+            useful_action=(not was_generated),
+            message="One-year transaction report generated.",
+            processed_count=len(self.report_df),
         )
 
     # ==========================================================
-    # ACTION 7
-    # CHECK PAYMENT COMPLETED
+    # Action 7 - CHECK_PAYMENT_COMPLETED
     # ==========================================================
 
-    def check_payment_completed(
-        self,
-    ):
-
+    def check_payment_completed(self):
         if not self.state["get_invoices"]:
-
             return self._action_result(
                 success=False,
                 useful_action=False,
                 error_type="INVALID_WORKFLOW",
-                message=("Invoices must be loaded " "before checking completion."),
+                message=("Invoices must be loaded before checking " "completion."),
             )
 
+        was_checked = self.state["check_payment_completed"]
         self.state["check_payment_completed"] = True
-
-        # ------------------------------------------------------
-        # Locally valid pending invoices still exist.
-        #
-        # Therefore the task cannot yet be complete.
-        # ------------------------------------------------------
-
-        if not self.pending_approval_invoices.empty:
-
-            return self._action_result(
-                success=True,
-                useful_action=False,
-                message=("Valid pending invoices " "still require approval."),
-            )
 
         response = self.api_client.get_invoices()
 
         if self._is_environment_error(response):
-
             return self._environment_error_result(
                 response,
-                ("Environment error while " "checking payment completion."),
+                "Environment error while checking payment completion.",
             )
 
         if not self._response_succeeded(response):
-
             return self._action_result(
                 success=False,
                 useful_action=False,
@@ -2162,409 +1310,771 @@ class FinanceEnvironment:
                 ),
                 message=self._response_message(
                     response,
-                    ("Unable to check " "payment completion."),
+                    "Unable to check payment completion.",
                 ),
             )
 
         data = self._response_data(response)
-
         invoices = (
-            data.get(
-                "invoices",
-                data.get(
-                    "data",
-                    [],
-                ),
-            )
-            if isinstance(
-                data,
-                dict,
-            )
+            data.get("invoices", data.get("data", []))
+            if isinstance(data, dict)
             else data
         )
 
         current_invoices = pd.DataFrame(invoices)
 
-        if current_invoices.empty:
+        evaluation = self._evaluate_outstanding_eligibility(current_invoices)
 
+        if evaluation["environment_error"]:
+            return evaluation["result"]
+
+        if evaluation["error_result"] is not None:
+            return evaluation["error_result"]
+
+        payable = evaluation["payable"]
+
+        # Synchronize local candidate frames to what is genuinely
+        # still payable after duplicate/supplier/budget validation.
+        if payable.empty:
+            self.pending_approval_invoices = pd.DataFrame()
             self.approved_invoices = pd.DataFrame()
-
-            self.state["task_completed"] = True
-
-            self._update_invoice_states()
-
-            return self._action_result(
-                success=True,
-                useful_action=True,
-                message=("Payment task completed."),
+        else:
+            status_column = self._find_column(
+                payable,
+                ["status", "invoiceStatus"],
             )
 
-        status_column = self._find_column(
-            current_invoices,
-            [
-                "status",
-                "invoiceStatus",
-            ],
-        )
+            self.pending_approval_invoices = payable[
+                payable[status_column] == "PENDING_APPROVAL"
+            ].copy()
+            self.approved_invoices = payable[
+                payable[status_column] == "APPROVED"
+            ].copy()
 
-        if status_column is None:
-
-            return self._action_result(
-                success=False,
-                useful_action=False,
-                error_type="INVALID_STATE_DATA",
-                message=("Invoice status unavailable."),
-            )
-
-        approved = current_invoices[
-            current_invoices[status_column] == "APPROVED"
-        ].copy()
-
-        self.approved_invoices = approved
-
-        # ======================================================
-        # No payable approved invoices remain.
-        # ======================================================
-
-        if approved.empty:
-
-            self.state["task_completed"] = True
-
-            self._update_invoice_states()
-
-            return self._action_result(
-                success=True,
-                useful_action=True,
-                message=("All valid invoices " "have been processed."),
-            )
-
-        # ======================================================
-        # Determine whether remaining approved invoices are
-        # actually payable according to remaining budget.
-        # ======================================================
-
-        previous_budget_state = self.state["check_budget"]
-
-        budget_result = self.check_budget()
-
-        # Internal budget check should not pretend that the
-        # agent selected CHECK_BUDGET at this step.
-        self.state["check_budget"] = previous_budget_state
-
-        if budget_result.get(
-            "environment_error",
-            False,
-        ):
-
-            return budget_result
-
-        if not budget_result.get(
-            "success",
-            False,
-        ):
-
-            return self._action_result(
-                success=False,
-                useful_action=False,
-                error_type=budget_result.get(
-                    "error_type",
-                    "INVALID_ACTION",
-                ),
-                message=budget_result.get(
-                    "message",
-                    ("Unable to determine " "task completion."),
-                ),
-            )
-
-        # check_budget keeps only currently payable invoices.
-        self.state["task_completed"] = self.approved_invoices.empty
-
+        self.state["task_completed"] = payable.empty
         self._update_invoice_states()
 
         if self.state["task_completed"]:
-
             return self._action_result(
                 success=True,
                 useful_action=True,
                 message=(
-                    "Task completed. Remaining "
-                    "approved invoices cannot be "
-                    "paid within available budgets."
+                    "Task completed. No valid/payable outstanding " "invoice remains."
                 ),
+                processed_count=evaluation["processed_count"],
+                skipped_count=evaluation["excluded_count"],
             )
 
         return self._action_result(
             success=True,
-            useful_action=False,
-            message=("Valid approved invoices " "still require payment."),
+            useful_action=(not was_checked),
+            message=("Valid/payable invoices still require processing."),
+            processed_count=evaluation["processed_count"],
+            skipped_count=evaluation["excluded_count"],
         )
 
     # ==========================================================
-    # Helpers
+    # Eligibility / budget helpers
     # ==========================================================
 
-    @staticmethod
-    def _is_environment_error(
-        response,
-    ):
+    def _evaluate_outstanding_eligibility(self, current_invoices):
+        """
+        Re-evaluate backend outstanding invoices to decide whether the
+        task is actually complete.
 
-        if not isinstance(
-            response,
-            dict,
-        ):
+        Duplicate, supplier and budget validation findings are treated
+        as exclusions. They do not make the task incomplete.
+        """
 
-            return False
+        if current_invoices.empty:
+            return {
+                "payable": pd.DataFrame(),
+                "processed_count": 0,
+                "excluded_count": len(self._all_excluded_ids()),
+                "environment_error": False,
+                "result": None,
+                "error_result": None,
+            }
 
-        return bool(
-            response.get(
-                "environment_error",
-                response.get(
-                    "environmentError",
-                    False,
-                ),
-            )
+        status_column = self._find_column(
+            current_invoices,
+            ["status", "invoiceStatus"],
         )
 
-    @staticmethod
-    def _response_data(
-        response,
-    ):
-
-        if not isinstance(
-            response,
-            dict,
-        ):
-
-            return {}
-
-        data = response.get(
-            "data",
-            {},
-        )
-
-        if (
-            isinstance(
-                data,
-                dict,
-            )
-            and "data" in data
-            and isinstance(
-                data["data"],
-                (
-                    dict,
-                    list,
+        if status_column is None:
+            return {
+                "payable": pd.DataFrame(),
+                "processed_count": 0,
+                "excluded_count": 0,
+                "environment_error": False,
+                "result": None,
+                "error_result": self._action_result(
+                    success=False,
+                    useful_action=False,
+                    error_type="INVALID_STATE_DATA",
+                    message="Invoice status unavailable.",
                 ),
-            )
-        ):
+            }
 
-            return data["data"]
+        outstanding = current_invoices[
+            current_invoices[status_column].isin(["PENDING_APPROVAL", "APPROVED"])
+        ].copy()
 
-        return data
+        if outstanding.empty:
+            return {
+                "payable": pd.DataFrame(),
+                "processed_count": 0,
+                "excluded_count": len(self._all_excluded_ids()),
+                "environment_error": False,
+                "result": None,
+                "error_result": None,
+            }
 
-    @staticmethod
-    def _response_error_type(
-        response,
-        default=None,
-    ):
+        # Start with known duplicate/supplier exclusions, then verify
+        # any currently unknown outstanding invoice.
+        candidate_rows = []
+        processed_count = 0
 
-        if not isinstance(
-            response,
-            dict,
-        ):
+        for _, invoice in outstanding.iterrows():
+            invoice_id = self._invoice_id(invoice)
 
-            return default
+            if invoice_id is None:
+                continue
 
-        payload = response.get("data", {})
+            invoice_id_str = str(invoice_id)
 
-        if isinstance(
-            payload,
-            dict,
-        ):
-
-            error_type = payload.get("errorType") or payload.get("error_type")
-
-            if error_type:
-
-                return str(error_type).upper()
-
-            nested = payload.get("data")
-
-            if isinstance(
-                nested,
-                dict,
+            if (
+                invoice_id_str in self.duplicate_invoice_ids
+                or invoice_id_str in self.invalid_supplier_invoice_ids
             ):
+                continue
 
-                error_type = nested.get("errorType") or nested.get("error_type")
-
-                if error_type:
-
-                    return str(error_type).upper()
-
-        return default
-
-    @staticmethod
-    def _response_message(
-        response,
-        default="",
-    ):
-
-        if not isinstance(
-            response,
-            dict,
-        ):
-
-            return default
-
-        payload = response.get("data", {})
-
-        if isinstance(
-            payload,
-            dict,
-        ):
-
-            message = payload.get("message")
-
-            if message:
-
-                return str(message)
-
-        return str(
-            response.get(
-                "message",
-                default,
+            supplier_id = self._get_value(
+                invoice,
+                ["supplierId", "supplier", "supplier_id"],
             )
+            amount = self._get_value(
+                invoice,
+                ["amount", "totalAmount"],
+            )
+            due_date = self._get_value(
+                invoice,
+                ["dueDate", "due_date"],
+            )
+
+            if supplier_id is None or amount is None or due_date is None:
+                continue
+
+            duplicate_response = self.api_client.check_invoice_duplicate(
+                invoice_id,
+                supplier_id,
+                amount,
+                due_date,
+            )
+
+            if self._is_environment_error(duplicate_response):
+                return {
+                    "payable": pd.DataFrame(),
+                    "processed_count": processed_count,
+                    "excluded_count": len(self._all_excluded_ids()),
+                    "environment_error": True,
+                    "result": self._environment_error_result(
+                        duplicate_response,
+                        "Environment error during completion duplicate check.",
+                    ),
+                    "error_result": None,
+                }
+
+            if not self._response_succeeded(duplicate_response):
+                return {
+                    "payable": pd.DataFrame(),
+                    "processed_count": processed_count,
+                    "excluded_count": len(self._all_excluded_ids()),
+                    "environment_error": False,
+                    "result": None,
+                    "error_result": self._action_result(
+                        success=False,
+                        useful_action=False,
+                        error_type=self._response_error_type(
+                            duplicate_response,
+                            "INVALID_ACTION",
+                        ),
+                        message="Completion duplicate check failed.",
+                    ),
+                }
+
+            duplicate_data = self._response_data(duplicate_response)
+
+            if bool(duplicate_data.get("duplicate", False)):
+                self.duplicate_invoice_ids.add(invoice_id_str)
+                processed_count += 1
+                continue
+
+            supplier_response = self.api_client.validate_supplier(supplier_id)
+
+            if self._is_environment_error(supplier_response):
+                return {
+                    "payable": pd.DataFrame(),
+                    "processed_count": processed_count,
+                    "excluded_count": len(self._all_excluded_ids()),
+                    "environment_error": True,
+                    "result": self._environment_error_result(
+                        supplier_response,
+                        "Environment error during completion supplier check.",
+                    ),
+                    "error_result": None,
+                }
+
+            if not self._response_succeeded(supplier_response):
+                return {
+                    "payable": pd.DataFrame(),
+                    "processed_count": processed_count,
+                    "excluded_count": len(self._all_excluded_ids()),
+                    "environment_error": False,
+                    "result": None,
+                    "error_result": self._action_result(
+                        success=False,
+                        useful_action=False,
+                        error_type=self._response_error_type(
+                            supplier_response,
+                            "INVALID_ACTION",
+                        ),
+                        message="Completion supplier validation failed.",
+                    ),
+                }
+
+            supplier_data = self._response_data(supplier_response)
+            valid_supplier = bool(
+                supplier_data.get(
+                    "valid",
+                    supplier_data.get("eligible", True),
+                )
+            )
+
+            if not valid_supplier:
+                self.invalid_supplier_invoice_ids.add(invoice_id_str)
+                processed_count += 1
+                continue
+
+            candidate_rows.append(invoice)
+            processed_count += 1
+
+        candidates = (
+            pd.DataFrame(candidate_rows)
+            if candidate_rows
+            else pd.DataFrame(columns=outstanding.columns)
         )
 
-    @classmethod
-    def _response_succeeded(
-        cls,
-        response,
-    ):
+        if candidates.empty:
+            # No supplier/duplicate-valid outstanding invoice exists.
+            self.budget_excluded_invoice_ids.clear()
+            self._update_invoice_states()
+            return {
+                "payable": candidates,
+                "processed_count": processed_count,
+                "excluded_count": len(self._all_excluded_ids()),
+                "environment_error": False,
+                "result": None,
+                "error_result": None,
+            }
 
-        if not isinstance(
-            response,
-            dict,
-        ):
+        allocation = self._allocate_budget(
+            candidates,
+            replace_budget_exclusions=True,
+        )
 
-            return False
+        if allocation["environment_error"]:
+            return {
+                "payable": pd.DataFrame(),
+                "processed_count": processed_count,
+                "excluded_count": len(self._all_excluded_ids()),
+                "environment_error": True,
+                "result": allocation["result"],
+                "error_result": None,
+            }
 
-        if not response.get(
-            "success",
-            False,
-        ):
+        if allocation["error_result"] is not None:
+            return {
+                "payable": pd.DataFrame(),
+                "processed_count": processed_count,
+                "excluded_count": len(self._all_excluded_ids()),
+                "environment_error": False,
+                "result": None,
+                "error_result": allocation["error_result"],
+            }
 
-            return False
+        self._update_invoice_states()
 
-        payload = response.get("data")
+        return {
+            "payable": allocation["kept"],
+            "processed_count": (processed_count + allocation["processed_count"]),
+            "excluded_count": len(self._all_excluded_ids()),
+            "environment_error": False,
+            "result": None,
+            "error_result": None,
+        }
 
-        if (
-            isinstance(
-                payload,
-                dict,
-            )
-            and "success" in payload
-        ):
-
-            return bool(payload["success"])
-
-        return not (cls._is_environment_error(response))
-
-    def _select_error_type(
+    def _allocate_budget(
         self,
-        errors,
+        invoices,
+        replace_budget_exclusions=False,
     ):
         """
-        One high-level action may internally call the backend
-        several times.
+        Sequentially allocate each department's remaining budget.
 
-        We still generate ONE RL reward.
+        Example with remaining budget 10,000 and invoices in order:
+            5,000 -> keep, remaining allocation capacity 5,000
+            6,000 -> skip
+            3,000 -> keep, remaining allocation capacity 2,000
 
-        Therefore use the most severe business error instead
-        of summing penalties by record count.
+        The backend budget is NOT deducted here. Actual deduction only
+        occurs when PAY_INVOICES succeeds.
         """
 
-        errors = [error for error in errors if error]
+        if replace_budget_exclusions:
+            self.budget_excluded_invoice_ids.clear()
 
-        if not errors:
+        if invoices.empty:
+            return {
+                "kept": invoices.copy(),
+                "processed_count": 0,
+                "excluded_count": 0,
+                "budget_results": {},
+                "environment_error": False,
+                "result": None,
+                "error_result": None,
+            }
 
-            return "UNKNOWN_BUSINESS_ERROR"
-
-        return min(
-            errors,
-            key=lambda error: self.reward_processor.get_error_penalty(error),
+        department_column = self._find_column(
+            invoices,
+            ["department", "category", "function"],
+        )
+        amount_column = self._find_column(
+            invoices,
+            ["amount", "totalAmount"],
         )
 
-    @staticmethod
-    def _find_column(
-        df,
-        candidates,
+        if department_column is None or amount_column is None:
+            return {
+                "kept": pd.DataFrame(),
+                "processed_count": 0,
+                "excluded_count": 0,
+                "budget_results": {},
+                "environment_error": False,
+                "result": None,
+                "error_result": self._action_result(
+                    success=False,
+                    useful_action=False,
+                    error_type="INVALID_STATE_DATA",
+                    message=("Department/category or invoice amount is missing."),
+                ),
+            }
+
+        valid_indices = []
+        budget_results = {}
+        processed_count = 0
+        excluded_count = 0
+
+        departments = invoices[department_column].dropna().unique().tolist()
+
+        for department in departments:
+            department_invoices = invoices[invoices[department_column] == department]
+
+            # New backend contract: amount is optional when the
+            # environment only needs current remainingBudget.
+            response = self.api_client.check_budget(department=department)
+
+            if self._is_environment_error(response):
+                return {
+                    "kept": pd.DataFrame(),
+                    "processed_count": processed_count,
+                    "excluded_count": excluded_count,
+                    "budget_results": budget_results,
+                    "environment_error": True,
+                    "result": self._environment_error_result(
+                        response,
+                        "Environment error during budget checking.",
+                    ),
+                    "error_result": None,
+                }
+
+            if not self._response_succeeded(response):
+                return {
+                    "kept": pd.DataFrame(),
+                    "processed_count": processed_count,
+                    "excluded_count": excluded_count,
+                    "budget_results": budget_results,
+                    "environment_error": False,
+                    "result": None,
+                    "error_result": self._action_result(
+                        success=False,
+                        useful_action=False,
+                        error_type=self._response_error_type(
+                            response,
+                            "INVALID_ACTION",
+                        ),
+                        message="Budget request failed.",
+                    ),
+                }
+
+            data = self._response_data(response)
+            found = bool(data.get("found", data.get("budget") is not None))
+            budget = data.get("budget")
+
+            # Missing budget is a successful business finding. All
+            # invoices in that department are excluded.
+            if not found or not isinstance(budget, dict):
+                removed = []
+
+                for index, invoice in department_invoices.iterrows():
+                    invoice_id = self._invoice_id(invoice)
+                    if invoice_id is not None:
+                        self.budget_excluded_invoice_ids.add(str(invoice_id))
+                    removed.append(
+                        {
+                            "index": index,
+                            "reason": "BUDGET_NOT_FOUND",
+                        }
+                    )
+                    processed_count += 1
+                    excluded_count += 1
+
+                budget_results[department] = {
+                    "remaining_budget": None,
+                    "kept_total": 0.0,
+                    "kept_invoices": [],
+                    "removed_invoices": removed,
+                }
+                continue
+
+            remaining_budget = budget.get("remainingBudget")
+
+            if remaining_budget is None:
+                return {
+                    "kept": pd.DataFrame(),
+                    "processed_count": processed_count,
+                    "excluded_count": excluded_count,
+                    "budget_results": budget_results,
+                    "environment_error": False,
+                    "result": None,
+                    "error_result": self._action_result(
+                        success=False,
+                        useful_action=False,
+                        error_type="INVALID_RESPONSE",
+                        message=(f"Remaining budget missing for {department}."),
+                    ),
+                }
+
+            remaining_budget = float(remaining_budget)
+            current_total = 0.0
+            kept = []
+            removed = []
+
+            for index, invoice in department_invoices.iterrows():
+                amount = pd.to_numeric(
+                    invoice[amount_column],
+                    errors="coerce",
+                )
+
+                processed_count += 1
+                invoice_id = self._invoice_id(invoice)
+
+                if pd.isna(amount):
+                    if invoice_id is not None:
+                        self.budget_excluded_invoice_ids.add(str(invoice_id))
+                    removed.append(
+                        {
+                            "index": index,
+                            "reason": "INVALID_AMOUNT",
+                        }
+                    )
+                    excluded_count += 1
+                    continue
+
+                amount = float(amount)
+
+                if current_total + amount <= remaining_budget:
+                    valid_indices.append(index)
+                    current_total += amount
+                    kept.append(
+                        {
+                            "index": index,
+                            "amount": amount,
+                        }
+                    )
+                else:
+                    if invoice_id is not None:
+                        self.budget_excluded_invoice_ids.add(str(invoice_id))
+                    removed.append(
+                        {
+                            "index": index,
+                            "amount": amount,
+                            "reason": "BUDGET_EXCEEDED",
+                        }
+                    )
+                    excluded_count += 1
+
+            budget_results[department] = {
+                "remaining_budget": remaining_budget,
+                "kept_total": current_total,
+                "kept_invoices": kept,
+                "removed_invoices": removed,
+            }
+
+        kept_df = invoices.loc[valid_indices].copy()
+        kept_df.reset_index(drop=True, inplace=True)
+
+        return {
+            "kept": kept_df,
+            "processed_count": processed_count,
+            "excluded_count": excluded_count,
+            "budget_results": budget_results,
+            "environment_error": False,
+            "result": None,
+            "error_result": None,
+        }
+
+    # ==========================================================
+    # DataFrame / exclusion helpers
+    # ==========================================================
+
+    def _candidate_invoices(self):
+        frames = []
+
+        if not self.pending_approval_invoices.empty:
+            frames.append(self.pending_approval_invoices.copy())
+
+        if not self.approved_invoices.empty:
+            frames.append(self.approved_invoices.copy())
+
+        if not frames:
+            return pd.DataFrame()
+
+        return pd.concat(frames, ignore_index=True)
+
+    def _all_excluded_ids(self):
+        return (
+            set(self.duplicate_invoice_ids)
+            | set(self.invalid_supplier_invoice_ids)
+            | set(self.budget_excluded_invoice_ids)
+        )
+
+    def _filter_known_exclusions(self, df):
+        if df.empty:
+            return df.copy()
+
+        excluded = self._all_excluded_ids()
+
+        if not excluded:
+            return df.copy()
+
+        id_column = self._find_column(
+            df,
+            ["_id", "id", "invoiceId"],
+        )
+
+        if id_column is None:
+            return df.copy()
+
+        mask = ~df[id_column].astype(str).isin(excluded)
+        return df.loc[mask].copy()
+
+    def _apply_known_exclusions_to_local_frames(self):
+        self.pending_approval_invoices = self._filter_known_exclusions(
+            self.pending_approval_invoices
+        )
+        self.approved_invoices = self._filter_known_exclusions(self.approved_invoices)
+
+        self.pending_approval_invoices.reset_index(
+            drop=True,
+            inplace=True,
+        )
+        self.approved_invoices.reset_index(
+            drop=True,
+            inplace=True,
+        )
+
+        self._update_invoice_states()
+
+    def _split_invoice_frames(
+        self,
+        invoices,
+        apply_exclusions=True,
     ):
+        if invoices.empty:
+            self.paid_invoices = pd.DataFrame()
+            self.rejected_invoices = pd.DataFrame()
+            self.pending_approval_invoices = pd.DataFrame()
+            self.approved_invoices = pd.DataFrame()
+            return None
 
-        for column in candidates:
+        status_column = self._find_column(
+            invoices,
+            ["status", "invoiceStatus"],
+        )
 
-            if column in df.columns:
+        if status_column is None:
+            return self._action_result(
+                success=False,
+                useful_action=False,
+                error_type="INVALID_STATE_DATA",
+                message=("Invoice response does not contain a status column."),
+            )
 
-                return column
+        self.paid_invoices = invoices[invoices[status_column] == "PAID"].copy()
+        self.rejected_invoices = invoices[invoices[status_column] == "REJECTED"].copy()
+        self.pending_approval_invoices = invoices[
+            invoices[status_column] == "PENDING_APPROVAL"
+        ].copy()
+        self.approved_invoices = invoices[invoices[status_column] == "APPROVED"].copy()
+
+        if apply_exclusions:
+            self._apply_known_exclusions_to_local_frames()
 
         return None
 
     @staticmethod
-    def _get_value(
-        row,
-        candidates,
-    ):
-
+    def _find_column(df, candidates):
         for column in candidates:
+            if column in df.columns:
+                return column
+        return None
 
+    def _invoice_id(self, row):
+        return self._get_value(
+            row,
+            ["_id", "id", "invoiceId"],
+        )
+
+    @staticmethod
+    def _get_value(row, candidates):
+        for column in candidates:
             if column not in row.index:
-
                 continue
 
             value = row[column]
 
-            # Mongo populate can leave supplier as a dictionary.
-            if isinstance(
-                value,
-                dict,
-            ):
-
+            if isinstance(value, dict):
                 nested_id = value.get("_id") or value.get("id")
-
                 if nested_id is not None:
-
                     return nested_id
 
             try:
-
                 if pd.notna(value):
-
                     return value
-
-            except (
-                TypeError,
-                ValueError,
-            ):
-
+            except (TypeError, ValueError):
                 return value
 
         return None
 
     # ==========================================================
+    # API response helpers
+    # ==========================================================
+
+    @staticmethod
+    def _is_environment_error(response):
+        if not isinstance(response, dict):
+            return False
+
+        return bool(
+            response.get(
+                "environment_error",
+                response.get("environmentError", False),
+            )
+        )
+
+    @staticmethod
+    def _response_data(response):
+        if not isinstance(response, dict):
+            return {}
+
+        data = response.get("data", {})
+
+        if (
+            isinstance(data, dict)
+            and "data" in data
+            and isinstance(data["data"], (dict, list))
+        ):
+            return data["data"]
+
+        return data
+
+    @staticmethod
+    def _response_error_type(response, default=None):
+        if not isinstance(response, dict):
+            return default
+
+        payload = response.get("data", {})
+
+        if isinstance(payload, dict):
+            error_type = payload.get("errorType") or payload.get("error_type")
+
+            if error_type:
+                return str(error_type).upper()
+
+            # Some validation endpoints use reason rather than
+            # errorType because the API action itself succeeded.
+            reason = payload.get("reason")
+            if reason and payload.get("success") is False:
+                return str(reason).upper()
+
+            nested = payload.get("data")
+            if isinstance(nested, dict):
+                error_type = nested.get("errorType") or nested.get("error_type")
+                if error_type:
+                    return str(error_type).upper()
+
+        return default
+
+    @staticmethod
+    def _response_message(response, default=""):
+        if not isinstance(response, dict):
+            return default
+
+        payload = response.get("data", {})
+
+        if isinstance(payload, dict):
+            message = payload.get("message")
+            if message:
+                return str(message)
+
+        return str(response.get("message", default))
+
+    @classmethod
+    def _response_succeeded(cls, response):
+        if not isinstance(response, dict):
+            return False
+
+        if not response.get("success", False):
+            return False
+
+        payload = response.get("data")
+
+        if isinstance(payload, dict) and "success" in payload:
+            return bool(payload["success"])
+
+        return not cls._is_environment_error(response)
+
+    def _select_error_type(self, errors):
+        errors = [error for error in errors if error]
+
+        if not errors:
+            return "UNKNOWN_BUSINESS_ERROR"
+
+        return min(
+            errors,
+            key=lambda error: (self.reward_processor.get_error_penalty(error)),
+        )
+
+    # ==========================================================
     # Close
     # ==========================================================
 
-    def close(
-        self,
-        terminated_reason="FAILED",
-    ):
-
+    def close(self, terminated_reason="FAILED"):
         if self.episode_active:
-
             self._end_episode(terminated_reason)
 
-        if hasattr(
-            self.api_client,
-            "session",
-        ):
-
+        if hasattr(self.api_client, "close"):
+            self.api_client.close()
+        elif hasattr(self.api_client, "session"):
             self.api_client.session.close()

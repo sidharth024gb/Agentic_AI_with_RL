@@ -1,12 +1,20 @@
+"""
+config.py
+
+Central configuration for the Finance PPO / LLM+PPO project.
+
+The command-line runner may override agent/experiment fields at runtime
+so that PPO and LLM+PPO runs are logged with the correct metadata.
+"""
+
 import os
-
-import torch
-
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import torch
 from dotenv import load_dotenv
 
+# Keep the user's existing .env location and variable names.
 load_dotenv(dotenv_path="./config/.env")
 
 
@@ -15,7 +23,7 @@ load_dotenv(dotenv_path="./config/.env")
 # ==========================================================
 
 
-@dataclass(frozen=True)
+@dataclass
 class BackendConfig:
     """Backend API configuration."""
 
@@ -24,7 +32,7 @@ class BackendConfig:
         "http://localhost:5000/api",
     )
 
-    TIMEOUT: int = 30
+    TIMEOUT: int = int(os.getenv("BACKEND_TIMEOUT", "30"))
 
     # ------------------------------------------------------
     # Authentication
@@ -40,19 +48,15 @@ class BackendConfig:
         "",
     )
 
-
     # ------------------------------------------------------
     # Authentication Endpoints
     # ------------------------------------------------------
 
     LOGIN_ENDPOINT: str = "/auth/login"
-
     PROFILE_ENDPOINT: str = "/auth/me"
 
     AUTH_REGISTER: str = "/auth/register"
-
     AUTH_LOGIN: str = "/auth/login"
-
     AUTH_ME: str = "/auth/me"
 
     # ------------------------------------------------------
@@ -60,11 +64,8 @@ class BackendConfig:
     # ------------------------------------------------------
 
     EPISODE: str = "/episode"
-
     EPISODE_START: str = "/episode/start"
-
     EPISODE_STEP: str = "/step"
-
     EPISODE_END: str = "/end"
 
     # ------------------------------------------------------
@@ -72,9 +73,7 @@ class BackendConfig:
     # ------------------------------------------------------
 
     SANDBOX_RESET: str = "/sandbox/reset"
-
     SANDBOX_STATE: str = "/sandbox/state"
-
     SANDBOX_REWARD: str = "/sandbox/reward"
 
     # ------------------------------------------------------
@@ -82,7 +81,6 @@ class BackendConfig:
     # ------------------------------------------------------
 
     SUPPLIER: str = "/supplier"
-
     SUPPLIER_VALIDATE: str = "/supplier/validate"
 
     # ------------------------------------------------------
@@ -90,7 +88,6 @@ class BackendConfig:
     # ------------------------------------------------------
 
     INVOICE: str = "/invoice"
-
     INVOICE_DUPLICATE_CHECK: str = "/invoice/duplicate-check"
 
     # ------------------------------------------------------
@@ -98,9 +95,7 @@ class BackendConfig:
     # ------------------------------------------------------
 
     ACCOUNT: str = "/account"
-
     ACCOUNT_BUDGET_CHECK: str = "/account/budget/check"
-
     ACCOUNT_CASH_POSITION: str = "/account/cash-position"
 
     # ------------------------------------------------------
@@ -114,7 +109,6 @@ class BackendConfig:
     # ------------------------------------------------------
 
     REPORT_TRANSACTIONS: str = "/report/transactions"
-
     REPORT_GENERATE_REPORT: str = "/report/generate-report"
 
     # ------------------------------------------------------
@@ -122,9 +116,7 @@ class BackendConfig:
     # ------------------------------------------------------
 
     PAYMENT_PAY: str = "/payment/pay"
-
     PAYMENT_CANCEL_PAYMENT: str = "/payment/cancel-payment"
-
     PAYMENT_RETRY_PAYMENT: str = "/payment/retry-payment"
 
 
@@ -133,15 +125,15 @@ class BackendConfig:
 # ==========================================================
 
 
-@dataclass(frozen=True)
+@dataclass
 class EnvironmentConfig:
     """RL environment configuration."""
 
     ENV_NAME: str = "FinanceSandbox-v1"
 
-    MAX_STEPS_PER_EPISODE: int = 20
+    MAX_STEPS_PER_EPISODE: int = int(os.getenv("MAX_STEPS_PER_EPISODE", "20"))
 
-    RANDOM_SEED: int = 42
+    RANDOM_SEED: int = int(os.getenv("RANDOM_SEED", "42"))
 
     OBSERVATION_TYPE: str = "vector"
 
@@ -166,39 +158,53 @@ class EnvironmentConfig:
 # ==========================================================
 
 
-@dataclass(frozen=True)
+@dataclass
 class TrainingConfig:
-    """Training hyperparameters."""
+    """PPO training hyperparameters."""
 
-    TOTAL_EPISODES: int = 1000
+    TOTAL_EPISODES: int = int(os.getenv("TOTAL_EPISODES", "1000"))
 
-    EVALUATION_EPISODES: int = 100
+    EVALUATION_EPISODES: int = int(os.getenv("EVALUATION_EPISODES", "100"))
 
-    GAMMA: float = 0.99
+    GAMMA: float = float(os.getenv("GAMMA", "0.99"))
 
-    LEARNING_RATE: float = 3e-4
+    LEARNING_RATE: float = float(os.getenv("LEARNING_RATE", "0.0003"))
 
-    BATCH_SIZE: int = 64
+    BATCH_SIZE: int = int(os.getenv("BATCH_SIZE", "64"))
 
-    UPDATE_INTERVAL: int = 2048
+    # Important for this short-horizon environment.
+    # 2048 meant roughly 100 twenty-step episodes could pass
+    # before the first PPO update. 256 gives much more frequent
+    # on-policy updates while still collecting a useful rollout.
+    UPDATE_INTERVAL: int = int(os.getenv("UPDATE_INTERVAL", "256"))
 
-    SAVE_EVERY: int = 100
+    SAVE_EVERY: int = int(os.getenv("SAVE_EVERY", "100"))
 
-    LOG_EVERY: int = 10
+    LOG_EVERY: int = int(os.getenv("LOG_EVERY", "10"))
 
-    GAE_LAMBDA: float = 0.95
+    GAE_LAMBDA: float = float(os.getenv("GAE_LAMBDA", "0.95"))
 
-    CLIP_EPSILON: float = 0.2
+    CLIP_EPSILON: float = float(os.getenv("CLIP_EPSILON", "0.2"))
 
-    EPOCHS: int = 10
+    EPOCHS: int = int(os.getenv("PPO_EPOCHS", "10"))
 
-    HIDDEN_NEURON_SIZE: int = 256
+    HIDDEN_NEURON_SIZE: int = int(os.getenv("HIDDEN_NEURON_SIZE", "256"))
 
-    # Metrics / visualization
+    # ------------------------------------------------------
+    # PPO exploration / stability
+    # ------------------------------------------------------
+
+    # This is now actually used in PPOAgent policy loss.
+    ENTROPY_COEF: float = float(os.getenv("ENTROPY_COEF", "0.01"))
+
+    MAX_GRAD_NORM: float = float(os.getenv("MAX_GRAD_NORM", "0.5"))
+
+    # ------------------------------------------------------
+    # Metrics / Visualization
+    # ------------------------------------------------------
+
     MOVING_AVERAGE_WINDOW: int = 50
-
     CONVERGENCE_WINDOW: int = 50
-
     CONVERGENCE_SUCCESS_THRESHOLD: float = 0.90
 
 
@@ -207,19 +213,19 @@ class TrainingConfig:
 # ==========================================================
 
 
-@dataclass(frozen=True)
+@dataclass
 class AgentConfig:
-    """Agent settings."""
+    """Agent settings.
 
-    # RL / LLM_RL
+    main.py updates AGENT_TYPE at runtime from --agent, ensuring
+    PPO runs are recorded as RL and LLM runs as LLM_RL.
+    """
+
     AGENT_TYPE: str = "LLM_RL"
-
-    # PPO / DQN / Q_LEARNING / SAC
     ALGORITHM: str = "PPO"
 
     DEVICE: str = "cuda" if torch.cuda.is_available() else "cpu"
 
-    # Task/goal stored in Episode.goal
     TASK: str = "Pay all valid invoices"
 
 
@@ -228,27 +234,30 @@ class AgentConfig:
 # ==========================================================
 
 
-@dataclass(frozen=True)
+@dataclass
 class LLMConfig:
-    """LLM planner configuration."""
+    """Ollama planner configuration."""
 
-    # ------------------------------------------------------
-    # Ollama
-    # ------------------------------------------------------
+    MODEL: str = os.getenv(
+        "LLM_MODEL",
+        "llama3",
+    )
 
-    MODEL: str = "llama3"
+    BASE_URL: str = os.getenv(
+        "OLLAMA_BASE_URL",
+        "http://localhost:11434",
+    )
 
-    BASE_URL: str = "http://localhost:11434"
+    TIMEOUT: int = int(os.getenv("OLLAMA_TIMEOUT", "120"))
 
-    TIMEOUT: int = 120
+    TEMPERATURE: float = float(os.getenv("LLM_TEMPERATURE", "0.1"))
 
-    TEMPERATURE: float = 0.1
-
-    # ------------------------------------------------------
-    # Cache
-    # ------------------------------------------------------
-
-    USE_CACHE: bool = True
+    USE_CACHE: bool = os.getenv("LLM_USE_CACHE", "true").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
 
     CACHE_DIR: Path = Path.cwd() / "results" / "llm_cache"
 
@@ -258,95 +267,32 @@ class LLMConfig:
 # ==========================================================
 
 
-@dataclass(frozen=True)
+@dataclass
 class ExperimentConfig:
-    """Experiment metadata."""
+    """Experiment metadata.
 
-    # ==========================================================
-    # EXPERIMENT CONFIGURATION PRESETS
-    # ==========================================================
+    These values are mutable because main.py deliberately applies
+    runtime CLI overrides before the environment and agent are made.
+    """
 
-    # ----------------------------------------------------------
-    # 1. BASELINE PPO
-    # ----------------------------------------------------------
-    #
-    # EXPERIMENT_NAME = "ppo_baseline"
-    #
-    # DESCRIPTION = (
-    #     "Baseline PPO agent without LLM planning or guidance."
-    # )
-    #
-    # GUIDANCE_MODE = "NONE"
-    #
-    #
-    # ----------------------------------------------------------
-    # 2. LLM + PPO - REWARD SHAPING ONLY
-    # ----------------------------------------------------------
-    #
-    # EXPERIMENT_NAME = "llm_ppo_reward"
-    #
-    # DESCRIPTION = (
-    #     "PPO agent with LLM-generated procedural guidance "
-    #     "used only for positive reward shaping."
-    # )
-    #
-    # GUIDANCE_MODE = "REWARD_SHAPING"
-    #
-    #
-    # ----------------------------------------------------------
-    # 3. LLM + PPO - INPUT GUIDANCE ONLY
-    # ----------------------------------------------------------
-    #
-    # EXPERIMENT_NAME = "llm_ppo_input"
-    #
-    # DESCRIPTION = (
-    #     "PPO agent with LLM-generated procedural guidance "
-    #     "appended to the policy input without reward shaping."
-    # )
-    #
-    # GUIDANCE_MODE = "INPUT"
-    #
-    #
-    # ----------------------------------------------------------
-    # 4. LLM + PPO - INPUT + REWARD SHAPING
-    # ----------------------------------------------------------
-    #
-    # EXPERIMENT_NAME = "llm_ppo_input_reward"
-    #
-    # DESCRIPTION = (
-    #     "PPO agent with LLM-generated procedural guidance "
-    #     "provided as policy input and positive reward shaping."
-    # )
-    #
-    # GUIDANCE_MODE = "INPUT_AND_REWARD"
-    # ==========================================================
+    # Default LLM experiment if --guidance-mode is omitted.
+    EXPERIMENT_NAME: str = "llm_ppo_input_reward"
 
-    EXPERIMENT_NAME = "llm_ppo_input_reward"
-    
-    DESCRIPTION = (
+    DESCRIPTION: str = (
         "PPO agent with LLM-generated procedural guidance "
         "provided as policy input and positive reward shaping."
     )
-    
-    GUIDANCE_MODE = "INPUT_AND_REWARD"
 
-    # ------------------------------------------------------
-    # TRAIN / EVALUATION / TEST
-    # ------------------------------------------------------
+    # NONE / INPUT / REWARD_SHAPING / INPUT_AND_REWARD
+    GUIDANCE_MODE: str = "INPUT_AND_REWARD"
 
     PHASE: str = "TRAIN"
 
-    # ------------------------------------------------------
-    # Extra reward given when the LLM procedure is followed.
-    #
-    # Only used for:
-    # REWARD_SHAPING
-    # INPUT_AND_REWARD
-    # ------------------------------------------------------
+    # Smaller than the earlier +5 because the corrected base reward
+    # scale is also smaller. Guidance should help, not dominate PPO.
+    GUIDANCE_BONUS: float = float(os.getenv("GUIDANCE_BONUS", "1.0"))
 
-    GUIDANCE_BONUS: float = 5.0
-
-    ENVIRONMENT_VERSION: str = "v1"
+    ENVIRONMENT_VERSION: str = "v2-reward-fix"
 
 
 # ==========================================================
@@ -354,20 +300,16 @@ class ExperimentConfig:
 # ==========================================================
 
 
-@dataclass(frozen=True)
+@dataclass
 class LoggingConfig:
     """Logging and output directories."""
 
     ROOT_DIR: Path = Path.cwd()
 
     RESULTS_DIR: Path = ROOT_DIR / "results"
-
     LOG_DIR: Path = RESULTS_DIR / "logs"
-
     MODEL_DIR: Path = RESULTS_DIR / "models"
-
     METRICS_DIR: Path = RESULTS_DIR / "metrics"
-
     GRAPH_DIR: Path = RESULTS_DIR / "graphs"
 
 
@@ -376,7 +318,7 @@ class LoggingConfig:
 # ==========================================================
 
 
-@dataclass(frozen=True)
+@dataclass
 class Config:
     """Main project configuration."""
 
@@ -398,5 +340,6 @@ class Config:
 # ==========================================================
 # Global Configuration Instance
 # ==========================================================
+
 
 config = Config()

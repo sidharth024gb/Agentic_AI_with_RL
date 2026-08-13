@@ -1,34 +1,42 @@
 """
 state_encoder.py
 
-Converts backend environment state (JSON)
-into numerical vectors for RL algorithms.
+Converts FinanceEnvironment state into a numerical PPO observation.
+
+The observation intentionally remains 13-dimensional so the existing
+LLMRLAgent input modes remain:
+
+    base observation = 13
+    guidance vector  = 8
+    combined input   = 21
+
+The semantics are changed to describe completed workflow progress
+rather than merely attempted actions.
 """
+
 import numpy as np
 
 
 class StateEncoder:
-    """
-    Converts FinanceEnvironment state into a binary RL observation.
-
-    Observation contains only 0/1 values.
-    """
+    """Convert FinanceEnvironment state into a binary vector."""
 
     STATE_NAMES = [
-        # Action execution states
+        # Successfully reached workflow stages
         "get_invoices",
         "check_duplicate",
         "check_supplier",
         "approve_invoices",
-        "pay_invoices",
         "check_budget",
+        "pay_invoices",
         "generate_report",
         "check_payment_completed",
-        # Invoice condition states
+        # Current payable-work state
         "has_paid_invoices",
-        "has_rejected_invoices",
         "has_pending_approval_invoices",
         "has_approved_invoices",
+        # Any invoice intentionally excluded because it is not valid/
+        # payable in this episode (duplicate, supplier, or budget).
+        "has_excluded_invoices",
         # Final task state
         "task_completed",
     ]
@@ -39,30 +47,13 @@ class StateEncoder:
         self.state_size = self.STATE_SIZE
 
     def encode(self, state):
-        """
-        Convert a state dictionary into a numpy binary vector.
-
-        Returns:
-            np.ndarray of shape (13,)
-        """
-
-        observation = []
-
-        for state_name in self.STATE_NAMES:
-            value = state.get(state_name, False)
-
-            observation.append(1.0 if bool(value) else 0.0)
-
+        observation = [
+            1.0 if bool(state.get(name, False)) else 0.0 for name in self.STATE_NAMES
+        ]
         return np.asarray(observation, dtype=np.float32)
 
     def decode(self, observation):
-        """
-        Convert an encoded observation back into a readable dictionary.
-
-        Mainly useful for debugging and logging.
-        """
-
-        observation = np.asarray(observation).flatten()
+        observation = np.asarray(observation).reshape(-1)
 
         if len(observation) != self.STATE_SIZE:
             raise ValueError(
@@ -70,30 +61,33 @@ class StateEncoder:
             )
 
         return {
-            state_name: bool(value >= 0.5)
-            for state_name, value in zip(self.STATE_NAMES, observation)
+            name: bool(value >= 0.5)
+            for name, value in zip(
+                self.STATE_NAMES,
+                observation,
+            )
         }
 
     def get_state_names(self):
-        """
-        Return ordered state names.
-        """
         return list(self.STATE_NAMES)
 
     def get_state_size(self):
-        """
-        Return number of observation dimensions.
-        """
         return self.state_size
 
     def validate(self, observation):
-        """
-        Validate that an observation contains only binary values.
-        """
-
-        observation = np.asarray(observation).flatten()
+        observation = np.asarray(observation).reshape(-1)
 
         if len(observation) != self.STATE_SIZE:
             return False
 
-        return bool(np.all(np.logical_or(observation == 0, observation == 1)))
+        if not np.all(np.isfinite(observation)):
+            return False
+
+        return bool(
+            np.all(
+                np.logical_or(
+                    observation == 0.0,
+                    observation == 1.0,
+                )
+            )
+        )

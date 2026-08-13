@@ -1,176 +1,101 @@
 """
 reward_processor.py
 
-Centralized reward calculation for the Finance RL Environment.
+Progress-based reward calculation for the Finance RL Environment.
 
-The environment actions report WHAT happened.
-
-RewardProcessor determines HOW that outcome should be rewarded.
-
-This same base reward system is used for:
-
-    - PPO
-    - LLM + PPO
-
-LLM-based experiments may additionally receive a positive
-guidance bonus when the generated procedure is followed.
-
-Important:
-    Guidance can NEVER reduce or cancel a negative reward.
+Design principles
+-----------------
+1. Successful useful progress receives a small positive reward.
+2. A valid action with nothing to process receives zero.
+3. Repeating a valid action without progress receives zero.
+4. Genuine workflow/action mistakes receive only a small penalty.
+5. Business validation findings (duplicate, high-risk supplier,
+   over-budget invoice) should normally be represented by the
+   environment as successful validation + filtering, not failure.
+6. Infrastructure/backend failures are never learned from.
+7. LLM guidance is positive-only.
 """
 
 from config.config import config
 
 
 class RewardProcessor:
-    """
-    Central reward processor for the finance environment.
-    """
-
-    # ==========================================================
-    # Positive Action Rewards
-    #
-    # These rewards are intentionally smaller than the
-    # task-completion reward.
-    # ==========================================================
+    """Central reward processor shared by PPO and LLM + PPO."""
 
     ACTION_REWARDS = {
-        "GET_INVOICES": 2.0,
-        "CHECK_DUPLICATE": 4.0,
-        "CHECK_SUPPLIER": 4.0,
-        "APPROVE_INVOICES": 5.0,
-        "CHECK_BUDGET": 6.0,
-        "PAY_INVOICES": 8.0,
+        "GET_INVOICES": 1.0,
+        "CHECK_DUPLICATE": 2.0,
+        "CHECK_SUPPLIER": 2.0,
+        "APPROVE_INVOICES": 3.0,
+        "CHECK_BUDGET": 2.0,
+        "PAY_INVOICES": 5.0,
         "GENERATE_REPORT": 1.0,
-        "CHECK_PAYMENT_COMPLETED": 2.0,
+        # Completion itself is rewarded by TASK_COMPLETION_BONUS.
+        "CHECK_PAYMENT_COMPLETED": 0.0,
     }
 
-    # ==========================================================
-    # Goal Reward
-    #
-    # Completing the task is the most important objective.
-    # ==========================================================
+    TASK_COMPLETION_BONUS = 25.0
 
-    TASK_COMPLETION_BONUS = 50.0
+    # Valid no-op/repeat is deliberately neutral.
+    NO_OP_REWARD = 0.0
+    REPEATED_ACTION_REWARD = 0.0
 
-    # ==========================================================
-    # General Penalties
-    # ==========================================================
-
-    NO_OP_PENALTY = -1.0
-
-    REPEATED_ACTION_PENALTY = -2.0
-
-    DEFAULT_FAILURE_PENALTY = -5.0
-
-    # ==========================================================
-    # Business Error Penalties
-    #
-    # These use backend errorType values.
-    #
-    # We deliberately do NOT use backend reward values.
-    # ==========================================================
+    # Genuine action/workflow mistakes are intentionally mild.
+    DEFAULT_FAILURE_PENALTY = -0.5
 
     ERROR_PENALTIES = {
-        # ------------------------------------------------------
-        # General invalid action / workflow
-        # ------------------------------------------------------
-        "INVALID_ACTION": -5.0,
-        "INVALID_WORKFLOW": -8.0,
-        "MISSING_REQUIRED_FIELD": -5.0,
-        "INVALID_STATE_DATA": -5.0,
-        "INVALID_RESPONSE": -5.0,
-        # ------------------------------------------------------
-        # Invoice
-        # ------------------------------------------------------
-        "INVOICE_NOT_FOUND": -8.0,
-        "INVOICE_NOT_APPROVED": -10.0,
-        "DUPLICATE_INVOICE": -12.0,
-        # ------------------------------------------------------
-        # Supplier
-        # ------------------------------------------------------
-        "SUPPLIER_NOT_FOUND": -8.0,
-        "SUPPLIER_INACTIVE": -12.0,
-        "SUPPLIER_HIGH_RISK": -10.0,
-        # ------------------------------------------------------
-        # Budget
-        # ------------------------------------------------------
-        "BUDGET_NOT_FOUND": -8.0,
-        "BUDGET_EXCEEDED": -15.0,
-        # ------------------------------------------------------
-        # Account
-        # ------------------------------------------------------
-        "ACCOUNT_NOT_FOUND": -8.0,
-        "ACCOUNT_FROZEN": -12.0,
-        "INSUFFICIENT_BALANCE": -15.0,
-        # ------------------------------------------------------
-        # Payment
-        # ------------------------------------------------------
-        "PAYMENT_FAILED": -12.0,
-        # ------------------------------------------------------
-        # Other
-        # ------------------------------------------------------
-        "REPORT_FAILED": -5.0,
-        "UNKNOWN_BUSINESS_ERROR": -5.0,
+        "INVALID_ACTION": -1.0,
+        "INVALID_WORKFLOW": -0.5,
+        "INVALID_REQUEST": -1.0,
+        "MISSING_REQUIRED_FIELD": -1.0,
+        "INVALID_STATE_DATA": -1.0,
+        "INVALID_RESPONSE": -1.0,
+        "INVALID_STATUS": -1.0,
+        "INVOICE_NOT_FOUND": -0.5,
+        "INVOICE_NOT_APPROVED": -0.5,
+        "INVOICE_ALREADY_PAID": -0.5,
+        # These should normally be filtered by validation actions.
+        # They remain here as protection if the agent jumps directly
+        # to PAY_INVOICES before validating.
+        "DUPLICATE_INVOICE": -0.5,
+        "SUPPLIER_NOT_FOUND": -0.5,
+        "SUPPLIER_INACTIVE": -0.5,
+        "SUPPLIER_HIGH_RISK": -0.5,
+        "BUDGET_NOT_FOUND": -0.5,
+        "BUDGET_EXCEEDED": -0.5,
+        "ACCOUNT_NOT_FOUND": -0.5,
+        "ACCOUNT_FROZEN": -0.5,
+        "INSUFFICIENT_BALANCE": -0.5,
+        "PAYMENT_FAILED": -0.5,
+        "REPORT_FAILED": -0.5,
+        "TRANSACTION_NOT_FOUND": -0.5,
+        "TRANSFER_LIMIT_EXCEEDED": -0.5,
+        "UNKNOWN_BUSINESS_ERROR": -0.5,
     }
 
-    # ==========================================================
-    # Constructor
-    # ==========================================================
-
-    def __init__(
-        self,
-        use_guidance=None,
-        guidance_bonus=None,
-    ):
-
+    def __init__(self, use_guidance=None, guidance_bonus=None):
         if use_guidance is None:
-
             use_guidance = (
                 config.agent.AGENT_TYPE == "LLM_RL"
                 and config.experiment.GUIDANCE_MODE
-                in {
-                    "REWARD_SHAPING",
-                    "INPUT_AND_REWARD",
-                }
+                in {"REWARD_SHAPING", "INPUT_AND_REWARD"}
             )
 
         if guidance_bonus is None:
-
             guidance_bonus = config.experiment.GUIDANCE_BONUS
 
         self.use_guidance = bool(use_guidance)
-
         self.guidance_bonus = float(guidance_bonus)
 
-    # ==========================================================
-    # Configure Guidance
-    # ==========================================================
-
-    def configure_guidance(
-        self,
-        use_guidance,
-        guidance_bonus=None,
-    ):
-
+    def configure_guidance(self, use_guidance, guidance_bonus=None):
         self.use_guidance = bool(use_guidance)
 
         if guidance_bonus is not None:
-
             self.guidance_bonus = float(guidance_bonus)
 
-    # ==========================================================
-    # Error Penalty
-    # ==========================================================
-
-    def get_error_penalty(
-        self,
-        error_type,
-    ):
-
+    def get_error_penalty(self, error_type):
         if not error_type:
-
-            return self.DEFAULT_FAILURE_PENALTY
+            return float(self.DEFAULT_FAILURE_PENALTY)
 
         return float(
             self.ERROR_PENALTIES.get(
@@ -178,10 +103,6 @@ class RewardProcessor:
                 self.DEFAULT_FAILURE_PENALTY,
             )
         )
-
-    # ==========================================================
-    # Reward Processing
-    # ==========================================================
 
     def process(
         self,
@@ -195,44 +116,13 @@ class RewardProcessor:
         repeated_action=False,
     ):
         """
-        Calculate the final RL reward.
+        Return a complete reward breakdown.
 
-        Returns a complete reward breakdown.
-
-        Rules
-        -----
-
-        Environment error:
-            reward = 0
-            PPO transition should be ignored.
-
-        Failed business action:
-            negative reward based on errorType.
-
-        Successful but useless action:
-            small negative reward.
-
-        Repeated rewarded action:
-            negative reward.
-
-        Successful useful action:
-            positive base reward.
-
-        Task completion:
-            large additional completion reward.
-
-        LLM guidance:
-            added ONLY to positive successful useful actions.
-
-            It can NEVER modify a negative reward.
+        ``trainable`` is False only for environment/infrastructure
+        failures. All valid environment outcomes remain trainable.
         """
 
-        # ======================================================
-        # Infrastructure / Environment Failure
-        # ======================================================
-
         if environment_error:
-
             return {
                 "base_reward": 0.0,
                 "guidance_bonus": 0.0,
@@ -242,18 +132,11 @@ class RewardProcessor:
                 "trainable": False,
             }
 
-        # ======================================================
-        # Failed Business Action
-        # ======================================================
-
         if not action_success:
-
             penalty = self.get_error_penalty(error_type)
 
             return {
                 "base_reward": penalty,
-                # IMPORTANT:
-                # Never add guidance to a negative reward.
                 "guidance_bonus": 0.0,
                 "completion_bonus": 0.0,
                 "reward": penalty,
@@ -261,78 +144,31 @@ class RewardProcessor:
                 "trainable": True,
             }
 
-        # ======================================================
-        # Repeated Action
-        # ======================================================
-
-        if repeated_action:
-
-            return {
-                "base_reward": self.REPEATED_ACTION_PENALTY,
-                "guidance_bonus": 0.0,
-                "completion_bonus": 0.0,
-                "reward": self.REPEATED_ACTION_PENALTY,
-                "penalty_type": "REPEATED_ACTION",
-                "trainable": True,
-            }
-
-        # ======================================================
-        # Successful But Useless Action
-        # ======================================================
-
-        if not useful_action:
-
-            return {
-                "base_reward": self.NO_OP_PENALTY,
-                "guidance_bonus": 0.0,
-                "completion_bonus": 0.0,
-                "reward": self.NO_OP_PENALTY,
-                "penalty_type": "NO_OP",
-                "trainable": True,
-            }
-
-        # ======================================================
-        # Successful Useful Action
-        # ======================================================
-
-        base_reward = float(
-            self.ACTION_REWARDS.get(
-                action_name,
-                0.0,
-            )
-        )
-
-        # ======================================================
-        # Goal Completion
-        # ======================================================
-
         completion_bonus = self.TASK_COMPLETION_BONUS if task_completed else 0.0
 
-        # ======================================================
-        # LLM Guidance Bonus
-        #
-        # Guidance is positive-only.
-        #
-        # It is deliberately impossible for this bonus to:
-        #
-        #     - reduce a penalty
-        #     - cancel a penalty
-        #     - turn a failed action positive
-        # ======================================================
+        if repeated_action:
+            base_reward = self.REPEATED_ACTION_REWARD
+        elif not useful_action:
+            base_reward = self.NO_OP_REWARD
+        else:
+            base_reward = float(self.ACTION_REWARDS.get(action_name, 0.0))
 
         guidance_bonus = 0.0
 
+        # Positive-only guidance. It can reinforce a useful action or
+        # the final successful completion check, but never rescue a
+        # failed action.
         if (
             self.use_guidance
             and procedure_followed is True
             and action_success
-            and useful_action
-            and base_reward > 0
+            and (useful_action or task_completed)
         ):
-
             guidance_bonus = self.guidance_bonus
 
-        final_reward = base_reward + completion_bonus + guidance_bonus
+        final_reward = (
+            float(base_reward) + float(completion_bonus) + float(guidance_bonus)
+        )
 
         return {
             "base_reward": float(base_reward),
