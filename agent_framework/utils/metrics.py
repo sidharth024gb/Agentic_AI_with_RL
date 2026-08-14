@@ -187,8 +187,20 @@ def episodes_to_dataframe(episodes):
 
     dataframe = pd.DataFrame(rows)
 
-    if not dataframe.empty and "episodeNumber" in dataframe.columns:
-        dataframe = dataframe.sort_values("episodeNumber").reset_index(drop=True)
+    if not dataframe.empty:
+        # ``episodeNumber`` is assigned globally by the backend and can
+        # continue increasing across experiments. Keep it for audit/debugging,
+        # but create a local 1..N episode index for this specific run.
+        if "episodeNumber" in dataframe.columns:
+            dataframe = dataframe.sort_values("episodeNumber").reset_index(drop=True)
+        else:
+            dataframe = dataframe.reset_index(drop=True)
+
+        dataframe.insert(
+            1,
+            "runEpisode",
+            range(1, len(dataframe) + 1),
+        )
 
     return dataframe
 
@@ -201,9 +213,46 @@ def episodes_to_dataframe(episodes):
 def steps_to_dataframe(episodes):
     rows = []
 
+    # Build run-local episode numbering separately for each phase.
+    #
+    # Example:
+    #   TRAIN backend episodeNumber:      4770 ... 5769
+    #   TRAIN runEpisode:                    1 ... 1000
+    #
+    #   EVALUATION backend episodeNumber: 5770 ... 5869
+    #   EVALUATION runEpisode:               1 ... 100
+    #
+    # ``episodeNumber`` is still retained for backend traceability.
+    phase_episode_numbers = {}
+
+    for episode in episodes:
+        phase = episode.get("phase")
+        episode_number = episode.get("episodeNumber")
+
+        phase_episode_numbers.setdefault(phase, []).append(episode_number)
+
+    run_episode_lookup = {}
+
+    for phase, episode_numbers in phase_episode_numbers.items():
+        ordered_numbers = sorted(
+            episode_numbers,
+            key=lambda value: (
+                value is None,
+                value if value is not None else 0,
+            ),
+        )
+
+        for run_episode, episode_number in enumerate(
+            ordered_numbers,
+            start=1,
+        ):
+            run_episode_lookup[(phase, episode_number)] = run_episode
+
     for episode in episodes:
         episode_number = episode.get("episodeNumber")
         phase = episode.get("phase")
+        run_episode = run_episode_lookup.get((phase, episode_number))
+
         agent_type = episode.get("agentType")
         guidance_mode = episode.get("guidanceMode")
         episode_environment_error = _episode_has_environment_error(episode)
@@ -219,6 +268,7 @@ def steps_to_dataframe(episodes):
             rows.append(
                 {
                     "episodeNumber": episode_number,
+                    "runEpisode": run_episode,
                     "phase": phase,
                     "agentType": agent_type,
                     "guidanceMode": guidance_mode,
@@ -243,7 +293,23 @@ def steps_to_dataframe(episodes):
                 }
             )
 
-    return pd.DataFrame(rows)
+    dataframe = pd.DataFrame(rows)
+
+    if not dataframe.empty:
+        sort_columns = [
+            column
+            for column in [
+                "phase",
+                "runEpisode",
+                "stepNumber",
+            ]
+            if column in dataframe.columns
+        ]
+
+        if sort_columns:
+            dataframe = dataframe.sort_values(sort_columns).reset_index(drop=True)
+
+    return dataframe
 
 
 # ==========================================================
@@ -257,8 +323,16 @@ def calculate_convergence_episode(
     success_threshold=None,
 ):
     """
-    Return the original episode number at which a rolling window
-    of VALID episodes first reaches the target completion rate.
+    Return the RUN-LOCAL episode at which a rolling window of
+    VALID episodes first reaches the target completion rate.
+
+    ``episodeNumber`` is backend-global and may continue increasing
+    across experiments. ``runEpisode`` always starts at 1 for the
+    current experiment and is therefore the correct convergence index.
+
+    Environment-error episodes remain excluded from the rolling
+    success calculation, but the returned ``runEpisode`` still
+    represents the episode's true position within the full run.
     """
 
     if training_df.empty:
@@ -293,7 +367,12 @@ def calculate_convergence_episode(
 
     index = matches.index[0]
 
-    return int(valid_df.loc[index, "episodeNumber"])
+    if "runEpisode" in valid_df.columns:
+        return int(valid_df.loc[index, "runEpisode"])
+
+    # Compatibility fallback for older dataframes that were created
+    # before runEpisode was introduced.
+    return int(index + 1)
 
 
 # ==========================================================

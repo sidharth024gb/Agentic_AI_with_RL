@@ -107,6 +107,20 @@ def _valid_step_rows(dataframe):
     return dataframe.loc[mask].copy()
 
 
+def _episode_axis_column(dataframe):
+    """
+    Prefer the run-local episode index for experiment plots.
+
+    ``episodeNumber`` is backend-global and is retained only as a
+    backwards-compatible fallback for older metric workbooks.
+    """
+
+    if "runEpisode" in dataframe.columns:
+        return "runEpisode"
+
+    return "episodeNumber"
+
+
 # ==========================================================
 # Reward
 # ==========================================================
@@ -132,17 +146,19 @@ def plot_reward_curve(
         .mean()
     )
 
+    episode_column = _episode_axis_column(dataframe)
+
     figure = plt.figure(figsize=(11, 6))
 
     plt.plot(
-        dataframe["episodeNumber"],
+        dataframe[episode_column],
         dataframe["totalReward"],
         label="Episode reward",
         alpha=0.45,
     )
 
     plt.plot(
-        dataframe["episodeNumber"],
+        dataframe[episode_column],
         dataframe["movingReward"],
         label=f"{window}-valid-episode moving average",
     )
@@ -186,10 +202,12 @@ def plot_success_curve(
         .mean()
     )
 
+    episode_column = _episode_axis_column(dataframe)
+
     figure = plt.figure(figsize=(11, 6))
 
     plt.plot(
-        dataframe["episodeNumber"],
+        dataframe[episode_column],
         rolling,
     )
 
@@ -231,17 +249,19 @@ def plot_steps_curve(
         .mean()
     )
 
+    episode_column = _episode_axis_column(dataframe)
+
     figure = plt.figure(figsize=(11, 6))
 
     plt.plot(
-        dataframe["episodeNumber"],
+        dataframe[episode_column],
         dataframe["totalSteps"],
         label="Episode steps",
         alpha=0.45,
     )
 
     plt.plot(
-        dataframe["episodeNumber"],
+        dataframe[episode_column],
         dataframe["movingSteps"],
         label=f"{window}-valid-episode moving average",
     )
@@ -397,10 +417,12 @@ def plot_evaluation_rewards(
     if dataframe.empty:
         return None
 
+    episode_column = _episode_axis_column(dataframe)
+
     figure = plt.figure(figsize=(11, 6))
 
     plt.plot(
-        dataframe["episodeNumber"],
+        dataframe[episode_column],
         dataframe["totalReward"],
     )
 
@@ -437,7 +459,11 @@ def plot_procedure_adherence(
 
     guided["procedureFollowed"] = guided["procedureFollowed"].astype(float)
 
-    episode_adherence = guided.groupby("episodeNumber")["procedureFollowed"].mean()
+    episode_column = _episode_axis_column(guided)
+
+    episode_adherence = (
+        guided.groupby(episode_column)["procedureFollowed"].mean().sort_index()
+    )
 
     figure = plt.figure(figsize=(11, 6))
 
@@ -476,7 +502,9 @@ def plot_guidance_bonus(
     if guided.empty or guided["guidanceBonus"].sum() == 0:
         return None
 
-    bonuses = guided.groupby("episodeNumber")["guidanceBonus"].sum()
+    episode_column = _episode_axis_column(guided)
+
+    bonuses = guided.groupby(episode_column)["guidanceBonus"].sum().sort_index()
 
     figure = plt.figure(figsize=(11, 6))
 
