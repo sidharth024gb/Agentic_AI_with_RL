@@ -55,43 +55,27 @@ class LLMPlanner:
         # LLM Configuration
         # ==========================================================
 
-        self.model = (
-            model
-            if model is not None
-            else config.llm.MODEL
-        )
+        self.model = model if model is not None else config.llm.MODEL
 
         self.base_url = (
-            base_url
-            if base_url is not None
-            else config.llm.BASE_URL
+            base_url if base_url is not None else config.llm.BASE_URL
         ).rstrip("/")
 
-        self.timeout = int(
-            timeout
-            if timeout is not None
-            else config.llm.TIMEOUT
-        )
+        self.timeout = int(timeout if timeout is not None else config.llm.TIMEOUT)
 
         self.temperature = float(
-            temperature
-            if temperature is not None
-            else config.llm.TEMPERATURE
+            temperature if temperature is not None else config.llm.TEMPERATURE
         )
 
         self.use_cache = bool(
-            use_cache
-            if use_cache is not None
-            else config.llm.USE_CACHE
+            use_cache if use_cache is not None else config.llm.USE_CACHE
         )
 
         # ==========================================================
         # Ollama Endpoint
         # ==========================================================
 
-        self.generate_endpoint = (
-            f"{self.base_url}/api/generate"
-        )
+        self.generate_endpoint = f"{self.base_url}/api/generate"
 
         # ==========================================================
         # HTTP Session
@@ -101,8 +85,7 @@ class LLMPlanner:
 
         self.session.headers.update(
             {
-                "Content-Type":
-                    "application/json",
+                "Content-Type": "application/json",
             }
         )
 
@@ -111,11 +94,7 @@ class LLMPlanner:
         # ==========================================================
 
         self.cache = (
-            cache
-            if cache is not None
-            else LLMPlanCache(
-                enabled=self.use_cache
-            )
+            cache if cache is not None else LLMPlanCache(enabled=self.use_cache)
         )
 
         # ==========================================================
@@ -144,6 +123,28 @@ class LLMPlanner:
             state=state,
             prompt_version=PROMPT_VERSION,
         )
+
+    # ==========================================================
+    # Cached Prerequisite Normalization
+    # ==========================================================
+
+    @staticmethod
+    def _normalize_prerequisites(
+        prerequisites,
+    ):
+        """
+        Normalize JSON/cache prerequisite mappings to integer IDs.
+
+        JSON object keys are strings on disk even when the parser
+        originally produced integer action IDs.
+        """
+
+        prerequisites = prerequisites or {}
+
+        return {
+            int(action): [int(requirement) for requirement in (requirements or [])]
+            for action, requirements in prerequisites.items()
+        }
 
     # ==========================================================
     # Ollama Request
@@ -234,7 +235,7 @@ class LLMPlanner:
             "model": "llama3",
             "action_names": [...],
             "action_ids": [...],
-            "prerequisites": {...},
+            "prerequisites": {...},  # derived from validated plan order
             "llm_plan": [...],
             "latency_ms": ...
         }
@@ -282,7 +283,26 @@ class LLMPlanner:
 
             if cached_result is not None:
 
+                # Work on a copy so the in-memory cache record is not
+                # mutated merely by marking this episode as a cache hit.
+                cached_result = dict(cached_result)
+
                 cached_result["cached"] = True
+
+                cached_result["action_ids"] = [
+                    int(action)
+                    for action in cached_result.get(
+                        "action_ids",
+                        [],
+                    )
+                ]
+
+                cached_result["prerequisites"] = self._normalize_prerequisites(
+                    cached_result.get(
+                        "prerequisites",
+                        {},
+                    )
+                )
 
                 return cached_result
 

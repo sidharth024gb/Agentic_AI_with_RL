@@ -72,6 +72,12 @@ export async function createInvoice(req, res) {
 
 // ==========================================================
 // GET ALL INVOICES
+//
+// IMPORTANT FOR REPRODUCIBILITY:
+// Do not sort by createdAt. MongoDB timestamps differ between
+// resets even when the same seeded scenario is regenerated.
+// invoiceNumber is generated deterministically by reset().
+// _id is included as a stable tie-breaker.
 // ==========================================================
 
 export async function getInvoices(req, res) {
@@ -79,7 +85,8 @@ export async function getInvoices(req, res) {
     const invoices = await Invoice.find({})
       .populate("supplier", "supplierName riskScore active rating")
       .sort({
-        createdAt: -1,
+        invoiceNumber: 1,
+        _id: 1,
       });
 
     return res.status(200).json({
@@ -234,7 +241,7 @@ export async function checkDuplicate(req, res) {
     //
     // This lets us:
     //
-    // 1. respect seeded duplicateFlag
+    // 1. respect an explicit duplicateFlag
     // 2. exclude the invoice from matching itself
     // ======================================================
 
@@ -286,7 +293,7 @@ export async function checkDuplicate(req, res) {
 
     let duplicate = false;
 
-    // Seeded / explicit duplicate flag.
+    // Explicit duplicate flag on the current invoice.
     if (currentInvoice?.duplicateFlag) {
       duplicate = true;
     }

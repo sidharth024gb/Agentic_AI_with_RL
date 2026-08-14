@@ -37,7 +37,7 @@ from environment.procedure_tracker import ProcedureTracker
 
 
 class FinanceEnvironment:
-    def __init__(self, api_client, llm_plan=None):
+    def __init__(self, api_client, llm_plan=None, llm_prerequisites=None):
         self.api_client = api_client
 
         self.max_steps = config.environment.MAX_STEPS_PER_EPISODE
@@ -68,11 +68,17 @@ class FinanceEnvironment:
 
         self.llm_plan = []
         self.llm_procedure = []
+        self.llm_prerequisites = {}
+
         self.procedure_tracker = ProcedureTracker(
             procedure=[],
             action_dim=self.action_space_handler.action_count,
         )
-        self.set_llm_plan(llm_plan or [])
+
+        self.set_llm_plan(
+            llm_plan or [],
+            prerequisites=llm_prerequisites,
+        )
 
         self.episode_id = None
         self.episode_number = None
@@ -127,7 +133,23 @@ class FinanceEnvironment:
             "INPUT_AND_REWARD",
         }
 
-    def set_llm_plan(self, plan):
+    def set_llm_plan(
+        self,
+        plan,
+        prerequisites=None,
+    ):
+        """
+        Install the LLM procedure and its prerequisite graph.
+
+        ``ProcedureTracker`` owns procedural completion state.
+        Environment action flags are not used as proof that a
+        procedure step was completed correctly.
+
+        ``prerequisites`` can contain integer keys or JSON string keys.
+        When omitted, ProcedureTracker derives the legacy cumulative
+        prerequisite graph from the plan order.
+        """
+
         names = []
         action_ids = []
 
@@ -148,9 +170,14 @@ class FinanceEnvironment:
             names.append(action.name)
             action_ids.append(int(action.value))
 
+        self.procedure_tracker.set_procedure(
+            action_ids,
+            prerequisites=prerequisites,
+        )
+
         self.llm_plan = names
         self.llm_procedure = action_ids
-        self.procedure_tracker.set_procedure(action_ids)
+        self.llm_prerequisites = self.procedure_tracker.get_prerequisites()
 
     # ==========================================================
     # State / observation
@@ -425,18 +452,30 @@ class FinanceEnvironment:
         )
 
         if "llm_plan" in options:
-            self.set_llm_plan(options["llm_plan"] or [])
+            self.set_llm_plan(
+                options["llm_plan"] or [],
+                prerequisites=options.get("llm_prerequisites"),
+            )
         else:
+            # Same plan, fresh tracker-owned completion state.
             self.procedure_tracker.reset()
 
         if self.agent_type != "LLM_RL":
-            self.set_llm_plan([])
+            self.set_llm_plan(
+                [],
+                prerequisites={},
+            )
             self.llm_model = None
             self.prompt_version = None
             self.llm_plan_cached = False
             self.llm_planning_time_ms = 0.0
 
-        response = self.api_client.reset_environment()
+        # Use the same episode-specific seed for both the Python
+        # environment and the backend sandbox. This keeps each episode
+        # varied while making repeated experiments reproducible.
+        response = self.api_client.reset_environment(
+            seed=self.seed,
+        )
 
         if self._is_environment_error(response):
             raise RuntimeError("Backend environment reset failed.")
@@ -518,6 +557,20 @@ class FinanceEnvironment:
         action_success = bool(result.get("success", False))
         useful_action = bool(result.get("useful_action", False))
         error_type = result.get("error_type")
+
+        # ======================================================
+        # LLM Procedure Tracking
+        #
+        # ProcedureTracker owns its own completion state.
+        #
+        # A successful environment action becomes procedure-complete
+        # only if that action's tracker prerequisites were already
+        # complete. PPO is never blocked from taking another action.
+        #
+        # ``procedure_followed`` is stricter: it is True only when
+        # PPO selected the action that was being recommended before
+        # this step and the action succeeded validly.
+        # ======================================================
 
         if self.agent_type == "LLM_RL" and self.procedure_tracker.has_procedure():
             procedure_followed = self.procedure_tracker.check_action(
@@ -641,6 +694,7 @@ class FinanceEnvironment:
             "terminated_reason": terminated_reason,
             "duration_ms": duration_ms,
             "guidance_vector": self.procedure_tracker.get_guidance(),
+            "procedure_prerequisites": (self.procedure_tracker.get_prerequisites()),
             "procedure_status": self.procedure_tracker.get_status(),
             "processed_count": result.get("processed_count", 0),
             "skipped_count": result.get("skipped_count", 0),

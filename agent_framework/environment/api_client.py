@@ -248,9 +248,26 @@ class APIClient:
 
     def reset_environment(
         self,
+        seed=None,
     ):
+        """
+        Reset the backend sandbox using an optional deterministic
+        episode seed.
 
-        return self._post(config.backend.SANDBOX_RESET)
+        FinanceEnvironment supplies the per-episode seed so that
+        repeated experiments with the same base seed receive the
+        same sequence of backend scenarios.
+        """
+
+        payload = {}
+
+        if seed is not None:
+            payload["seed"] = int(seed)
+
+        return self._post(
+            config.backend.SANDBOX_RESET,
+            json=payload,
+        )
 
     def get_state(
         self,

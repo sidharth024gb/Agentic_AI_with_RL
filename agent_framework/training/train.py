@@ -278,6 +278,7 @@ def train_agent(
             episode_record.update(
                 {
                     "llmPlan": agent.get_current_plan(),
+                    "llmPrerequisites": (agent.get_current_prerequisites()),
                     "llmPlanCached": agent.current_plan_cached,
                     "llmPlanningTimeMs": (agent.current_plan_latency_ms),
                 }

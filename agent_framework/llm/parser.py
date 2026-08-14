@@ -8,7 +8,7 @@ Responsibilities:
     - validate action names
     - convert action names to action IDs
     - remove accidental duplicates
-    - generate prerequisite relationships
+    - derive prerequisite relationships from the validated LLM order
 
 The parser DOES NOT correct or redesign the LLM plan.
 """
@@ -311,7 +311,9 @@ def build_prerequisites(
 
     This does not add domain knowledge.
 
-    It simply represents the order supplied by the LLM.
+    The prerequisite graph is derived from the validated LLM order.
+    It is later used by ProcedureTracker to maintain tracker-owned
+    procedural completion state.
     """
 
     prerequisites = {}

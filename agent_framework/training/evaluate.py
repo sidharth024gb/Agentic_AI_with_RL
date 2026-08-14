@@ -110,6 +110,16 @@ def evaluate_agent(
                 results.append(
                     {
                         "episode": episode_index,
+                        "backendEpisodeId": getattr(
+                            env,
+                            "episode_id",
+                            None,
+                        ),
+                        "backendEpisodeNumber": getattr(
+                            env,
+                            "episode_number",
+                            None,
+                        ),
                         "reward": 0.0,
                         "guidanceBonus": 0.0,
                         "steps": 0,
@@ -172,21 +182,41 @@ def evaluate_agent(
             if procedure_attempts:
                 adherence = procedure_followed_count / procedure_attempts
 
-            results.append(
-                {
-                    "episode": episode_index,
-                    "reward": episode_reward,
-                    "guidanceBonus": episode_guidance_bonus,
-                    "steps": episode_steps,
-                    "completed": bool(env.state["task_completed"]),
-                    "terminatedReason": final_info.get("terminated_reason"),
-                    "environmentError": episode_environment_error,
-                    "validForMetrics": (not episode_environment_error),
-                    "procedureAttempts": procedure_attempts,
-                    "procedureFollowed": (procedure_followed_count),
-                    "procedureAdherence": adherence,
-                }
-            )
+            episode_record = {
+                "episode": episode_index,
+                "backendEpisodeId": getattr(
+                    env,
+                    "episode_id",
+                    None,
+                ),
+                "backendEpisodeNumber": getattr(
+                    env,
+                    "episode_number",
+                    None,
+                ),
+                "reward": episode_reward,
+                "guidanceBonus": episode_guidance_bonus,
+                "steps": episode_steps,
+                "completed": bool(env.state["task_completed"]),
+                "terminatedReason": final_info.get("terminated_reason"),
+                "environmentError": episode_environment_error,
+                "validForMetrics": (not episode_environment_error),
+                "procedureAttempts": procedure_attempts,
+                "procedureFollowed": procedure_followed_count,
+                "procedureAdherence": adherence,
+            }
+
+            if is_llm_agent(agent):
+                episode_record.update(
+                    {
+                        "llmPlan": agent.get_current_plan(),
+                        "llmPrerequisites": (agent.get_current_prerequisites()),
+                        "llmPlanCached": agent.current_plan_cached,
+                        "llmPlanningTimeMs": (agent.current_plan_latency_ms),
+                    }
+                )
+
+            results.append(episode_record)
     finally:
         if was_training:
             agent.train()

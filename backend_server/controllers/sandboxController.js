@@ -7,15 +7,85 @@ import Episode from "../models/Episode.js";
 
 import { REWARDS } from "../utils/rewards.js";
 
+// ==========================================================
+// SEEDED RANDOM NUMBER GENERATOR
+// ==========================================================
+
+function createSeededRandom(seed) {
+  let state = seed >>> 0;
+
+  return function random() {
+    state += 0x6d2b79f5;
+
+    let value = state;
+
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// ==========================================================
+// RESOLVE RESET SEED
+// ==========================================================
+
+function resolveSeed(requestSeed) {
+  const suppliedSeed = Number(requestSeed);
+
+  if (Number.isFinite(suppliedSeed)) {
+    return Math.trunc(suppliedSeed);
+  }
+
+  const environmentSeed = Number(process.env.RANDOM_SEED ?? 42);
+
+  if (Number.isFinite(environmentSeed)) {
+    return Math.trunc(environmentSeed);
+  }
+
+  return 42;
+}
+
+// ==========================================================
+// RESET ENVIRONMENT
+//
+// Randomization is intentionally part of reset().
+// There is no separate randomize endpoint.
+//
+// The caller should normally provide an episode-specific seed:
+//
+//   POST /api/sandbox/reset
+//   { "seed": 43 }
+//
+// If no seed is supplied, RANDOM_SEED from .env is used.
+// ==========================================================
+
 export async function resetEnvironment(req, res) {
   try {
-    const { episodeId } = req.body;
+    const { episodeId, seed: requestSeed } = req.body || {};
 
-    /*
-    ==================================
-    1. Clear Previous Environment
-    ==================================
-    */
+    const seed = resolveSeed(requestSeed);
+
+    const random = createSeededRandom(seed);
+
+    // Fixed reference date.
+    // Do not use Date.now() for generated due dates because
+    // the same seed must create the same scenario on every run.
+    const baseDate = new Date("2026-08-01T00:00:00.000Z");
+
+    // ======================================================
+    // Helper Functions
+    // ======================================================
+
+    const randomNumber = (min, max) =>
+      Math.floor(random() * (max - min + 1)) + min;
+
+    const randomChoice = (array) => array[Math.floor(random() * array.length)];
+
+    // ======================================================
+    // 1. Clear Previous Environment
+    // ======================================================
 
     await Invoice.deleteMany({});
     await Supplier.deleteMany({});
@@ -23,23 +93,9 @@ export async function resetEnvironment(req, res) {
     await Budget.deleteMany({});
     await Account.deleteMany({});
 
-    /*
-    ==================================
-    Helper Functions
-    ==================================
-    */
-
-    const randomNumber = (min, max) =>
-      Math.floor(Math.random() * (max - min + 1)) + min;
-
-    const randomChoice = (array) =>
-      array[Math.floor(Math.random() * array.length)];
-
-    /*
-    ==================================
-    2. Create Random Suppliers
-    ==================================
-    */
+    // ======================================================
+    // 2. Create Random Suppliers
+    // ======================================================
 
     const supplierCount = randomNumber(5, 15);
 
@@ -51,7 +107,7 @@ export async function resetEnvironment(req, res) {
 
         supplierName: `Supplier Company ${i}`,
 
-        isActive: Math.random() > 0.2,
+        isActive: random() > 0.2,
 
         riskScore: randomNumber(1, 100),
 
@@ -65,11 +121,9 @@ export async function resetEnvironment(req, res) {
 
     const createdSuppliers = await Supplier.insertMany(suppliers);
 
-    /*
-    ==================================
-    3. Create Random Accounts
-    ==================================
-    */
+    // ======================================================
+    // 3. Create Random Accounts
+    // ======================================================
 
     const accountCount = randomNumber(2, 5);
 
@@ -92,7 +146,7 @@ export async function resetEnvironment(req, res) {
 
         currency: "GBP",
 
-        frozen: Math.random() < 0.1,
+        frozen: random() < 0.1,
 
         dailyTransferLimit: randomNumber(5000, 50000),
       });
@@ -100,11 +154,9 @@ export async function resetEnvironment(req, res) {
 
     await Account.insertMany(accounts);
 
-    /*
-    ==================================
-    4. Create Random Budgets
-    ==================================
-    */
+    // ======================================================
+    // 4. Create Random Budgets
+    // ======================================================
 
     const departments = [
       "SOFTWARE",
@@ -114,7 +166,11 @@ export async function resetEnvironment(req, res) {
       "OPERATIONS",
     ];
 
-    const budgetCount = randomNumber(3, 6);
+    // IMPORTANT:
+    // Keep the maximum at departments.length.
+    // The previous randomNumber(3, 6) could request six
+    // budgets even though only five departments exist.
+    const budgetCount = randomNumber(3, departments.length);
 
     const budgets = [];
 
@@ -132,11 +188,9 @@ export async function resetEnvironment(req, res) {
 
     await Budget.insertMany(budgets);
 
-    /*
-    ==================================
-    5. Create Random Invoices
-    ==================================
-    */
+    // ======================================================
+    // 5. Create Random Invoices
+    // ======================================================
 
     const invoiceCount = randomNumber(20, 50);
 
@@ -148,6 +202,8 @@ export async function resetEnvironment(req, res) {
 
     for (let i = 1; i <= invoiceCount; i++) {
       const supplier = randomChoice(createdSuppliers);
+
+      const dueInDays = randomNumber(1, 60);
 
       invoices.push({
         invoiceNumber: `INV-${10000 + i}`,
@@ -164,9 +220,9 @@ export async function resetEnvironment(req, res) {
 
         paymentMethod: supplier.preferredPaymentMethod,
 
-        requiresManagerApproval: Math.random() < 0.3,
+        requiresManagerApproval: random() < 0.3,
 
-        dueDate: new Date(Date.now() + randomNumber(1, 60) * 86400000),
+        dueDate: new Date(baseDate.getTime() + dueInDays * 86400000),
 
         description: `Invoice generated for ${supplier.supplierName}`,
       });
@@ -174,11 +230,9 @@ export async function resetEnvironment(req, res) {
 
     await Invoice.insertMany(invoices);
 
-    /*
-    ==================================
-    6. Create Transaction History
-    ==================================
-    */
+    // ======================================================
+    // 6. Create Transaction History
+    // ======================================================
 
     const transactionCount = randomNumber(5, 20);
 
@@ -200,11 +254,9 @@ export async function resetEnvironment(req, res) {
 
     await Transaction.insertMany(transactions);
 
-    /*
-    ==================================
-    7. Reset Episode
-    ==================================
-    */
+    // ======================================================
+    // 7. Reset Existing Episode When Requested
+    // ======================================================
 
     if (episodeId) {
       await Episode.findByIdAndUpdate(episodeId, {
@@ -228,11 +280,9 @@ export async function resetEnvironment(req, res) {
       });
     }
 
-    /*
-    ==================================
-    8. Return Initial State
-    ==================================
-    */
+    // ======================================================
+    // 8. Return Initial State Summary
+    // ======================================================
 
     return res.json({
       success: true,
@@ -240,6 +290,10 @@ export async function resetEnvironment(req, res) {
       reward: REWARDS.NONE,
 
       done: false,
+
+      // Return the actual seed used so the Python side and
+      // experiment logs can verify reproducibility.
+      seed,
 
       stateCreated: {
         suppliers: createdSuppliers.length,
@@ -253,7 +307,7 @@ export async function resetEnvironment(req, res) {
         transactions: transactionCount,
       },
 
-      message: "RL environment reset with random training scenario.",
+      message: "RL environment reset with seeded random training scenario.",
     });
   } catch (err) {
     return res.status(500).json({
@@ -263,10 +317,16 @@ export async function resetEnvironment(req, res) {
 
       retryable: true,
 
+      reward: null,
+
       message: err.message,
     });
   }
 }
+
+// ==========================================================
+// GET CURRENT ENVIRONMENT STATE
+// ==========================================================
 
 export async function getState(req, res) {
   try {
@@ -307,10 +367,16 @@ export async function getState(req, res) {
 
       retryable: true,
 
+      reward: null,
+
       message: err.message,
     });
   }
 }
+
+// ==========================================================
+// GET LATEST EPISODE REWARD
+// ==========================================================
 
 export async function getReward(req, res) {
   try {
@@ -351,6 +417,8 @@ export async function getReward(req, res) {
       environmentError: true,
 
       retryable: true,
+
+      reward: null,
 
       message: err.message,
     });

@@ -35,7 +35,7 @@ LLMRLAgent:
 
 FinanceEnvironment:
     - executes finance actions
-    - tracks procedure progress
+    - tracks prerequisite-valid procedure progress
     - calculates base rewards
     - applies negative penalties
     - applies guidance bonuses
@@ -278,22 +278,26 @@ class LLMRLAgent(PPOAgent):
             )
         ]
 
-        self.current_prerequisites = dict(
+        # Normalize prerequisite keys/values because JSON-backed
+        # cache files convert integer dictionary keys to strings.
+        raw_prerequisites = (
             result.get(
                 "prerequisites",
                 {},
             )
+            or {}
         )
+
+        self.current_prerequisites = {
+            int(action): [int(requirement) for requirement in requirements]
+            for action, requirements in raw_prerequisites.items()
+        }
 
         # ======================================================
         # Prompt / Cache Metadata
         # ======================================================
 
-        self.current_prompt_version = (
-            result.get(
-                "prompt_version"
-            )
-        )
+        self.current_prompt_version = result.get("prompt_version")
 
         self.current_plan_cached = bool(
             result.get(
@@ -326,11 +330,7 @@ class LLMRLAgent(PPOAgent):
                 or 0.0
             )
 
-        self.current_raw_response = (
-            result.get(
-                "raw_response"
-            )
-        )
+        self.current_raw_response = result.get("raw_response")
 
         # ======================================================
         # Statistics
@@ -500,6 +500,7 @@ class LLMRLAgent(PPOAgent):
                 "llm_planning_time_ms": self.current_plan_latency_ms,
                 "guidance_mode": self.guidance_mode,
                 "llm_plan": self.current_plan,
+                "llm_prerequisites": (self.get_current_prerequisites()),
             },
         )
 
@@ -720,7 +721,10 @@ class LLMRLAgent(PPOAgent):
         self,
     ):
 
-        return dict(self.current_prerequisites)
+        return {
+            int(action): list(requirements)
+            for action, requirements in self.current_prerequisites.items()
+        }
 
     # ==========================================================
     # Clear Plan
@@ -826,6 +830,7 @@ class LLMRLAgent(PPOAgent):
                 "policy_observation_size": self.policy_observation_size,
                 "current_plan": self.get_current_plan(),
                 "current_plan_ids": self.get_current_plan_ids(),
+                "current_prerequisites": (self.get_current_prerequisites()),
                 "current_plan_cached": self.current_plan_cached,
                 "current_prompt_version": self.current_prompt_version,
                 "current_plan_latency_ms": self.current_plan_latency_ms,
