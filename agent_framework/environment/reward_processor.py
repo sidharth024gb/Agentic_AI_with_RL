@@ -7,7 +7,7 @@ Design principles
 -----------------
 1. Successful useful progress receives a small positive reward.
 2. A valid action with nothing to process receives zero.
-3. Repeating a valid action without progress receives zero.
+3. Repeating a valid action without progress receives a very small penalty.
 4. Genuine workflow/action mistakes receive only a small penalty.
 5. Business validation findings (duplicate, high-risk supplier,
    over-budget invoice) should normally be represented by the
@@ -36,9 +36,12 @@ class RewardProcessor:
 
     TASK_COMPLETION_BONUS = 25.0
 
-    # Valid no-op/repeat is deliberately neutral.
+    # A valid first no-op remains neutral.
     NO_OP_REWARD = 0.0
-    REPEATED_ACTION_REWARD = 0.0
+
+    # Repeating an already-completed/no-progress action gets
+    # a very small penalty to prevent zero-reward loops.
+    REPEATED_ACTION_REWARD = -0.1
 
     # Genuine action/workflow mistakes are intentionally mild.
     DEFAULT_FAILURE_PENALTY = -0.5

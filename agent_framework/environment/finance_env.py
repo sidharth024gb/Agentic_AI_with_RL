@@ -13,7 +13,7 @@ Key corrections
 ---------------
 - validation findings are treated as successful processing;
 - partial batch success is preserved instead of becoming a full loss;
-- no-op/repeated valid actions are neutral;
+- a first valid no-op is neutral; consecutive no-progress repeats get a tiny penalty;
 - duplicate/supplier/budget exclusions persist across refreshes;
 - task completion means no valid/payable outstanding invoice remains;
 - budget allocation is sequential and can skip an invoice then include
@@ -78,6 +78,11 @@ class FinanceEnvironment:
         self.episode_number = None
         self.episode_active = False
         self.current_step = 0
+
+        # Tracks only the immediately previous action in the episode.
+        # This lets us discourage consecutive no-progress loops without
+        # penalising a legitimate action that becomes useful again later.
+        self.last_action_name = None
 
         self.all_invoices = pd.DataFrame()
         self.paid_invoices = pd.DataFrame()
@@ -440,6 +445,7 @@ class FinanceEnvironment:
             raise RuntimeError("Backend rejected environment reset.")
 
         self.current_step = 0
+        self.last_action_name = None
 
         self.all_invoices = pd.DataFrame()
         self.paid_invoices = pd.DataFrame()
@@ -525,6 +531,29 @@ class FinanceEnvironment:
 
         task_completed = bool(self.state["task_completed"])
 
+        # ======================================================
+        # Repeated No-Progress Detection
+        #
+        # A first valid no-op remains neutral. We only apply the
+        # tiny repeated-action penalty when the SAME action is
+        # selected consecutively and the current execution makes
+        # no useful progress.
+        #
+        # Examples:
+        #   CHECK_SUPPLIER useful -> normal positive reward
+        #   CHECK_SUPPLIER again  -> -0.1
+        #
+        # If another action occurs in between, the next attempt is
+        # treated as a fresh attempt. This keeps exploration open.
+        # ======================================================
+
+        repeated_action = bool(
+            action_success
+            and not environment_error
+            and not useful_action
+            and self.last_action_name == action_name
+        )
+
         reward_result = self.reward_processor.process(
             action_name=action_name,
             action_success=action_success,
@@ -533,7 +562,7 @@ class FinanceEnvironment:
             error_type=error_type,
             task_completed=task_completed,
             procedure_followed=procedure_followed,
-            repeated_action=False,
+            repeated_action=repeated_action,
         )
 
         reward = reward_result["reward"]
@@ -543,6 +572,12 @@ class FinanceEnvironment:
         trainable = bool(reward_result["trainable"])
 
         state_after = self.get_state().copy()
+
+        # Store the selected action for repeat detection on the next
+        # step. Environment errors terminate the episode, so retaining
+        # that action is unnecessary.
+        if not environment_error:
+            self.last_action_name = action_name
 
         logging_response = self._record_episode_step(
             action_name=action_name,
@@ -591,6 +626,7 @@ class FinanceEnvironment:
             "step": self.current_step,
             "success": action_success,
             "useful_action": useful_action,
+            "repeated_action": repeated_action,
             "error_type": error_type,
             "environment_error": environment_error,
             "trainable": trainable,

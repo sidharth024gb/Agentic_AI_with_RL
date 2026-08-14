@@ -9,19 +9,31 @@ export async function approveInvoice(req, res) {
   try {
     const { invoiceId } = req.body;
 
+    // ======================================================
+    // Validate Request
+    // ======================================================
+
     if (!invoiceId) {
       return res.status(400).json({
         success: false,
         environmentError: false,
+        reward: null,
+        done: false,
+        errorType: "INVALID_REQUEST",
         message: "invoiceId is required.",
       });
     }
+
+    // ======================================================
+    // Find Invoice
+    // ======================================================
 
     const invoice = await Invoice.findById(invoiceId);
 
     if (!invoice) {
       return res.status(404).json({
         success: false,
+        environmentError: false,
 
         reward: REWARDS.INVOICE_NOT_FOUND,
 
@@ -33,26 +45,38 @@ export async function approveInvoice(req, res) {
       });
     }
 
-    // Wrong workflow action
+    // ======================================================
+    // Workflow Validation
+    // ======================================================
+
     if (invoice.status !== "PENDING_APPROVAL") {
-      return res.status(400).json({
+      return res.status(409).json({
         success: false,
+        environmentError: false,
 
         reward: REWARDS.INVALID_WORKFLOW,
 
         done: false,
 
-        errorType: "INVALID_STATUS",
+        errorType: "INVALID_WORKFLOW",
 
-        message: `Invoice cannot be approved from ${invoice.status}`,
+        message: `Invoice cannot be approved from ${invoice.status}.`,
       });
     }
+
+    // ======================================================
+    // Approve
+    // ======================================================
 
     invoice.status = "APPROVED";
 
     invoice.approvedBy = req.user._id;
 
     await invoice.save();
+
+    // ======================================================
+    // Audit
+    // ======================================================
 
     await AuditLog.create({
       user: req.user._id,
@@ -70,16 +94,20 @@ export async function approveInvoice(req, res) {
       message: "Invoice approved successfully.",
     });
 
+    // ======================================================
+    // Response
+    // ======================================================
+
     return res.status(200).json({
       success: true,
+      environmentError: false,
 
-      reward: REWARDS.SUCCESS,
+      reward: REWARDS.APPROVE_SUCCESS,
 
       done: false,
 
       state: {
         invoiceId: invoice._id,
-
         status: invoice.status,
       },
 
@@ -92,6 +120,8 @@ export async function approveInvoice(req, res) {
       environmentError: true,
 
       retryable: true,
+
+      reward: null,
 
       message: error.message,
     });
@@ -132,7 +162,7 @@ export async function rejectInvoice(req, res) {
 
         reward: REWARDS.INVALID_WORKFLOW,
 
-        errorType: "INVALID_STATUS",
+        errorType: "INVALID_WORKFLOW",
 
         message: "Invoice cannot be rejected.",
       });

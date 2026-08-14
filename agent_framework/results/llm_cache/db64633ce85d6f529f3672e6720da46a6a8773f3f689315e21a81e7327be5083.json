@@ -1,0 +1,71 @@
+{
+  "success": true,
+  "cached": false,
+  "model": "llama3",
+  "prompt_version": "finance_planner_v2",
+  "latency_ms": 90924.16370000137,
+  "action_names": [
+    "GET_INVOICES",
+    "CHECK_DUPLICATE",
+    "CHECK_SUPPLIER",
+    "APPROVE_INVOICES",
+    "CHECK_BUDGET",
+    "PAY_INVOICES",
+    "CHECK_PAYMENT_COMPLETED"
+  ],
+  "action_ids": [
+    0,
+    1,
+    2,
+    3,
+    5,
+    4,
+    7
+  ],
+  "prerequisites": {
+    "0": [],
+    "1": [
+      0
+    ],
+    "2": [
+      0,
+      1
+    ],
+    "3": [
+      0,
+      1,
+      2
+    ],
+    "5": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "4": [
+      0,
+      1,
+      2,
+      3,
+      5
+    ],
+    "7": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      4
+    ]
+  },
+  "llm_plan": [
+    "GET_INVOICES",
+    "CHECK_DUPLICATE",
+    "CHECK_SUPPLIER",
+    "APPROVE_INVOICES",
+    "CHECK_BUDGET",
+    "PAY_INVOICES",
+    "CHECK_PAYMENT_COMPLETED"
+  ],
+  "raw_response": "{\n  \"plan\": [\n    \"GET_INVOICES\",\n    \"CHECK_DUPLICATE\",\n    \"CHECK_SUPPLIER\",\n    \"APPROVE_INVOICES\",\n    \"CHECK_BUDGET\",\n    \"PAY_INVOICES\",\n    \"CHECK_PAYMENT_COMPLETED\"\n  ]\n}"
+}

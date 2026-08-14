@@ -1,0 +1,57 @@
+2026-08-14 00:06:45 | INFO | experiment.repeat_fix_test_20260814_000645 | ========================================
+2026-08-14 00:06:45 | INFO | experiment.repeat_fix_test_20260814_000645 | STARTING PPO EXPERIMENT
+2026-08-14 00:06:45 | INFO | experiment.repeat_fix_test_20260814_000645 | Run name: repeat_fix_test_20260814_000645
+2026-08-14 00:06:45 | INFO | experiment.repeat_fix_test_20260814_000645 | Runtime config | agentType=RL | algorithm=PPO | guidance=NONE | guidanceBonus=0.00
+2026-08-14 00:06:45 | INFO | experiment.repeat_fix_test_20260814_000645 | PPO config | gamma=0.99 | lr=0.0003 | rollout=256 | batch=64 | epochs=10 | entropy=0.01 | gradClip=0.5
+2026-08-14 00:06:45 | INFO | experiment.repeat_fix_test_20260814_000645 | ========================================
+2026-08-14 00:06:45 | INFO | experiment.repeat_fix_test_20260814_000645 | Authenticating AGENT_BOT.
+2026-08-14 00:06:45 | INFO | experiment.repeat_fix_test_20260814_000645 | Backend authentication successful | role=AGENT_BOT
+2026-08-14 00:06:47 | INFO | experiment.repeat_fix_test_20260814_000645 | Agent ready | type=PPO | base_observation=13 | policy_observation=13 | actions=8 | device=cpu
+2026-08-14 00:06:47 | INFO | experiment.repeat_fix_test_20260814_000645 | PPO training started | episodes=100
+2026-08-14 00:06:48 | INFO | experiment.repeat_fix_test_20260814_000645 | Episode 1/100 | reward=3.80 | steps=20 | completed=False | recent_reward=3.80 | recent_success=0.00% | env_errors=0 | buffer=20
+2026-08-14 00:06:55 | INFO | experiment.repeat_fix_test_20260814_000645 | Episode 10/100 | reward=10.40 | steps=20 | completed=False | recent_reward=7.07 | recent_success=10.00% | env_errors=0 | buffer=198
+2026-08-14 00:07:03 | INFO | experiment.repeat_fix_test_20260814_000645 | Episode 20/100 | reward=-2.10 | steps=20 | completed=False | recent_reward=4.56 | recent_success=10.00% | env_errors=0 | buffer=139
+2026-08-14 00:07:11 | INFO | experiment.repeat_fix_test_20260814_000645 | Episode 30/100 | reward=4.00 | steps=20 | completed=False | recent_reward=11.64 | recent_success=30.00% | env_errors=0 | buffer=66
+2026-08-14 00:07:22 | INFO | experiment.repeat_fix_test_20260814_000645 | Episode 40/100 | reward=8.80 | steps=20 | completed=False | recent_reward=15.18 | recent_success=30.00% | env_errors=0 | buffer=2
+2026-08-14 00:07:32 | INFO | experiment.repeat_fix_test_20260814_000645 | Episode 50/100 | reward=16.50 | steps=20 | completed=False | recent_reward=12.03 | recent_success=10.00% | env_errors=0 | buffer=197
+2026-08-14 00:07:43 | INFO | experiment.repeat_fix_test_20260814_000645 | Episode 60/100 | reward=34.90 | steps=14 | completed=True | recent_reward=30.59 | recent_success=80.00% | env_errors=0 | buffer=104
+2026-08-14 00:07:54 | INFO | experiment.repeat_fix_test_20260814_000645 | Episode 70/100 | reward=35.40 | steps=18 | completed=True | recent_reward=26.34 | recent_success=70.00% | env_errors=0 | buffer=9
+2026-08-14 00:08:01 | INFO | experiment.repeat_fix_test_20260814_000645 | Episode 80/100 | reward=38.50 | steps=12 | completed=True | recent_reward=17.87 | recent_success=50.00% | env_errors=0 | buffer=172
+2026-08-14 00:08:11 | INFO | experiment.repeat_fix_test_20260814_000645 | Episode 90/100 | reward=32.50 | steps=12 | completed=True | recent_reward=33.36 | recent_success=90.00% | env_errors=0 | buffer=65
+2026-08-14 00:08:21 | INFO | experiment.repeat_fix_test_20260814_000645 | Episode 100/100 | reward=37.00 | steps=10 | completed=True | recent_reward=32.79 | recent_success=80.00% | env_errors=0 | buffer=188
+2026-08-14 00:08:21 | INFO | experiment.repeat_fix_test_20260814_000645 | Checkpoint saved: C:\PY_Programs\MSc_Project\agent_framework\results\models\repeat_fix_test_20260814_000645\ppo_episode_100.pt
+2026-08-14 00:08:21 | INFO | experiment.repeat_fix_test_20260814_000645 | PPO training complete | time=94.59s | steps=1724 | updates=7 | valid_episodes=100 | env_errors=0
+2026-08-14 00:08:21 | INFO | experiment.repeat_fix_test_20260814_000645 | PPO deterministic evaluation started | episodes=20
+2026-08-14 00:09:19 | INFO | experiment.repeat_fix_test_20260814_000645 | PPO evaluation complete | success=0/20 valid | success_rate=0.00% | environment_errors=0 | time=57.68s
+2026-08-14 00:09:19 | INFO | experiment.repeat_fix_test_20260814_000645 | Evaluation accounting | valid=20 | envErrors=0 | success=0 | successRate=0.00%
+2026-08-14 00:09:19 | INFO | experiment.repeat_fix_test_20260814_000645 | Fetching authoritative TRAIN episodes.
+2026-08-14 00:09:19 | INFO | experiment.repeat_fix_test_20260814_000645 | Training episodes retrieved: 100
+2026-08-14 00:09:19 | INFO | experiment.repeat_fix_test_20260814_000645 | Fetching authoritative EVALUATION episodes.
+2026-08-14 00:09:19 | INFO | experiment.repeat_fix_test_20260814_000645 | Evaluation episodes retrieved: 20
+2026-08-14 00:09:23 | INFO | experiment.repeat_fix_test_20260814_000645 | 
+                    metric   training  evaluation
+      average_execution_ms 903.580000  2842.05000
+            average_reward  19.143000     5.45000
+             average_steps  17.240000    20.00000
+               best_reward  42.800000     6.00000
+                 completed  46.000000     0.00000
+       convergence_episode        NaN         NaN
+environment_error_episodes   0.000000     0.00000
+        environment_errors   0.000000     0.00000
+                  episodes 100.000000    20.00000
+            failed_actions 743.000000   322.00000
+             median_reward  14.950000     6.00000
+              median_steps  20.000000    20.00000
+             no_op_actions 452.000000     0.00000
+                reward_std  16.634712     1.65000
+              success_rate   0.460000     0.00000
+      total_guidance_bonus   0.000000     0.00000
+            valid_episodes 100.000000    20.00000
+        wall_clock_seconds  94.592425    57.68099
+              worst_reward -10.000000     0.50000
+2026-08-14 00:09:23 | INFO | experiment.repeat_fix_test_20260814_000645 | ========================================
+2026-08-14 00:09:23 | INFO | experiment.repeat_fix_test_20260814_000645 | PPO RUN COMPLETE
+2026-08-14 00:09:23 | INFO | experiment.repeat_fix_test_20260814_000645 | Model   : C:\PY_Programs\MSc_Project\agent_framework\results\models\repeat_fix_test_20260814_000645\ppo_final.pt
+2026-08-14 00:09:23 | INFO | experiment.repeat_fix_test_20260814_000645 | Metrics : C:\PY_Programs\MSc_Project\agent_framework\results\metrics\repeat_fix_test_20260814_000645\ppo_results.xlsx
+2026-08-14 00:09:23 | INFO | experiment.repeat_fix_test_20260814_000645 | Graphs  : C:\PY_Programs\MSc_Project\agent_framework\results\graphs\repeat_fix_test_20260814_000645
+2026-08-14 00:09:23 | INFO | experiment.repeat_fix_test_20260814_000645 | ========================================
