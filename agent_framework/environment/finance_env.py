@@ -14,6 +14,7 @@ Key corrections
 - validation findings are treated as successful processing;
 - partial batch success is preserved instead of becoming a full loss;
 - a first valid no-op is neutral; consecutive no-progress repeats get a tiny penalty;
+- LLM-recommended repeated no-ops are exempt from that artificial repeat penalty;
 - duplicate/supplier/budget exclusions persist across refreshes;
 - task completion means no valid/payable outstanding invoice remains;
 - budget allocation is sequential and can skip an invoice then include
@@ -587,17 +588,28 @@ class FinanceEnvironment:
         # ======================================================
         # Repeated No-Progress Detection
         #
-        # A first valid no-op remains neutral. We only apply the
-        # tiny repeated-action penalty when the SAME action is
-        # selected consecutively and the current execution makes
-        # no useful progress.
+        # A repeated action is still detected for diagnostics when:
         #
-        # Examples:
-        #   CHECK_SUPPLIER useful -> normal positive reward
-        #   CHECK_SUPPLIER again  -> -0.1
+        #   - the action succeeded,
+        #   - it was not an environment error,
+        #   - it produced no useful progress, and
+        #   - it is the same action selected on the previous step.
         #
-        # If another action occurs in between, the next attempt is
-        # treated as a fresh attempt. This keeps exploration open.
+        # PPO baseline / unguided repeat:
+        #     repeated no-progress action -> -0.1
+        #
+        # LLM-guided repeat:
+        #     if the repeated action is the CURRENT LLM recommendation
+        #     and PPO successfully follows that recommendation, the
+        #     artificial repeat penalty is suppressed.
+        #
+        # This avoids teaching the policy that following valid LLM
+        # guidance itself produces a negative reward.
+        #
+        # The guided repeat does NOT receive an extra positive reward
+        # merely for repeating. If it is still a no-op, its base reward
+        # is neutral (0.0). RewardProcessor continues to award guidance
+        # bonus only for useful progress or successful task completion.
         # ======================================================
 
         repeated_action = bool(
@@ -605,6 +617,20 @@ class FinanceEnvironment:
             and not environment_error
             and not useful_action
             and self.last_action_name == action_name
+        )
+
+        guidance_enabled = bool(
+            self.agent_type == "LLM_RL"
+            and (
+                self._uses_input_guidance()
+                or self._uses_reward_guidance()
+            )
+        )
+
+        guided_repeated_action = bool(
+            repeated_action
+            and guidance_enabled
+            and procedure_followed is True
         )
 
         reward_result = self.reward_processor.process(
@@ -616,6 +642,7 @@ class FinanceEnvironment:
             task_completed=task_completed,
             procedure_followed=procedure_followed,
             repeated_action=repeated_action,
+            guided_repeated_action=guided_repeated_action,
         )
 
         reward = reward_result["reward"]
@@ -680,6 +707,11 @@ class FinanceEnvironment:
             "success": action_success,
             "useful_action": useful_action,
             "repeated_action": repeated_action,
+            "guided_repeated_action": guided_repeated_action,
+            "repeat_penalty_applied": bool(
+                repeated_action
+                and not guided_repeated_action
+            ),
             "error_type": error_type,
             "environment_error": environment_error,
             "trainable": trainable,

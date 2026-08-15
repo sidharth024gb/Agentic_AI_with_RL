@@ -7,7 +7,7 @@ Design principles
 -----------------
 1. Successful useful progress receives a small positive reward.
 2. A valid action with nothing to process receives zero.
-3. Repeating a valid action without progress receives a very small penalty.
+3. Repeating a valid action without progress receives a very small penalty.\n   Exception: when an LLM-guided agent successfully follows the current\n   LLM recommendation, that artificial repeat penalty is suppressed.
 4. Genuine workflow/action mistakes receive only a small penalty.
 5. Business validation findings (duplicate, high-risk supplier,
    over-budget invoice) should normally be represented by the
@@ -117,12 +117,23 @@ class RewardProcessor:
         task_completed=False,
         procedure_followed=None,
         repeated_action=False,
+        guided_repeated_action=False,
     ):
         """
         Return a complete reward breakdown.
 
         ``trainable`` is False only for environment/infrastructure
         failures. All valid environment outcomes remain trainable.
+
+        ``guided_repeated_action`` means the action is both:
+
+            - a consecutive no-progress repeat, and
+            - the current LLM recommendation that PPO successfully followed.
+
+        Such an action is exempt from REPEATED_ACTION_REWARD and falls
+        back to the normal no-op reward (0.0). It does not automatically
+        receive a guidance bonus; guidance remains positive-only for
+        useful progress or task completion.
         """
 
         if environment_error:
@@ -149,12 +160,29 @@ class RewardProcessor:
 
         completion_bonus = self.TASK_COMPLETION_BONUS if task_completed else 0.0
 
-        if repeated_action:
+        # ------------------------------------------------------
+        # Repeated no-progress action
+        #
+        # Normally this receives the tiny efficiency penalty.
+        #
+        # For an actively LLM-guided agent, however, if the repeated
+        # action is the current recommendation and the recommendation
+        # was successfully followed, do not punish the agent for
+        # following that guidance. The no-progress action remains
+        # neutral rather than receiving a positive reward.
+        # ------------------------------------------------------
+
+        if repeated_action and not guided_repeated_action:
             base_reward = self.REPEATED_ACTION_REWARD
         elif not useful_action:
             base_reward = self.NO_OP_REWARD
         else:
-            base_reward = float(self.ACTION_REWARDS.get(action_name, 0.0))
+            base_reward = float(
+                self.ACTION_REWARDS.get(
+                    action_name,
+                    0.0,
+                )
+            )
 
         guidance_bonus = 0.0
 

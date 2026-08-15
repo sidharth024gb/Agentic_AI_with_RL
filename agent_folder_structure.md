@@ -6,24 +6,13 @@ Root: `MSc_Project`
 MSc_Project
 ├── agent_framework
 │   ├── agents
-│   │   ├── __pycache__
-│   │   │   ├── base_agent.cpython-312.pyc
-│   │   │   └── ppo_agent.cpython-312.pyc
 │   │   ├── base_agent.py
 │   │   ├── llm_rl_agent.py
 │   │   └── ppo_agent.py
 │   ├── config
-│   │   ├── __pycache__
-│   │   │   └── config.cpython-312.pyc
 │   │   ├── .env
 │   │   └── config.py
 │   ├── environment
-│   │   ├── __pycache__
-│   │   │   ├── action_space.cpython-312.pyc
-│   │   │   ├── api_client.cpython-312.pyc
-│   │   │   ├── finance_env.cpython-312.pyc
-│   │   │   ├── reward_processor.cpython-312.pyc
-│   │   │   └── state_encoder.cpython-312.pyc
 │   │   ├── action_space.py
 │   │   ├── api_client.py
 │   │   ├── finance_env.py
@@ -36,19 +25,48 @@ MSc_Project
 │   │   ├── planner.py
 │   │   └── prompts.py
 │   ├── memory
-│   │   ├── __pycache__
-│   │   │   └── rollout_buffer.cpython-312.pyc
 │   │   └── rollout_buffer.py
 │   ├── models
-│   │   ├── __pycache__
-│   │   │   ├── policy_network.cpython-312.pyc
-│   │   │   └── value_network.cpython-312.pyc
-│   │   ├── checkpoints
 │   │   ├── policy_network.py
 │   │   └── value_network.py
 │   ├── results
 │   │   ├── graphs
-│   │   │   └── ppo_baseline_20260812_002054
+│   │   │   ├── llm_ppo_input_20260814_235722
+│   │   │   │   ├── llm__plus__ppo_action_frequency.png
+│   │   │   │   ├── llm__plus__ppo_entropy.png
+│   │   │   │   ├── llm__plus__ppo_evaluation_reward.png
+│   │   │   │   ├── llm__plus__ppo_policy_loss.png
+│   │   │   │   ├── llm__plus__ppo_procedure_adherence.png
+│   │   │   │   ├── llm__plus__ppo_reward_curve.png
+│   │   │   │   ├── llm__plus__ppo_steps_curve.png
+│   │   │   │   ├── llm__plus__ppo_success_rate.png
+│   │   │   │   ├── llm__plus__ppo_termination.png
+│   │   │   │   └── llm__plus__ppo_value_loss.png
+│   │   │   ├── llm_ppo_input_reward_20260814_230254
+│   │   │   │   ├── llm__plus__ppo_action_frequency.png
+│   │   │   │   ├── llm__plus__ppo_entropy.png
+│   │   │   │   ├── llm__plus__ppo_evaluation_reward.png
+│   │   │   │   ├── llm__plus__ppo_guidance_bonus.png
+│   │   │   │   ├── llm__plus__ppo_policy_loss.png
+│   │   │   │   ├── llm__plus__ppo_procedure_adherence.png
+│   │   │   │   ├── llm__plus__ppo_reward_curve.png
+│   │   │   │   ├── llm__plus__ppo_steps_curve.png
+│   │   │   │   ├── llm__plus__ppo_success_rate.png
+│   │   │   │   ├── llm__plus__ppo_termination.png
+│   │   │   │   └── llm__plus__ppo_value_loss.png
+│   │   │   ├── llm_ppo_reward_20260815_003001
+│   │   │   │   ├── llm__plus__ppo_action_frequency.png
+│   │   │   │   ├── llm__plus__ppo_entropy.png
+│   │   │   │   ├── llm__plus__ppo_evaluation_reward.png
+│   │   │   │   ├── llm__plus__ppo_guidance_bonus.png
+│   │   │   │   ├── llm__plus__ppo_policy_loss.png
+│   │   │   │   ├── llm__plus__ppo_procedure_adherence.png
+│   │   │   │   ├── llm__plus__ppo_reward_curve.png
+│   │   │   │   ├── llm__plus__ppo_steps_curve.png
+│   │   │   │   ├── llm__plus__ppo_success_rate.png
+│   │   │   │   ├── llm__plus__ppo_termination.png
+│   │   │   │   └── llm__plus__ppo_value_loss.png
+│   │   │   └── ppo_baseline_20260815_010839
 │   │   │       ├── ppo_action_frequency.png
 │   │   │       ├── ppo_entropy.png
 │   │   │       ├── ppo_evaluation_reward.png
@@ -56,17 +74,66 @@ MSc_Project
 │   │   │       ├── ppo_reward_curve.png
 │   │   │       ├── ppo_steps_curve.png
 │   │   │       ├── ppo_success_rate.png
-│   │   │       ├── ppo_termination_reasons.png
+│   │   │       ├── ppo_termination.png
 │   │   │       └── ppo_value_loss.png
+│   │   ├── llm_cache
+│   │   │   └── db64633ce85d6f529f3672e6720da46a6a8773f3f689315e21a81e7327be5083.json
 │   │   ├── logs
-│   │   │   ├── ppo_baseline_20260812_002054
+│   │   │   ├── llm_ppo_input_20260814_235722
 │   │   │   │   └── training.log
-│   │   │   └── test
+│   │   │   ├── llm_ppo_input_reward_20260814_230254
+│   │   │   │   └── training.log
+│   │   │   ├── llm_ppo_reward_20260815_003001
+│   │   │   │   └── training.log
+│   │   │   └── ppo_baseline_20260815_010839
+│   │   │       └── training.log
 │   │   ├── metrics
-│   │   │   └── ppo_baseline_20260812_002054
+│   │   │   ├── llm_ppo_input_20260814_235722
+│   │   │   │   └── llm_rl_results.xlsx
+│   │   │   ├── llm_ppo_input_reward_20260814_230254
+│   │   │   │   └── llm_rl_results.xlsx
+│   │   │   ├── llm_ppo_reward_20260815_003001
+│   │   │   │   └── llm_rl_results.xlsx
+│   │   │   └── ppo_baseline_20260815_010839
 │   │   │       └── ppo_results.xlsx
 │   │   └── models
-│   │       └── ppo_baseline_20260812_002054
+│   │       ├── llm_ppo_input_20260814_235722
+│   │       │   ├── llm_rl_episode_100.pt
+│   │       │   ├── llm_rl_episode_1000.pt
+│   │       │   ├── llm_rl_episode_200.pt
+│   │       │   ├── llm_rl_episode_300.pt
+│   │       │   ├── llm_rl_episode_400.pt
+│   │       │   ├── llm_rl_episode_500.pt
+│   │       │   ├── llm_rl_episode_600.pt
+│   │       │   ├── llm_rl_episode_700.pt
+│   │       │   ├── llm_rl_episode_800.pt
+│   │       │   ├── llm_rl_episode_900.pt
+│   │       │   └── llm_rl_final.pt
+│   │       ├── llm_ppo_input_reward_20260814_230254
+│   │       │   ├── llm_rl_episode_100.pt
+│   │       │   ├── llm_rl_episode_1000.pt
+│   │       │   ├── llm_rl_episode_200.pt
+│   │       │   ├── llm_rl_episode_300.pt
+│   │       │   ├── llm_rl_episode_400.pt
+│   │       │   ├── llm_rl_episode_500.pt
+│   │       │   ├── llm_rl_episode_600.pt
+│   │       │   ├── llm_rl_episode_700.pt
+│   │       │   ├── llm_rl_episode_800.pt
+│   │       │   ├── llm_rl_episode_900.pt
+│   │       │   └── llm_rl_final.pt
+│   │       ├── llm_ppo_reward_20260815_003001
+│   │       │   ├── llm_rl_episode_100.pt
+│   │       │   ├── llm_rl_episode_1000.pt
+│   │       │   ├── llm_rl_episode_200.pt
+│   │       │   ├── llm_rl_episode_300.pt
+│   │       │   ├── llm_rl_episode_400.pt
+│   │       │   ├── llm_rl_episode_500.pt
+│   │       │   ├── llm_rl_episode_600.pt
+│   │       │   ├── llm_rl_episode_700.pt
+│   │       │   ├── llm_rl_episode_800.pt
+│   │       │   ├── llm_rl_episode_900.pt
+│   │       │   └── llm_rl_final.pt
+│   │       └── ppo_baseline_20260815_010839
 │   │           ├── ppo_episode_100.pt
 │   │           ├── ppo_episode_1000.pt
 │   │           ├── ppo_episode_200.pt
@@ -79,25 +146,12 @@ MSc_Project
 │   │           ├── ppo_episode_900.pt
 │   │           └── ppo_final.pt
 │   ├── tests
-│   │   ├── test_agent.py
-│   │   ├── test_api.py
 │   │   ├── test_environment.py
 │   │   └── test_llm.py
 │   ├── training
-│   │   ├── __pycache__
-│   │   │   ├── evaluate.cpython-312.pyc
-│   │   │   └── train.cpython-312.pyc
-│   │   ├── callbacks.py
 │   │   ├── evaluate.py
-│   │   ├── experiment.py
 │   │   └── train.py
 │   ├── utils
-│   │   ├── __pycache__
-│   │   │   ├── logger.cpython-312.pyc
-│   │   │   ├── metrics.cpython-312.pyc
-│   │   │   └── visualization.cpython-312.pyc
-│   │   ├── constants.py
-│   │   ├── helpers.py
 │   │   ├── logger.py
 │   │   ├── metrics.py
 │   │   └── visualization.py
@@ -117,6 +171,12 @@ MSc_Project
 │   │   ├── reportController.js
 │   │   ├── sandboxController.js
 │   │   └── supplierController.js
+│   ├── logs
+│   │   ├── rl_environment_test_20260802_125555.xlsx
+│   │   ├── rl_environment_test_20260802_134953.xlsx
+│   │   ├── rl_environment_test_20260802_140522.xlsx
+│   │   ├── rl_environment_test_20260802_141157.xlsx
+│   │   └── rl_environment_test_20260802_141357.xlsx
 │   ├── middleware
 │   │   ├── actionLogger.js
 │   │   └── authMiddleware.js
@@ -148,8 +208,18 @@ MSc_Project
 │   ├── index.js
 │   ├── package-lock.json
 │   ├── package.json
+│   ├── README.md
 │   └── test_backend_environment.py
 ├── POC
+│   ├── logs
+│   │   ├── Baseline
+│   │   │   ├── monitor.csv
+│   │   │   └── ppo_gridworld_Baseline.zip
+│   │   ├── LLM
+│   │   │   ├── monitor.csv
+│   │   │   └── ppo_gridworld_LLM.zip
+│   │   ├── Model_Performance.xlsx
+│   │   └── Training Convergence.png
 │   ├── test_module
 │   │   ├── __init__.py
 │   │   ├── test_env.py
@@ -166,5 +236,6 @@ MSc_Project
 ├── .gitignore
 ├── agent_folder_structure.md
 ├── generate_folder_structure.py
-└── MSc_Final_Project.docx - Shortcut.lnk
+├── MSc_Final_Project.docx - Shortcut.lnk
+└── README.md
 ```
