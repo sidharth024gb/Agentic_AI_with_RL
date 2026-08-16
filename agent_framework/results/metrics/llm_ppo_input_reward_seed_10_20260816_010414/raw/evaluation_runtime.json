@@ -1,0 +1,6328 @@
+{
+  "evaluation_time": 134.45773260001442,
+  "episode_ids": [
+    "6a81042676096201121b19b6",
+    "6a81042976096201121b1afd",
+    "6a81042b76096201121b1be8",
+    "6a81042c76096201121b1c70",
+    "6a81042d76096201121b1d13",
+    "6a81042e76096201121b1dd9",
+    "6a81042f76096201121b1e9d",
+    "6a81043076096201121b1f2d",
+    "6a81043176096201121b1fe0",
+    "6a81043576096201121b216a",
+    "6a81043676096201121b2233",
+    "6a81043776096201121b22e3",
+    "6a81043876096201121b239e",
+    "6a81043976096201121b245e",
+    "6a81043a76096201121b2510",
+    "6a81043b76096201121b258d",
+    "6a81043b76096201121b261a",
+    "6a81043d76096201121b26ff",
+    "6a81044076096201121b2893",
+    "6a81044176096201121b2962",
+    "6a81044276096201121b2a0a",
+    "6a81044376096201121b2a9a",
+    "6a81044476096201121b2b24",
+    "6a81044476096201121b2bae",
+    "6a81044576096201121b2c6e",
+    "6a81044a76096201121b2e53",
+    "6a81044d76096201121b2fec",
+    "6a81044e76096201121b307a",
+    "6a81044f76096201121b312e",
+    "6a81045076096201121b3204",
+    "6a81045476096201121b33ab",
+    "6a81045676096201121b34d5",
+    "6a81045776096201121b3552",
+    "6a81045776096201121b35ca",
+    "6a81045876096201121b3655",
+    "6a81045976096201121b36e0",
+    "6a81045a76096201121b3795",
+    "6a81045b76096201121b387b",
+    "6a81045c76096201121b3923",
+    "6a81045d76096201121b39d9",
+    "6a81045e76096201121b3ac8",
+    "6a81046076096201121b3b90",
+    "6a81046076096201121b3c26",
+    "6a81046276096201121b3cf1",
+    "6a81046376096201121b3dd8",
+    "6a81046476096201121b3e8f",
+    "6a81046576096201121b3f57",
+    "6a81046676096201121b403b",
+    "6a81046776096201121b4108",
+    "6a81046876096201121b41bc",
+    "6a81046a76096201121b4299",
+    "6a81046b76096201121b432a",
+    "6a81046c76096201121b43f3",
+    "6a81046d76096201121b44b4",
+    "6a81046e76096201121b45b0",
+    "6a81046f76096201121b46a7",
+    "6a81047176096201121b4755",
+    "6a81047476096201121b48d1",
+    "6a81047576096201121b49c9",
+    "6a81047676096201121b4aa5",
+    "6a81047776096201121b4b30",
+    "6a81047876096201121b4bd2",
+    "6a81047976096201121b4c7f",
+    "6a81047a76096201121b4d15",
+    "6a81047e76096201121b4efb",
+    "6a81047f76096201121b4fca",
+    "6a81048076096201121b5075",
+    "6a81048176096201121b5113",
+    "6a81048276096201121b51ab",
+    "6a81048276096201121b5252",
+    "6a81048476096201121b5303",
+    "6a81048476096201121b53a7",
+    "6a81048676096201121b5476",
+    "6a81048676096201121b5504",
+    "6a81048876096201121b55e2",
+    "6a81048976096201121b56bc",
+    "6a81048a76096201121b5774",
+    "6a81048b76096201121b5821",
+    "6a81048c76096201121b58d8",
+    "6a81048d76096201121b59a2",
+    "6a81048e76096201121b5a6d",
+    "6a81048f76096201121b5b35",
+    "6a81049276096201121b5c9b",
+    "6a81049476096201121b5d67",
+    "6a81049576096201121b5e25",
+    "6a81049676096201121b5eb0",
+    "6a81049776096201121b5f7d",
+    "6a81049876096201121b604f",
+    "6a81049976096201121b60d3",
+    "6a81049a76096201121b6192",
+    "6a81049c76096201121b6240",
+    "6a81049c76096201121b62c0",
+    "6a81049e76096201121b639d",
+    "6a81049f76096201121b6432",
+    "6a8104a576096201121b65f5",
+    "6a8104a676096201121b6699",
+    "6a8104a776096201121b674a",
+    "6a8104a876096201121b683a",
+    "6a8104a976096201121b6906",
+    "6a8104ab76096201121b6a2b"
+  ],
+  "local_episodes": [
+    {
+      "episode": 1,
+      "backendEpisodeId": "6a81042676096201121b19b6",
+      "backendEpisodeNumber": 21901,
+      "reward": -7.5,
+      "guidanceBonus": 1.0,
+      "steps": 20,
+      "completed": false,
+      "terminatedReason": "MAX_STEPS",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 20,
+      "procedureFollowed": 1,
+      "procedureAdherence": 0.05,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 2,
+      "backendEpisodeId": "6a81042976096201121b1afd",
+      "backendEpisodeNumber": 21902,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 3,
+      "backendEpisodeId": "6a81042b76096201121b1be8",
+      "backendEpisodeNumber": 21903,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 4,
+      "backendEpisodeId": "6a81042c76096201121b1c70",
+      "backendEpisodeNumber": 21904,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 5,
+      "backendEpisodeId": "6a81042d76096201121b1d13",
+      "backendEpisodeNumber": 21905,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 6,
+      "backendEpisodeId": "6a81042e76096201121b1dd9",
+      "backendEpisodeNumber": 21906,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 7,
+      "backendEpisodeId": "6a81042f76096201121b1e9d",
+      "backendEpisodeNumber": 21907,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 8,
+      "backendEpisodeId": "6a81043076096201121b1f2d",
+      "backendEpisodeNumber": 21908,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 9,
+      "backendEpisodeId": "6a81043176096201121b1fe0",
+      "backendEpisodeNumber": 21909,
+      "reward": -7.5,
+      "guidanceBonus": 1.0,
+      "steps": 20,
+      "completed": false,
+      "terminatedReason": "MAX_STEPS",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 20,
+      "procedureFollowed": 1,
+      "procedureAdherence": 0.05,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 10,
+      "backendEpisodeId": "6a81043576096201121b216a",
+      "backendEpisodeNumber": 21910,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 11,
+      "backendEpisodeId": "6a81043676096201121b2233",
+      "backendEpisodeNumber": 21911,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 12,
+      "backendEpisodeId": "6a81043776096201121b22e3",
+      "backendEpisodeNumber": 21912,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 13,
+      "backendEpisodeId": "6a81043876096201121b239e",
+      "backendEpisodeNumber": 21913,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 14,
+      "backendEpisodeId": "6a81043976096201121b245e",
+      "backendEpisodeNumber": 21914,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 15,
+      "backendEpisodeId": "6a81043a76096201121b2510",
+      "backendEpisodeNumber": 21915,
+      "reward": 45.0,
+      "guidanceBonus": 5.0,
+      "steps": 7,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 7,
+      "procedureFollowed": 5,
+      "procedureAdherence": 0.7142857142857143,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 16,
+      "backendEpisodeId": "6a81043b76096201121b258d",
+      "backendEpisodeNumber": 21916,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 17,
+      "backendEpisodeId": "6a81043b76096201121b261a",
+      "backendEpisodeNumber": 21917,
+      "reward": 45.0,
+      "guidanceBonus": 5.0,
+      "steps": 7,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 7,
+      "procedureFollowed": 5,
+      "procedureAdherence": 0.7142857142857143,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 18,
+      "backendEpisodeId": "6a81043d76096201121b26ff",
+      "backendEpisodeNumber": 21918,
+      "reward": -7.5,
+      "guidanceBonus": 1.0,
+      "steps": 20,
+      "completed": false,
+      "terminatedReason": "MAX_STEPS",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 20,
+      "procedureFollowed": 1,
+      "procedureAdherence": 0.05,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 19,
+      "backendEpisodeId": "6a81044076096201121b2893",
+      "backendEpisodeNumber": 21919,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 20,
+      "backendEpisodeId": "6a81044176096201121b2962",
+      "backendEpisodeNumber": 21920,
+      "reward": 45.0,
+      "guidanceBonus": 5.0,
+      "steps": 7,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 7,
+      "procedureFollowed": 5,
+      "procedureAdherence": 0.7142857142857143,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 21,
+      "backendEpisodeId": "6a81044276096201121b2a0a",
+      "backendEpisodeNumber": 21921,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 22,
+      "backendEpisodeId": "6a81044376096201121b2a9a",
+      "backendEpisodeNumber": 21922,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 23,
+      "backendEpisodeId": "6a81044476096201121b2b24",
+      "backendEpisodeNumber": 21923,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 24,
+      "backendEpisodeId": "6a81044476096201121b2bae",
+      "backendEpisodeNumber": 21924,
+      "reward": 45.0,
+      "guidanceBonus": 5.0,
+      "steps": 7,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 7,
+      "procedureFollowed": 5,
+      "procedureAdherence": 0.7142857142857143,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 25,
+      "backendEpisodeId": "6a81044576096201121b2c6e",
+      "backendEpisodeNumber": 21925,
+      "reward": -7.5,
+      "guidanceBonus": 1.0,
+      "steps": 20,
+      "completed": false,
+      "terminatedReason": "MAX_STEPS",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 20,
+      "procedureFollowed": 1,
+      "procedureAdherence": 0.05,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 26,
+      "backendEpisodeId": "6a81044a76096201121b2e53",
+      "backendEpisodeNumber": 21926,
+      "reward": -7.5,
+      "guidanceBonus": 1.0,
+      "steps": 20,
+      "completed": false,
+      "terminatedReason": "MAX_STEPS",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 20,
+      "procedureFollowed": 1,
+      "procedureAdherence": 0.05,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 27,
+      "backendEpisodeId": "6a81044d76096201121b2fec",
+      "backendEpisodeNumber": 21927,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 28,
+      "backendEpisodeId": "6a81044e76096201121b307a",
+      "backendEpisodeNumber": 21928,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 29,
+      "backendEpisodeId": "6a81044f76096201121b312e",
+      "backendEpisodeNumber": 21929,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 30,
+      "backendEpisodeId": "6a81045076096201121b3204",
+      "backendEpisodeNumber": 21930,
+      "reward": -7.5,
+      "guidanceBonus": 1.0,
+      "steps": 20,
+      "completed": false,
+      "terminatedReason": "MAX_STEPS",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 20,
+      "procedureFollowed": 1,
+      "procedureAdherence": 0.05,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 31,
+      "backendEpisodeId": "6a81045476096201121b33ab",
+      "backendEpisodeNumber": 21931,
+      "reward": -7.5,
+      "guidanceBonus": 1.0,
+      "steps": 20,
+      "completed": false,
+      "terminatedReason": "MAX_STEPS",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 20,
+      "procedureFollowed": 1,
+      "procedureAdherence": 0.05,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 32,
+      "backendEpisodeId": "6a81045676096201121b34d5",
+      "backendEpisodeNumber": 21932,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 33,
+      "backendEpisodeId": "6a81045776096201121b3552",
+      "backendEpisodeNumber": 21933,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 34,
+      "backendEpisodeId": "6a81045776096201121b35ca",
+      "backendEpisodeNumber": 21934,
+      "reward": 45.0,
+      "guidanceBonus": 5.0,
+      "steps": 7,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 7,
+      "procedureFollowed": 5,
+      "procedureAdherence": 0.7142857142857143,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 35,
+      "backendEpisodeId": "6a81045876096201121b3655",
+      "backendEpisodeNumber": 21935,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 36,
+      "backendEpisodeId": "6a81045976096201121b36e0",
+      "backendEpisodeNumber": 21936,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 37,
+      "backendEpisodeId": "6a81045a76096201121b3795",
+      "backendEpisodeNumber": 21937,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 38,
+      "backendEpisodeId": "6a81045b76096201121b387b",
+      "backendEpisodeNumber": 21938,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 39,
+      "backendEpisodeId": "6a81045c76096201121b3923",
+      "backendEpisodeNumber": 21939,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 40,
+      "backendEpisodeId": "6a81045d76096201121b39d9",
+      "backendEpisodeNumber": 21940,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 41,
+      "backendEpisodeId": "6a81045e76096201121b3ac8",
+      "backendEpisodeNumber": 21941,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 42,
+      "backendEpisodeId": "6a81046076096201121b3b90",
+      "backendEpisodeNumber": 21942,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 43,
+      "backendEpisodeId": "6a81046076096201121b3c26",
+      "backendEpisodeNumber": 21943,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 44,
+      "backendEpisodeId": "6a81046276096201121b3cf1",
+      "backendEpisodeNumber": 21944,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 45,
+      "backendEpisodeId": "6a81046376096201121b3dd8",
+      "backendEpisodeNumber": 21945,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 46,
+      "backendEpisodeId": "6a81046476096201121b3e8f",
+      "backendEpisodeNumber": 21946,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 47,
+      "backendEpisodeId": "6a81046576096201121b3f57",
+      "backendEpisodeNumber": 21947,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 48,
+      "backendEpisodeId": "6a81046676096201121b403b",
+      "backendEpisodeNumber": 21948,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 49,
+      "backendEpisodeId": "6a81046776096201121b4108",
+      "backendEpisodeNumber": 21949,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 50,
+      "backendEpisodeId": "6a81046876096201121b41bc",
+      "backendEpisodeNumber": 21950,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 51,
+      "backendEpisodeId": "6a81046a76096201121b4299",
+      "backendEpisodeNumber": 21951,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 52,
+      "backendEpisodeId": "6a81046b76096201121b432a",
+      "backendEpisodeNumber": 21952,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 53,
+      "backendEpisodeId": "6a81046c76096201121b43f3",
+      "backendEpisodeNumber": 21953,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 54,
+      "backendEpisodeId": "6a81046d76096201121b44b4",
+      "backendEpisodeNumber": 21954,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 55,
+      "backendEpisodeId": "6a81046e76096201121b45b0",
+      "backendEpisodeNumber": 21955,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 56,
+      "backendEpisodeId": "6a81046f76096201121b46a7",
+      "backendEpisodeNumber": 21956,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 57,
+      "backendEpisodeId": "6a81047176096201121b4755",
+      "backendEpisodeNumber": 21957,
+      "reward": -7.5,
+      "guidanceBonus": 1.0,
+      "steps": 20,
+      "completed": false,
+      "terminatedReason": "MAX_STEPS",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 20,
+      "procedureFollowed": 1,
+      "procedureAdherence": 0.05,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 58,
+      "backendEpisodeId": "6a81047476096201121b48d1",
+      "backendEpisodeNumber": 21958,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 59,
+      "backendEpisodeId": "6a81047576096201121b49c9",
+      "backendEpisodeNumber": 21959,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 60,
+      "backendEpisodeId": "6a81047676096201121b4aa5",
+      "backendEpisodeNumber": 21960,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 61,
+      "backendEpisodeId": "6a81047776096201121b4b30",
+      "backendEpisodeNumber": 21961,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 62,
+      "backendEpisodeId": "6a81047876096201121b4bd2",
+      "backendEpisodeNumber": 21962,
+      "reward": 45.0,
+      "guidanceBonus": 5.0,
+      "steps": 7,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 7,
+      "procedureFollowed": 5,
+      "procedureAdherence": 0.7142857142857143,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 63,
+      "backendEpisodeId": "6a81047976096201121b4c7f",
+      "backendEpisodeNumber": 21963,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 64,
+      "backendEpisodeId": "6a81047a76096201121b4d15",
+      "backendEpisodeNumber": 21964,
+      "reward": -7.5,
+      "guidanceBonus": 1.0,
+      "steps": 20,
+      "completed": false,
+      "terminatedReason": "MAX_STEPS",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 20,
+      "procedureFollowed": 1,
+      "procedureAdherence": 0.05,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 65,
+      "backendEpisodeId": "6a81047e76096201121b4efb",
+      "backendEpisodeNumber": 21965,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 66,
+      "backendEpisodeId": "6a81047f76096201121b4fca",
+      "backendEpisodeNumber": 21966,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 67,
+      "backendEpisodeId": "6a81048076096201121b5075",
+      "backendEpisodeNumber": 21967,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 68,
+      "backendEpisodeId": "6a81048176096201121b5113",
+      "backendEpisodeNumber": 21968,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 69,
+      "backendEpisodeId": "6a81048276096201121b51ab",
+      "backendEpisodeNumber": 21969,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 70,
+      "backendEpisodeId": "6a81048276096201121b5252",
+      "backendEpisodeNumber": 21970,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 71,
+      "backendEpisodeId": "6a81048476096201121b5303",
+      "backendEpisodeNumber": 21971,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 72,
+      "backendEpisodeId": "6a81048476096201121b53a7",
+      "backendEpisodeNumber": 21972,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 73,
+      "backendEpisodeId": "6a81048676096201121b5476",
+      "backendEpisodeNumber": 21973,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 74,
+      "backendEpisodeId": "6a81048676096201121b5504",
+      "backendEpisodeNumber": 21974,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 75,
+      "backendEpisodeId": "6a81048876096201121b55e2",
+      "backendEpisodeNumber": 21975,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 76,
+      "backendEpisodeId": "6a81048976096201121b56bc",
+      "backendEpisodeNumber": 21976,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 77,
+      "backendEpisodeId": "6a81048a76096201121b5774",
+      "backendEpisodeNumber": 21977,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 78,
+      "backendEpisodeId": "6a81048b76096201121b5821",
+      "backendEpisodeNumber": 21978,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 79,
+      "backendEpisodeId": "6a81048c76096201121b58d8",
+      "backendEpisodeNumber": 21979,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 80,
+      "backendEpisodeId": "6a81048d76096201121b59a2",
+      "backendEpisodeNumber": 21980,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 81,
+      "backendEpisodeId": "6a81048e76096201121b5a6d",
+      "backendEpisodeNumber": 21981,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 82,
+      "backendEpisodeId": "6a81048f76096201121b5b35",
+      "backendEpisodeNumber": 21982,
+      "reward": -7.5,
+      "guidanceBonus": 1.0,
+      "steps": 20,
+      "completed": false,
+      "terminatedReason": "MAX_STEPS",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 20,
+      "procedureFollowed": 1,
+      "procedureAdherence": 0.05,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 83,
+      "backendEpisodeId": "6a81049276096201121b5c9b",
+      "backendEpisodeNumber": 21983,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 84,
+      "backendEpisodeId": "6a81049476096201121b5d67",
+      "backendEpisodeNumber": 21984,
+      "reward": 45.0,
+      "guidanceBonus": 5.0,
+      "steps": 7,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 7,
+      "procedureFollowed": 5,
+      "procedureAdherence": 0.7142857142857143,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 85,
+      "backendEpisodeId": "6a81049576096201121b5e25",
+      "backendEpisodeNumber": 21985,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 86,
+      "backendEpisodeId": "6a81049676096201121b5eb0",
+      "backendEpisodeNumber": 21986,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 87,
+      "backendEpisodeId": "6a81049776096201121b5f7d",
+      "backendEpisodeNumber": 21987,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 88,
+      "backendEpisodeId": "6a81049876096201121b604f",
+      "backendEpisodeNumber": 21988,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 89,
+      "backendEpisodeId": "6a81049976096201121b60d3",
+      "backendEpisodeNumber": 21989,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 90,
+      "backendEpisodeId": "6a81049a76096201121b6192",
+      "backendEpisodeNumber": 21990,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 91,
+      "backendEpisodeId": "6a81049c76096201121b6240",
+      "backendEpisodeNumber": 21991,
+      "reward": 45.0,
+      "guidanceBonus": 5.0,
+      "steps": 7,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 7,
+      "procedureFollowed": 5,
+      "procedureAdherence": 0.7142857142857143,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 92,
+      "backendEpisodeId": "6a81049c76096201121b62c0",
+      "backendEpisodeNumber": 21992,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 93,
+      "backendEpisodeId": "6a81049e76096201121b639d",
+      "backendEpisodeNumber": 21993,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 94,
+      "backendEpisodeId": "6a81049f76096201121b6432",
+      "backendEpisodeNumber": 21994,
+      "reward": -7.5,
+      "guidanceBonus": 1.0,
+      "steps": 20,
+      "completed": false,
+      "terminatedReason": "MAX_STEPS",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 20,
+      "procedureFollowed": 1,
+      "procedureAdherence": 0.05,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 95,
+      "backendEpisodeId": "6a8104a576096201121b65f5",
+      "backendEpisodeNumber": 21995,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 96,
+      "backendEpisodeId": "6a8104a676096201121b6699",
+      "backendEpisodeNumber": 21996,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 97,
+      "backendEpisodeId": "6a8104a776096201121b674a",
+      "backendEpisodeNumber": 21997,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 98,
+      "backendEpisodeId": "6a8104a876096201121b683a",
+      "backendEpisodeNumber": 21998,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 99,
+      "backendEpisodeId": "6a8104a976096201121b6906",
+      "backendEpisodeNumber": 21999,
+      "reward": -7.5,
+      "guidanceBonus": 1.0,
+      "steps": 20,
+      "completed": false,
+      "terminatedReason": "MAX_STEPS",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 20,
+      "procedureFollowed": 1,
+      "procedureAdherence": 0.05,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    },
+    {
+      "episode": 100,
+      "backendEpisodeId": "6a8104ab76096201121b6a2b",
+      "backendEpisodeNumber": 22000,
+      "reward": 52.0,
+      "guidanceBonus": 7.0,
+      "steps": 8,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 8,
+      "procedureFollowed": 7,
+      "procedureAdherence": 0.875,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    }
+  ],
+  "valid_episode_count": 100,
+  "environment_error_episodes": 0,
+  "success_count": 88,
+  "success_rate": 0.88,
+  "llm_metrics": {
+    "model": "llama3",
+    "guidance_mode": "INPUT_AND_REWARD",
+    "planned_episodes": 100,
+    "planning_failures": 0,
+    "cached_plan_episodes": 100,
+    "uncached_plan_episodes": 0,
+    "uncached_planning_time_ms": 0.0,
+    "planner_calls": 0,
+    "planner_successful_calls": 0,
+    "planner_failed_calls": 0,
+    "average_llm_latency_ms": 0.0,
+    "total_llm_latency_ms": 0.0,
+    "cache_hits": 100,
+    "cache_misses": 0,
+    "cache_writes": 0
+  }
+}

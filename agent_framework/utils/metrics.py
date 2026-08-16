@@ -55,6 +55,34 @@ def _json_string(value):
     )
 
 
+def _excel_safe_value(value):
+    """Preserve scalar values and serialize nested structures for Excel."""
+
+    if isinstance(value, (dict, list, tuple, set)):
+        return _json_string(value)
+
+    return value
+
+
+def records_to_dataframe(records):
+    """Convert arbitrary runtime records without silently dropping fields.
+
+    This is intentionally schema-flexible. If later training/evaluation code adds
+    a diagnostic field, it automatically appears in the individual workbook and,
+    through the comparison layer, in the combined workbook as well.
+    """
+
+    rows = []
+
+    for record in records or []:
+        if not isinstance(record, dict):
+            continue
+
+        rows.append({key: _excel_safe_value(value) for key, value in record.items()})
+
+    return pd.DataFrame(rows)
+
+
 def _episode_has_environment_error(episode):
     """Return True when an episode ended because of infrastructure failure."""
 
@@ -134,12 +162,28 @@ def _valid_step_dataframe(dataframe):
 
 
 def episodes_to_dataframe(episodes):
+    """Flatten backend episodes while retaining every top-level field.
+
+    Known fields are normalized to stable names/types, but unknown/new backend
+    fields are retained automatically. ``actionSequence`` is omitted here only
+    because it has its own full ``Steps`` table.
+    """
+
     rows = []
 
-    for episode in episodes:
+    for episode in episodes or []:
+        if not isinstance(episode, dict):
+            continue
+
         episode_environment_error = _episode_has_environment_error(episode)
 
-        rows.append(
+        row = {
+            key: _excel_safe_value(value)
+            for key, value in episode.items()
+            if key != "actionSequence"
+        }
+
+        row.update(
             {
                 "episodeId": str(episode.get("_id", "")),
                 "episodeNumber": episode.get("episodeNumber"),
@@ -149,32 +193,21 @@ def episodes_to_dataframe(episodes):
                 "algorithm": episode.get("algorithm"),
                 "seed": episode.get("seed"),
                 "goal": episode.get("goal"),
-                # ----------------------------------------------
-                # LLM metadata
-                # ----------------------------------------------
                 "llmModel": episode.get("llmModel"),
                 "guidanceMode": episode.get("guidanceMode"),
                 "promptVersion": episode.get("promptVersion"),
                 "llmPlanCached": episode.get("llmPlanCached"),
                 "llmPlanningTimeMs": episode.get("llmPlanningTimeMs"),
                 "llmPlan": _json_string(episode.get("llmPlan")),
-                # ----------------------------------------------
-                # Rewards
-                # ----------------------------------------------
+                "llmPrerequisites": _json_string(episode.get("llmPrerequisites")),
                 "totalReward": float(episode.get("totalReward", 0) or 0),
                 "totalBaseReward": float(episode.get("totalBaseReward", 0) or 0),
                 "totalGuidanceBonus": float(episode.get("totalGuidanceBonus", 0) or 0),
-                # ----------------------------------------------
-                # Actions
-                # ----------------------------------------------
                 "totalSteps": int(episode.get("totalSteps", 0) or 0),
                 "successfulActions": int(episode.get("successfulActions", 0) or 0),
                 "failedActions": int(episode.get("failedActions", 0) or 0),
                 "noOpActions": int(episode.get("noOpActions", 0) or 0),
                 "environmentErrors": int(episode.get("environmentErrors", 0) or 0),
-                # ----------------------------------------------
-                # Completion
-                # ----------------------------------------------
                 "completed": bool(episode.get("completed", False)),
                 "terminatedReason": episode.get("terminatedReason"),
                 "validAgentEpisode": not episode_environment_error,
@@ -185,14 +218,16 @@ def episodes_to_dataframe(episodes):
             }
         )
 
+        rows.append(row)
+
     dataframe = pd.DataFrame(rows)
 
     if not dataframe.empty:
-        # ``episodeNumber`` is assigned globally by the backend and can
-        # continue increasing across experiments. Keep it for audit/debugging,
-        # but create a local 1..N episode index for this specific run.
         if "episodeNumber" in dataframe.columns:
-            dataframe = dataframe.sort_values("episodeNumber").reset_index(drop=True)
+            dataframe = dataframe.sort_values(
+                "episodeNumber",
+                na_position="last",
+            ).reset_index(drop=True)
         else:
             dataframe = dataframe.reset_index(drop=True)
 
@@ -211,24 +246,19 @@ def episodes_to_dataframe(episodes):
 
 
 def steps_to_dataframe(episodes):
-    rows = []
+    """Flatten every backend step while retaining all step diagnostics.
 
-    # Build run-local episode numbering separately for each phase.
-    #
-    # Example:
-    #   TRAIN backend episodeNumber:      4770 ... 5769
-    #   TRAIN runEpisode:                    1 ... 1000
-    #
-    #   EVALUATION backend episodeNumber: 5770 ... 5869
-    #   EVALUATION runEpisode:               1 ... 100
-    #
-    # ``episodeNumber`` is still retained for backend traceability.
+    This deliberately starts from the complete step dictionary. Fields such as
+    repeated-action diagnostics, procedure information, error types, or future
+    backend additions are therefore not discarded by the reporting layer.
+    """
+
+    rows = []
     phase_episode_numbers = {}
 
-    for episode in episodes:
+    for episode in episodes or []:
         phase = episode.get("phase")
         episode_number = episode.get("episodeNumber")
-
         phase_episode_numbers.setdefault(phase, []).append(episode_number)
 
     run_episode_lookup = {}
@@ -248,24 +278,23 @@ def steps_to_dataframe(episodes):
         ):
             run_episode_lookup[(phase, episode_number)] = run_episode
 
-    for episode in episodes:
+    for episode in episodes or []:
         episode_number = episode.get("episodeNumber")
         phase = episode.get("phase")
         run_episode = run_episode_lookup.get((phase, episode_number))
-
         agent_type = episode.get("agentType")
         guidance_mode = episode.get("guidanceMode")
         episode_environment_error = _episode_has_environment_error(episode)
 
-        for step in episode.get("actionSequence", []):
-            step_environment_error = bool(
-                step.get(
-                    "environmentError",
-                    False,
-                )
-            )
+        for step in episode.get("actionSequence", []) or []:
+            if not isinstance(step, dict):
+                continue
 
-            rows.append(
+            step_environment_error = bool(step.get("environmentError", False))
+
+            row = {key: _excel_safe_value(value) for key, value in step.items()}
+
+            row.update(
                 {
                     "episodeNumber": episode_number,
                     "runEpisode": run_episode,
@@ -293,16 +322,14 @@ def steps_to_dataframe(episodes):
                 }
             )
 
+            rows.append(row)
+
     dataframe = pd.DataFrame(rows)
 
     if not dataframe.empty:
         sort_columns = [
             column
-            for column in [
-                "phase",
-                "runEpisode",
-                "stepNumber",
-            ]
+            for column in ["phase", "runEpisode", "stepNumber"]
             if column in dataframe.columns
         ]
 
@@ -387,18 +414,45 @@ def _empty_episode_summary(total_episodes=0, environment_error_episodes=0):
         "environment_error_episodes": int(environment_error_episodes),
         "completed": 0,
         "success_rate": 0.0,
+        "total_reward": 0.0,
         "average_reward": 0.0,
         "median_reward": 0.0,
         "reward_std": 0.0,
         "best_reward": 0.0,
         "worst_reward": 0.0,
+        "total_base_reward": 0.0,
+        "average_base_reward": 0.0,
+        "total_guidance_bonus": 0.0,
+        "average_guidance_bonus": 0.0,
+        "guidance_bonus_reward_fraction": 0.0,
+        "total_steps": 0,
         "average_steps": 0.0,
         "median_steps": 0.0,
-        "average_execution_ms": 0.0,
-        "environment_errors": 0,
-        "no_op_actions": 0,
+        "steps_std": 0.0,
+        "min_steps": 0.0,
+        "max_steps": 0.0,
+        "reward_per_step": 0.0,
+        "successful_actions": 0,
         "failed_actions": 0,
-        "total_guidance_bonus": 0.0,
+        "no_op_actions": 0,
+        "action_success_rate": 0.0,
+        "average_failed_actions": 0.0,
+        "average_no_op_actions": 0.0,
+        "environment_errors": 0,
+        "average_execution_ms": 0.0,
+        "median_execution_ms": 0.0,
+        "execution_ms_std": 0.0,
+        "total_execution_seconds": 0.0,
+        "successful_episode_average_reward": 0.0,
+        "failed_episode_average_reward": 0.0,
+        "successful_episode_average_steps": 0.0,
+        "failed_episode_average_steps": 0.0,
+        "first_100_success_rate": 0.0,
+        "last_100_success_rate": 0.0,
+        "first_100_average_reward": 0.0,
+        "last_100_average_reward": 0.0,
+        "first_100_average_steps": 0.0,
+        "last_100_average_steps": 0.0,
     }
 
 
@@ -407,15 +461,19 @@ def calculate_episode_summary(dataframe):
         return _empty_episode_summary()
 
     total_episodes = len(dataframe)
-
     valid_df = _valid_episode_dataframe(dataframe)
-
     environment_error_episodes = total_episodes - len(valid_df)
 
     total_environment_errors = int(
-        dataframe["environmentErrors"].sum()
-        if "environmentErrors" in dataframe.columns
-        else 0
+        pd.to_numeric(
+            dataframe.get(
+                "environmentErrors",
+                pd.Series(0, index=dataframe.index),
+            ),
+            errors="coerce",
+        )
+        .fillna(0)
+        .sum()
     )
 
     if valid_df.empty:
@@ -423,35 +481,102 @@ def calculate_episode_summary(dataframe):
             total_episodes=total_episodes,
             environment_error_episodes=environment_error_episodes,
         )
-
         summary["environment_errors"] = total_environment_errors
-
         return summary
 
-    completed = int(valid_df["completed"].sum())
+    def numeric(column, default=0.0):
+        if column not in valid_df.columns:
+            return pd.Series(default, index=valid_df.index, dtype=float)
+        return pd.to_numeric(valid_df[column], errors="coerce").fillna(default)
+
+    rewards = numeric("totalReward")
+    base_rewards = numeric("totalBaseReward")
+    guidance = numeric("totalGuidanceBonus")
+    steps = numeric("totalSteps")
+    successful_actions = numeric("successfulActions")
+    failed_actions = numeric("failedActions")
+    no_ops = numeric("noOpActions")
+    execution = numeric("executionTimeMs")
+    completed_series = valid_df["completed"].astype(bool)
+
+    completed = int(completed_series.sum())
+    action_total = float(successful_actions.sum() + failed_actions.sum())
+    reward_total = float(rewards.sum())
+    step_total = float(steps.sum())
+    guidance_total = float(guidance.sum())
+
+    successful_frame = valid_df.loc[completed_series]
+    failed_frame = valid_df.loc[~completed_series]
+
+    def frame_mean(frame, column):
+        if frame.empty or column not in frame.columns:
+            return 0.0
+        return float(pd.to_numeric(frame[column], errors="coerce").fillna(0).mean())
+
+    first_100 = valid_df.head(min(100, len(valid_df)))
+    last_100 = valid_df.tail(min(100, len(valid_df)))
+
+    def success_rate(frame):
+        if frame.empty:
+            return 0.0
+        return float(frame["completed"].astype(bool).mean())
+
+    def average(frame, column):
+        if frame.empty or column not in frame.columns:
+            return 0.0
+        return float(pd.to_numeric(frame[column], errors="coerce").fillna(0).mean())
 
     return {
-        # Total rows remain visible for diagnostics.
         "episodes": total_episodes,
-        # Performance denominator.
         "valid_episodes": len(valid_df),
         "environment_error_episodes": environment_error_episodes,
         "completed": completed,
         "success_rate": completed / len(valid_df),
-        "average_reward": float(valid_df["totalReward"].mean()),
-        "median_reward": float(valid_df["totalReward"].median()),
-        "reward_std": float(valid_df["totalReward"].std(ddof=0)),
-        "best_reward": float(valid_df["totalReward"].max()),
-        "worst_reward": float(valid_df["totalReward"].min()),
-        "average_steps": float(valid_df["totalSteps"].mean()),
-        "median_steps": float(valid_df["totalSteps"].median()),
-        "average_execution_ms": float(valid_df["executionTimeMs"].mean()),
-        # Environment failures are still reported diagnostically.
+        "total_reward": reward_total,
+        "average_reward": float(rewards.mean()),
+        "median_reward": float(rewards.median()),
+        "reward_std": float(rewards.std(ddof=0)),
+        "best_reward": float(rewards.max()),
+        "worst_reward": float(rewards.min()),
+        "total_base_reward": float(base_rewards.sum()),
+        "average_base_reward": float(base_rewards.mean()),
+        "total_guidance_bonus": guidance_total,
+        "average_guidance_bonus": float(guidance.mean()),
+        "guidance_bonus_reward_fraction": (
+            guidance_total / reward_total if abs(reward_total) > 1e-12 else 0.0
+        ),
+        "total_steps": int(step_total),
+        "average_steps": float(steps.mean()),
+        "median_steps": float(steps.median()),
+        "steps_std": float(steps.std(ddof=0)),
+        "min_steps": float(steps.min()),
+        "max_steps": float(steps.max()),
+        "reward_per_step": reward_total / step_total if step_total > 0 else 0.0,
+        "successful_actions": int(successful_actions.sum()),
+        "failed_actions": int(failed_actions.sum()),
+        "no_op_actions": int(no_ops.sum()),
+        "action_success_rate": (
+            float(successful_actions.sum()) / action_total if action_total > 0 else 0.0
+        ),
+        "average_failed_actions": float(failed_actions.mean()),
+        "average_no_op_actions": float(no_ops.mean()),
         "environment_errors": total_environment_errors,
-        # Agent behaviour statistics use valid episodes only.
-        "no_op_actions": int(valid_df["noOpActions"].sum()),
-        "failed_actions": int(valid_df["failedActions"].sum()),
-        "total_guidance_bonus": float(valid_df["totalGuidanceBonus"].sum()),
+        "average_execution_ms": float(execution.mean()),
+        "median_execution_ms": float(execution.median()),
+        "execution_ms_std": float(execution.std(ddof=0)),
+        "total_execution_seconds": float(execution.sum() / 1000.0),
+        "successful_episode_average_reward": frame_mean(
+            successful_frame, "totalReward"
+        ),
+        "failed_episode_average_reward": frame_mean(failed_frame, "totalReward"),
+        "successful_episode_average_steps": frame_mean(successful_frame, "totalSteps"),
+        "failed_episode_average_steps": frame_mean(failed_frame, "totalSteps"),
+        "first_100_success_rate": success_rate(first_100),
+        "last_100_success_rate": success_rate(last_100),
+        "first_100_average_reward": average(first_100, "totalReward"),
+        "last_100_average_reward": average(last_100, "totalReward"),
+        "first_100_average_steps": average(first_100, "totalSteps"),
+        "last_100_average_steps": average(last_100, "totalSteps"),
     }
 
 
@@ -537,6 +662,164 @@ def build_llm_metrics_dataframe(
 
 
 # ==========================================================
+# Procedure Action Summary
+# ==========================================================
+
+
+def build_procedure_action_summary(steps_df):
+    """Detailed procedure-adherence metrics by phase and action."""
+
+    columns = [
+        "phase",
+        "action",
+        "procedure_attempts",
+        "procedure_followed",
+        "procedure_not_followed",
+        "procedure_adherence_rate",
+        "successful",
+        "useful",
+        "success_rate",
+        "useful_rate",
+        "total_reward",
+        "average_reward",
+        "total_guidance_bonus",
+        "average_guidance_bonus",
+        "average_duration_ms",
+    ]
+
+    if steps_df.empty:
+        return pd.DataFrame(columns=columns)
+
+    valid_steps = _valid_step_dataframe(steps_df)
+    guided = valid_steps[valid_steps["procedureFollowed"].notna()].copy()
+
+    if guided.empty:
+        return pd.DataFrame(columns=columns)
+
+    guided["procedureFollowed"] = guided["procedureFollowed"].astype(bool)
+
+    rows = []
+
+    for (phase, action), frame in guided.groupby(
+        ["phase", "action"],
+        dropna=False,
+    ):
+        attempts = len(frame)
+        followed = int(frame["procedureFollowed"].sum())
+        successful = int(frame["success"].astype(bool).sum())
+        useful = int(frame["usefulAction"].astype(bool).sum())
+
+        rows.append(
+            {
+                "phase": phase,
+                "action": action,
+                "procedure_attempts": attempts,
+                "procedure_followed": followed,
+                "procedure_not_followed": attempts - followed,
+                "procedure_adherence_rate": followed / attempts if attempts else 0.0,
+                "successful": successful,
+                "useful": useful,
+                "success_rate": successful / attempts if attempts else 0.0,
+                "useful_rate": useful / attempts if attempts else 0.0,
+                "total_reward": float(frame["reward"].sum()),
+                "average_reward": float(frame["reward"].mean()),
+                "total_guidance_bonus": float(frame["guidanceBonus"].sum()),
+                "average_guidance_bonus": float(frame["guidanceBonus"].mean()),
+                "average_duration_ms": float(frame["durationMs"].mean()),
+            }
+        )
+
+    return pd.DataFrame(rows, columns=columns)
+
+
+# ==========================================================
+# PPO Diagnostic Summary
+# ==========================================================
+
+
+def build_ppo_diagnostics(updates_df):
+    """Summarize every numeric PPO update field, not just known losses.
+
+    If PPOAgent later adds another numeric diagnostic to its update dictionary,
+    it automatically appears here and in combined reports.
+    """
+
+    columns = [
+        "metric",
+        "count",
+        "mean",
+        "std",
+        "min",
+        "max",
+        "median",
+        "first",
+        "last",
+        "change",
+    ]
+
+    if updates_df.empty:
+        return pd.DataFrame(columns=columns)
+
+    rows = []
+
+    for column in updates_df.columns:
+        series = pd.to_numeric(updates_df[column], errors="coerce").dropna()
+
+        if series.empty:
+            continue
+
+        rows.append(
+            {
+                "metric": column,
+                "count": int(series.count()),
+                "mean": float(series.mean()),
+                "std": float(series.std(ddof=0)),
+                "min": float(series.min()),
+                "max": float(series.max()),
+                "median": float(series.median()),
+                "first": float(series.iloc[0]),
+                "last": float(series.iloc[-1]),
+                "change": float(series.iloc[-1] - series.iloc[0]),
+            }
+        )
+
+    return pd.DataFrame(rows, columns=columns)
+
+
+def build_metric_inventory(tables):
+    rows = []
+
+    for table_name, dataframe in tables.items():
+        if not isinstance(dataframe, pd.DataFrame):
+            continue
+
+        if dataframe.empty and len(dataframe.columns) == 0:
+            rows.append(
+                {
+                    "table": table_name,
+                    "rows": 0,
+                    "columns": 0,
+                    "column": None,
+                    "dtype": None,
+                }
+            )
+            continue
+
+        for column in dataframe.columns:
+            rows.append(
+                {
+                    "table": table_name,
+                    "rows": len(dataframe),
+                    "columns": len(dataframe.columns),
+                    "column": column,
+                    "dtype": str(dataframe[column].dtype),
+                }
+            )
+
+    return pd.DataFrame(rows)
+
+
+# ==========================================================
 # Metric Tables
 # ==========================================================
 
@@ -549,27 +832,32 @@ def build_metric_tables(
     evaluation_time,
     training_llm_metrics=None,
     evaluation_llm_metrics=None,
+    training_local_episodes=None,
+    evaluation_local_episodes=None,
+    agent_label=None,
+    runtime_values=None,
 ):
+    """Build the complete individual-run metric bundle.
+
+    The bundle intentionally contains both authoritative backend records and
+    local runtime records. This preserves procedure, planner, reward-component,
+    PPO, entropy and timing diagnostics for later re-analysis.
+    """
+
     training_df = episodes_to_dataframe(training_episodes)
     evaluation_df = episodes_to_dataframe(evaluation_episodes)
-
-    all_episodes = list(training_episodes) + list(evaluation_episodes)
-
+    all_episodes = list(training_episodes or []) + list(evaluation_episodes or [])
     steps_df = steps_to_dataframe(all_episodes)
-
-    updates_df = pd.DataFrame(ppo_updates)
-
-    # ======================================================
-    # Episode Metrics
-    # ======================================================
+    updates_df = records_to_dataframe(ppo_updates)
+    local_training_df = records_to_dataframe(training_local_episodes)
+    local_evaluation_df = records_to_dataframe(evaluation_local_episodes)
 
     training_summary = calculate_episode_summary(training_df)
     evaluation_summary = calculate_episode_summary(evaluation_df)
 
     training_summary["convergence_episode"] = calculate_convergence_episode(training_df)
-
-    training_summary["wall_clock_seconds"] = training_time
-    evaluation_summary["wall_clock_seconds"] = evaluation_time
+    training_summary["wall_clock_seconds"] = float(training_time or 0.0)
+    evaluation_summary["wall_clock_seconds"] = float(evaluation_time or 0.0)
 
     metrics = sorted(set(training_summary.keys()) | set(evaluation_summary.keys()))
 
@@ -583,14 +871,6 @@ def build_metric_tables(
             for metric in metrics
         ]
     )
-
-    # ======================================================
-    # Action Summary
-    #
-    # Reward/success statistics use only valid agent steps.
-    # Infrastructure-error step counts remain visible through
-    # the environment_errors column.
-    # ======================================================
 
     if not steps_df.empty:
         valid_steps = _valid_step_dataframe(steps_df)
@@ -607,71 +887,40 @@ def build_metric_tables(
                     useful=("usefulAction", "sum"),
                     total_reward=("reward", "sum"),
                     average_reward=("reward", "mean"),
+                    total_base_reward=("baseReward", "sum"),
+                    average_base_reward=("baseReward", "mean"),
                     total_guidance_bonus=("guidanceBonus", "sum"),
+                    average_guidance_bonus=("guidanceBonus", "mean"),
                     average_duration_ms=("durationMs", "mean"),
                 )
                 .reset_index()
             )
         else:
-            action_summary = pd.DataFrame(
-                columns=[
-                    "phase",
-                    "action",
-                    "count",
-                    "successful",
-                    "useful",
-                    "total_reward",
-                    "average_reward",
-                    "total_guidance_bonus",
-                    "average_duration_ms",
-                ]
+            action_summary = pd.DataFrame()
+
+        if "environmentError" in steps_df.columns:
+            environment_error_steps = (
+                steps_df.groupby(
+                    ["phase", "action"],
+                    dropna=False,
+                )["environmentError"]
+                .sum()
+                .reset_index(name="environment_errors")
             )
 
-        environment_error_steps = (
-            steps_df.groupby(
-                ["phase", "action"],
-                dropna=False,
-            )["environmentError"]
-            .sum()
-            .reset_index(name="environment_errors")
-        )
-
-        action_summary = action_summary.merge(
-            environment_error_steps,
-            on=["phase", "action"],
-            how="outer",
-        )
-
-        numeric_columns = [
-            "count",
-            "successful",
-            "useful",
-            "total_reward",
-            "average_reward",
-            "total_guidance_bonus",
-            "average_duration_ms",
-            "environment_errors",
-        ]
-
-        for column in numeric_columns:
-            if column in action_summary.columns:
-                action_summary[column] = action_summary[column].fillna(0)
-
+            if action_summary.empty:
+                action_summary = environment_error_steps
+            else:
+                action_summary = action_summary.merge(
+                    environment_error_steps,
+                    on=["phase", "action"],
+                    how="outer",
+                )
     else:
         action_summary = pd.DataFrame()
 
-    # ======================================================
-    # Terminations
-    #
-    # Keep ALL episodes here, including environment errors.
-    # This is intentionally a diagnostic table.
-    # ======================================================
-
     combined_df = pd.concat(
-        [
-            training_df,
-            evaluation_df,
-        ],
+        [training_df, evaluation_df],
         ignore_index=True,
     )
 
@@ -687,32 +936,37 @@ def build_metric_tables(
     else:
         termination_summary = pd.DataFrame()
 
-    # ======================================================
-    # Guidance
-    # ======================================================
-
     guidance_summary = build_guidance_summary(steps_df)
-
-    # ======================================================
-    # LLM Planner
-    # ======================================================
-
+    procedure_action_summary = build_procedure_action_summary(steps_df)
     llm_metrics_df = build_llm_metrics_dataframe(
         training_llm_metrics,
         evaluation_llm_metrics,
     )
+    ppo_diagnostics = build_ppo_diagnostics(updates_df)
 
-    return {
+    tables = {
         "summary": summary_df,
         "training_episodes": training_df,
         "evaluation_episodes": evaluation_df,
+        "local_training_episodes": local_training_df,
+        "local_evaluation_episodes": local_evaluation_df,
         "steps": steps_df,
         "ppo_updates": updates_df,
+        "ppo_diagnostics": ppo_diagnostics,
         "action_summary": action_summary,
         "termination_summary": termination_summary,
         "guidance_summary": guidance_summary,
+        "procedure_action_summary": procedure_action_summary,
         "llm_metrics": llm_metrics_df,
+        "configuration": config_dataframe(
+            agent_label=agent_label,
+            runtime_values=runtime_values,
+        ),
     }
+
+    tables["metric_inventory"] = build_metric_inventory(tables)
+
+    return tables
 
 
 # ==========================================================
@@ -720,19 +974,17 @@ def build_metric_tables(
 # ==========================================================
 
 
-def config_dataframe(agent_label=None):
+def config_dataframe(agent_label=None, runtime_values=None):
+    runtime_values = runtime_values or {}
+
     values = {
-        # ------------------------------------------------------
-        # Agent
-        # ------------------------------------------------------
         "RUN_AGENT": agent_label,
         "CONFIG_AGENT_TYPE": config.agent.AGENT_TYPE,
         "ALGORITHM": config.agent.ALGORITHM,
         "TASK": config.agent.TASK,
-        # ------------------------------------------------------
-        # Experiment
-        # ------------------------------------------------------
+        "DEVICE": config.agent.DEVICE,
         "EXPERIMENT_NAME": config.experiment.EXPERIMENT_NAME,
+        "EXPERIMENT_DESCRIPTION": config.experiment.DESCRIPTION,
         "GUIDANCE_MODE": config.experiment.GUIDANCE_MODE,
         "GUIDANCE_BONUS": config.experiment.GUIDANCE_BONUS,
         "ENVIRONMENT_VERSION": getattr(
@@ -740,18 +992,28 @@ def config_dataframe(agent_label=None):
             "ENVIRONMENT_VERSION",
             None,
         ),
-        # ------------------------------------------------------
-        # LLM
-        # ------------------------------------------------------
+        "EXPERIMENT_SUITE_NAME": getattr(
+            config.experiment,
+            "SUITE_NAME",
+            None,
+        ),
+        "EXPERIMENT_SEEDS": ",".join(
+            str(seed) for seed in getattr(config.experiment, "SEEDS", [])
+        ),
         "LLM_MODEL": config.llm.MODEL,
         "LLM_BASE_URL": config.llm.BASE_URL,
+        "LLM_TIMEOUT": config.llm.TIMEOUT,
         "LLM_TEMPERATURE": config.llm.TEMPERATURE,
         "LLM_USE_CACHE": config.llm.USE_CACHE,
-        # ------------------------------------------------------
-        # PPO
-        # ------------------------------------------------------
-        "TOTAL_EPISODES": config.training.TOTAL_EPISODES,
-        "EVALUATION_EPISODES": config.training.EVALUATION_EPISODES,
+        "LLM_CACHE_DIR": str(config.llm.CACHE_DIR),
+        "TOTAL_EPISODES": runtime_values.get(
+            "TOTAL_EPISODES",
+            config.training.TOTAL_EPISODES,
+        ),
+        "EVALUATION_EPISODES": runtime_values.get(
+            "EVALUATION_EPISODES",
+            config.training.EVALUATION_EPISODES,
+        ),
         "GAMMA": config.training.GAMMA,
         "GAE_LAMBDA": config.training.GAE_LAMBDA,
         "CLIP_EPSILON": config.training.CLIP_EPSILON,
@@ -760,30 +1022,33 @@ def config_dataframe(agent_label=None):
         "UPDATE_INTERVAL": config.training.UPDATE_INTERVAL,
         "EPOCHS": config.training.EPOCHS,
         "HIDDEN_NEURON_SIZE": config.training.HIDDEN_NEURON_SIZE,
-        "ENTROPY_COEF": getattr(
-            config.training,
-            "ENTROPY_COEF",
-            None,
+        "ENTROPY_COEF": getattr(config.training, "ENTROPY_COEF", None),
+        "MAX_GRAD_NORM": getattr(config.training, "MAX_GRAD_NORM", None),
+        "SAVE_EVERY": config.training.SAVE_EVERY,
+        "LOG_EVERY": config.training.LOG_EVERY,
+        "MOVING_AVERAGE_WINDOW": config.training.MOVING_AVERAGE_WINDOW,
+        "CONVERGENCE_WINDOW": config.training.CONVERGENCE_WINDOW,
+        "CONVERGENCE_SUCCESS_THRESHOLD": (
+            config.training.CONVERGENCE_SUCCESS_THRESHOLD
         ),
-        "MAX_GRAD_NORM": getattr(
-            config.training,
-            "MAX_GRAD_NORM",
-            None,
-        ),
-        # ------------------------------------------------------
-        # Environment
-        # ------------------------------------------------------
+        "ENV_NAME": config.environment.ENV_NAME,
+        "OBSERVATION_TYPE": config.environment.OBSERVATION_TYPE,
         "MAX_STEPS_PER_EPISODE": config.environment.MAX_STEPS_PER_EPISODE,
-        "RANDOM_SEED": config.environment.RANDOM_SEED,
+        "RANDOM_SEED": runtime_values.get(
+            "RANDOM_SEED",
+            config.environment.RANDOM_SEED,
+        ),
         "ACTION_SPACE_SIZE": config.environment.ACTION_SPACE_SIZE,
+        "BACKEND_BASE_URL": config.backend.BASE_URL,
+        "BACKEND_TIMEOUT": config.backend.TIMEOUT,
     }
+
+    for key, value in runtime_values.items():
+        values.setdefault(key, value)
 
     return pd.DataFrame(
         [
-            {
-                "parameter": key,
-                "value": value,
-            }
+            {"parameter": key, "value": _excel_safe_value(value)}
             for key, value in values.items()
         ]
     )
@@ -794,61 +1059,113 @@ def config_dataframe(agent_label=None):
 # ==========================================================
 
 
+def _safe_sheet_name(name, used_names):
+    base = str(name).replace("/", "_").replace("\\", "_")
+    base = base[:31] or "Sheet"
+    candidate = base
+    counter = 2
+
+    while candidate in used_names:
+        suffix = f"_{counter}"
+        candidate = f"{base[:31-len(suffix)]}{suffix}"
+        counter += 1
+
+    used_names.add(candidate)
+    return candidate
+
+
+def export_raw_run_data(
+    output_directory,
+    training_episodes,
+    evaluation_episodes,
+    training_result,
+    evaluation_result,
+    runtime_config=None,
+):
+    """Save lossless JSON inputs so later metrics can be recomputed.
+
+    This is the main safeguard against having to rerun expensive experiments
+    simply because a new derived metric is wanted later.
+    """
+
+    output_directory = Path(output_directory) / "raw"
+    output_directory.mkdir(parents=True, exist_ok=True)
+
+    payloads = {
+        "backend_training_episodes.json": training_episodes or [],
+        "backend_evaluation_episodes.json": evaluation_episodes or [],
+        "training_runtime.json": training_result or {},
+        "evaluation_runtime.json": evaluation_result or {},
+        "runtime_config.json": runtime_config or {},
+    }
+
+    paths = {}
+
+    for filename, payload in payloads.items():
+        path = output_directory / filename
+        with path.open("w", encoding="utf-8") as file:
+            json.dump(payload, file, indent=2, default=str)
+        paths[filename] = str(path)
+
+    return paths
+
+
 def export_metrics_excel(
     tables,
     output_path,
     agent_label=None,
 ):
+    """Export every DataFrame in ``tables``.
+
+    The exporter is intentionally dynamic. New tables added to the metric bundle
+    are automatically written rather than being silently omitted.
+    """
+
     output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    output_path.parent.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
+    preferred_names = {
+        "summary": "Summary",
+        "training_episodes": "Training Episodes",
+        "evaluation_episodes": "Evaluation Episodes",
+        "local_training_episodes": "Local Training",
+        "local_evaluation_episodes": "Local Evaluation",
+        "ppo_updates": "PPO Updates",
+        "ppo_diagnostics": "PPO Diagnostics",
+        "action_summary": "Action Summary",
+        "termination_summary": "Termination Summary",
+        "guidance_summary": "Guidance Summary",
+        "procedure_action_summary": "Procedure Actions",
+        "llm_metrics": "LLM Metrics",
+        "steps": "Steps",
+        "configuration": "Configuration",
+        "metric_inventory": "Metric Inventory",
+    }
 
-    with pd.ExcelWriter(
-        output_path,
-        engine="openpyxl",
-    ) as writer:
-        sheet_map = {
-            "summary": "Summary",
-            "training_episodes": "Training Episodes",
-            "evaluation_episodes": "Evaluation Episodes",
-            "ppo_updates": "PPO Updates",
-            "action_summary": "Action Summary",
-            "termination_summary": "Termination Summary",
-            "guidance_summary": "Guidance Summary",
-            "llm_metrics": "LLM Metrics",
-            "steps": "Steps",
-        }
+    ordered_keys = list(preferred_names)
+    ordered_keys.extend(key for key in tables.keys() if key not in preferred_names)
 
-        for key, sheet_name in sheet_map.items():
-            tables.get(
+    with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
+        used_names = set()
+
+        for key in ordered_keys:
+            dataframe = tables.get(key)
+            if not isinstance(dataframe, pd.DataFrame):
+                continue
+
+            requested = preferred_names.get(
                 key,
-                pd.DataFrame(),
-            ).to_excel(
+                str(key).replace("_", " ").title(),
+            )
+            sheet_name = _safe_sheet_name(requested, used_names)
+            dataframe.to_excel(
                 writer,
                 sheet_name=sheet_name,
                 index=False,
             )
 
-        config_dataframe(agent_label).to_excel(
-            writer,
-            sheet_name="Configuration",
-            index=False,
-        )
-
-        # ======================================================
-        # Styling
-        # ======================================================
-
         workbook = writer.book
-
-        header_fill = PatternFill(
-            "solid",
-            fgColor="D9EAF7",
-        )
-
+        header_fill = PatternFill("solid", fgColor="D9EAF7")
         header_font = Font(bold=True)
 
         for worksheet in workbook.worksheets:
@@ -869,17 +1186,10 @@ def export_metrics_excel(
 
                 for cell in column_cells:
                     value = "" if cell.value is None else str(cell.value)
-
-                    max_length = max(
-                        max_length,
-                        len(value),
-                    )
+                    max_length = max(max_length, len(value))
 
                 worksheet.column_dimensions[column_letter].width = min(
-                    max(
-                        max_length + 2,
-                        12,
-                    ),
+                    max(max_length + 2, 12),
                     50,
                 )
 

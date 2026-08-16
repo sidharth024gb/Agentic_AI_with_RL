@@ -3,7 +3,7 @@
   "cached": false,
   "model": "llama3",
   "prompt_version": "finance_planner_v2",
-  "latency_ms": 91335.71940001275,
+  "latency_ms": 85677.81170000671,
   "action_names": [
     "GET_INVOICES",
     "CHECK_DUPLICATE",
@@ -67,5 +67,5 @@
     "PAY_INVOICES",
     "CHECK_PAYMENT_COMPLETED"
   ],
-  "raw_response": "{\n\"plan\": [\n    \"GET_INVOICES\",\n    \"CHECK_DUPLICATE\",\n    \"CHECK_SUPPLIER\",\n    \"APPROVE_INVOICES\",\n    \"CHECK_BUDGET\",\n    \"PAY_INVOICES\",\n    \"CHECK_PAYMENT_COMPLETED\"\n]\n}"
+  "raw_response": "{\n    \"plan\": [\n        \"GET_INVOICES\",\n        \"CHECK_DUPLICATE\",\n        \"CHECK_SUPPLIER\",\n        \"APPROVE_INVOICES\",\n        \"CHECK_BUDGET\",\n        \"PAY_INVOICES\",\n        \"CHECK_PAYMENT_COMPLETED\"\n    ]\n}"
 }

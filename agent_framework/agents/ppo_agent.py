@@ -71,6 +71,12 @@ class PPOAgent(BaseAgent):
         self.last_policy_loss = None
         self.last_value_loss = None
         self.last_entropy = None
+        self.last_normalized_entropy = None
+        self.last_approx_kl = None
+        self.last_clip_fraction = None
+        self.last_explained_variance = None
+        self.last_policy_grad_norm = None
+        self.last_value_grad_norm = None
 
     # ==========================================================
     # Action Selection
@@ -209,6 +215,13 @@ class PPOAgent(BaseAgent):
     # ==========================================================
 
     def learn(self, force=False):
+        """Perform one PPO update and return a rich diagnostic record.
+
+        The extra diagnostics are observational only; they do not alter the PPO
+        objective. Recording them now avoids needing to rerun expensive final
+        experiments later just to obtain standard PPO health metrics.
+        """
+
         if len(self.buffer) == 0:
             return None
 
@@ -221,19 +234,33 @@ class PPOAgent(BaseAgent):
         states = batch["states"]
         actions = batch["actions"].long()
         old_log_probs = batch["old_log_probs"].view(-1)
-        advantages = batch["advantages"].view(-1)
+        raw_advantages = batch["advantages"].view(-1)
         returns = batch["returns"].view(-1)
 
-        advantages = (advantages - advantages.mean()) / (
-            advantages.std(unbiased=False) + 1e-8
+        raw_advantage_mean = float(raw_advantages.mean().item())
+        raw_advantage_std = float(raw_advantages.std(unbiased=False).item())
+        return_mean = float(returns.mean().item())
+        return_std = float(returns.std(unbiased=False).item())
+
+        advantages = (raw_advantages - raw_advantages.mean()) / (
+            raw_advantages.std(unbiased=False) + 1e-8
         )
 
         rollout_size = states.size(0)
         batch_size = min(self.batch_size, rollout_size)
 
         policy_losses = []
+        clipped_policy_losses = []
         value_losses = []
         entropies = []
+        approx_kls = []
+        clip_fractions = []
+        ratio_means = []
+        ratio_stds = []
+        value_prediction_means = []
+        value_prediction_stds = []
+        policy_grad_norms = []
+        value_grad_norms = []
 
         for _ in range(self.epochs):
             indices = torch.randperm(
@@ -256,7 +283,8 @@ class PPOAgent(BaseAgent):
                 new_log_probs = distribution.log_prob(batch_actions)
                 entropy = distribution.entropy().mean()
 
-                ratio = torch.exp(new_log_probs - batch_old_log_probs)
+                log_ratio = new_log_probs - batch_old_log_probs
+                ratio = torch.exp(log_ratio)
 
                 clipped_ratio = torch.clamp(
                     ratio,
@@ -272,8 +300,6 @@ class PPOAgent(BaseAgent):
                     surrogate_2,
                 ).mean()
 
-                # Important correction: entropy is now part of the
-                # objective, encouraging continued exploration.
                 policy_loss = clipped_policy_loss - self.entropy_coef * entropy
 
                 value_prediction = self.value(batch_states).squeeze(-1)
@@ -283,14 +309,22 @@ class PPOAgent(BaseAgent):
                     batch_returns,
                 )
 
+                # Standard PPO diagnostics.
+                with torch.no_grad():
+                    approx_kl = ((torch.exp(log_ratio) - 1.0) - log_ratio).mean()
+                    clip_fraction = (
+                        (torch.abs(ratio - 1.0) > self.clip_epsilon).float().mean()
+                    )
+
                 self.policy_optimizer.zero_grad()
                 policy_loss.backward()
 
                 if self.max_grad_norm > 0:
-                    nn.utils.clip_grad_norm_(
+                    policy_grad_norm = nn.utils.clip_grad_norm_(
                         self.policy.parameters(),
                         self.max_grad_norm,
                     )
+                    policy_grad_norms.append(float(policy_grad_norm.item()))
 
                 self.policy_optimizer.step()
 
@@ -298,29 +332,96 @@ class PPOAgent(BaseAgent):
                 value_loss.backward()
 
                 if self.max_grad_norm > 0:
-                    nn.utils.clip_grad_norm_(
+                    value_grad_norm = nn.utils.clip_grad_norm_(
                         self.value.parameters(),
                         self.max_grad_norm,
                     )
+                    value_grad_norms.append(float(value_grad_norm.item()))
 
                 self.value_optimizer.step()
 
-                policy_losses.append(policy_loss.item())
-                value_losses.append(value_loss.item())
-                entropies.append(entropy.item())
+                policy_losses.append(float(policy_loss.item()))
+                clipped_policy_losses.append(float(clipped_policy_loss.item()))
+                value_losses.append(float(value_loss.item()))
+                entropies.append(float(entropy.item()))
+                approx_kls.append(float(approx_kl.item()))
+                clip_fractions.append(float(clip_fraction.item()))
+                ratio_means.append(float(ratio.mean().item()))
+                ratio_stds.append(float(ratio.std(unbiased=False).item()))
+                value_prediction_means.append(float(value_prediction.mean().item()))
+                value_prediction_stds.append(
+                    float(value_prediction.std(unbiased=False).item())
+                )
+
+        # Explained variance after the update: 1 is ideal, 0 means the
+        # critic is no better than predicting a constant baseline.
+        with torch.no_grad():
+            final_values = self.value(states).squeeze(-1)
+            return_variance = torch.var(
+                returns,
+                unbiased=False,
+            )
+
+            if float(return_variance.item()) > 1e-12:
+                residual_variance = torch.var(
+                    returns - final_values,
+                    unbiased=False,
+                )
+                explained_variance = 1.0 - (residual_variance / return_variance)
+                explained_variance = float(explained_variance.item())
+            else:
+                explained_variance = 0.0
 
         self.update_count += 1
         self.last_policy_loss = float(np.mean(policy_losses))
         self.last_value_loss = float(np.mean(value_losses))
         self.last_entropy = float(np.mean(entropies))
 
+        maximum_entropy = (
+            float(np.log(self.action_size)) if self.action_size > 1 else 1.0
+        )
+        self.last_normalized_entropy = (
+            self.last_entropy / maximum_entropy if maximum_entropy > 0 else 0.0
+        )
+        self.last_approx_kl = float(np.mean(approx_kls))
+        self.last_clip_fraction = float(np.mean(clip_fractions))
+        self.last_explained_variance = explained_variance
+        self.last_policy_grad_norm = (
+            float(np.mean(policy_grad_norms)) if policy_grad_norms else None
+        )
+        self.last_value_grad_norm = (
+            float(np.mean(value_grad_norms)) if value_grad_norms else None
+        )
+
         metrics = {
             "update": self.update_count,
-            "rollout_size": rollout_size,
+            "rollout_size": int(rollout_size),
+            "minibatch_size": int(batch_size),
+            "ppo_epochs": int(self.epochs),
             "policy_loss": self.last_policy_loss,
+            "clipped_policy_loss": float(np.mean(clipped_policy_losses)),
             "value_loss": self.last_value_loss,
             "entropy": self.last_entropy,
+            "normalized_entropy": self.last_normalized_entropy,
             "entropy_coef": self.entropy_coef,
+            "approx_kl": self.last_approx_kl,
+            "clip_fraction": self.last_clip_fraction,
+            "ratio_mean": float(np.mean(ratio_means)),
+            "ratio_std": float(np.mean(ratio_stds)),
+            "explained_variance": self.last_explained_variance,
+            "policy_grad_norm": self.last_policy_grad_norm,
+            "value_grad_norm": self.last_value_grad_norm,
+            "advantage_mean_raw": raw_advantage_mean,
+            "advantage_std_raw": raw_advantage_std,
+            "return_mean": return_mean,
+            "return_std": return_std,
+            "value_prediction_mean": float(np.mean(value_prediction_means)),
+            "value_prediction_std": float(np.mean(value_prediction_stds)),
+            "learning_rate": self.learning_rate,
+            "clip_epsilon": self.clip_epsilon,
+            "gamma": self.gamma,
+            "gae_lambda": self.gae_lambda,
+            "max_grad_norm": self.max_grad_norm,
         }
 
         self.buffer.clear()
@@ -440,6 +541,12 @@ class PPOAgent(BaseAgent):
                 "last_policy_loss": self.last_policy_loss,
                 "last_value_loss": self.last_value_loss,
                 "last_entropy": self.last_entropy,
+                "last_normalized_entropy": self.last_normalized_entropy,
+                "last_approx_kl": self.last_approx_kl,
+                "last_clip_fraction": self.last_clip_fraction,
+                "last_explained_variance": self.last_explained_variance,
+                "last_policy_grad_norm": self.last_policy_grad_norm,
+                "last_value_grad_norm": self.last_value_grad_norm,
             }
         )
 

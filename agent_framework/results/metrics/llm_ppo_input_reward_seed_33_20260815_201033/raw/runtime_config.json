@@ -1,0 +1,12 @@
+{
+  "agent_name": "llm_rl",
+  "agent_type": "LLM_RL",
+  "algorithm": "PPO",
+  "guidance_mode": "INPUT_AND_REWARD",
+  "guidance_bonus": 1.0,
+  "experiment_name": "llm_ppo_input_reward_seed_33",
+  "seed": 33,
+  "total_episodes": 1000,
+  "evaluation_episodes": 100,
+  "suite_name": "final_dissertation_20260815_170644"
+}

@@ -1,0 +1,46 @@
+2026-08-15 17:06:44 | INFO | experiment.suite_final_dissertation_20260815_170644 | ========================================
+2026-08-15 17:06:44 | INFO | experiment.suite_final_dissertation_20260815_170644 | STARTING EXPERIMENT SUITE: final_dissertation_20260815_170644
+2026-08-15 17:06:44 | INFO | experiment.suite_final_dissertation_20260815_170644 | Seeds: [42, 33, 24, 50, 10]
+2026-08-15 17:06:44 | INFO | experiment.suite_final_dissertation_20260815_170644 | Conditions: ['ppo_baseline', 'llm_ppo_input', 'llm_ppo_reward', 'llm_ppo_input_reward']
+2026-08-15 17:06:44 | INFO | experiment.suite_final_dissertation_20260815_170644 | Training episodes: 1000
+2026-08-15 17:06:44 | INFO | experiment.suite_final_dissertation_20260815_170644 | Evaluation episodes: 100
+2026-08-15 17:06:44 | INFO | experiment.suite_final_dissertation_20260815_170644 | Guidance bonus: 1.0
+2026-08-15 17:06:44 | INFO | experiment.suite_final_dissertation_20260815_170644 | ========================================
+2026-08-15 17:06:44 | INFO | experiment.suite_final_dissertation_20260815_170644 | Starting seed 42
+2026-08-15 17:06:44 | INFO | experiment.suite_final_dissertation_20260815_170644 | Running seed=42 condition=ppo_baseline guidance=none bonus=0.0
+2026-08-15 17:32:47 | INFO | experiment.suite_final_dissertation_20260815_170644 | Running seed=42 condition=llm_ppo_input guidance=input bonus=0.0
+2026-08-15 18:00:30 | INFO | experiment.suite_final_dissertation_20260815_170644 | Running seed=42 condition=llm_ppo_reward guidance=reward_shaping bonus=1.0
+2026-08-15 18:27:04 | INFO | experiment.suite_final_dissertation_20260815_170644 | Running seed=42 condition=llm_ppo_input_reward guidance=input_and_reward bonus=1.0
+2026-08-15 18:53:00 | INFO | experiment.suite_final_dissertation_20260815_170644 | Seed 42 finished | successful runs=4
+2026-08-15 18:53:00 | INFO | experiment.suite_final_dissertation_20260815_170644 | Starting seed 33
+2026-08-15 18:53:00 | INFO | experiment.suite_final_dissertation_20260815_170644 | Running seed=33 condition=ppo_baseline guidance=none bonus=0.0
+2026-08-15 19:19:19 | INFO | experiment.suite_final_dissertation_20260815_170644 | Running seed=33 condition=llm_ppo_input guidance=input bonus=0.0
+2026-08-15 19:46:48 | INFO | experiment.suite_final_dissertation_20260815_170644 | Running seed=33 condition=llm_ppo_reward guidance=reward_shaping bonus=1.0
+2026-08-15 20:10:33 | INFO | experiment.suite_final_dissertation_20260815_170644 | Running seed=33 condition=llm_ppo_input_reward guidance=input_and_reward bonus=1.0
+2026-08-15 20:35:43 | INFO | experiment.suite_final_dissertation_20260815_170644 | Seed 33 finished | successful runs=4
+2026-08-15 20:35:43 | INFO | experiment.suite_final_dissertation_20260815_170644 | Starting seed 24
+2026-08-15 20:35:43 | INFO | experiment.suite_final_dissertation_20260815_170644 | Running seed=24 condition=ppo_baseline guidance=none bonus=0.0
+2026-08-15 20:57:45 | INFO | experiment.suite_final_dissertation_20260815_170644 | Running seed=24 condition=llm_ppo_input guidance=input bonus=0.0
+2026-08-15 21:20:59 | INFO | experiment.suite_final_dissertation_20260815_170644 | Running seed=24 condition=llm_ppo_reward guidance=reward_shaping bonus=1.0
+2026-08-15 21:46:41 | INFO | experiment.suite_final_dissertation_20260815_170644 | Running seed=24 condition=llm_ppo_input_reward guidance=input_and_reward bonus=1.0
+2026-08-15 22:12:31 | INFO | experiment.suite_final_dissertation_20260815_170644 | Seed 24 finished | successful runs=4
+2026-08-15 22:12:31 | INFO | experiment.suite_final_dissertation_20260815_170644 | Starting seed 50
+2026-08-15 22:12:31 | INFO | experiment.suite_final_dissertation_20260815_170644 | Running seed=50 condition=ppo_baseline guidance=none bonus=0.0
+2026-08-15 22:35:43 | INFO | experiment.suite_final_dissertation_20260815_170644 | Running seed=50 condition=llm_ppo_input guidance=input bonus=0.0
+2026-08-15 23:00:19 | INFO | experiment.suite_final_dissertation_20260815_170644 | Running seed=50 condition=llm_ppo_reward guidance=reward_shaping bonus=1.0
+2026-08-15 23:25:31 | INFO | experiment.suite_final_dissertation_20260815_170644 | Running seed=50 condition=llm_ppo_input_reward guidance=input_and_reward bonus=1.0
+2026-08-15 23:50:21 | INFO | experiment.suite_final_dissertation_20260815_170644 | Seed 50 finished | successful runs=4
+2026-08-15 23:50:21 | INFO | experiment.suite_final_dissertation_20260815_170644 | Starting seed 10
+2026-08-15 23:50:21 | INFO | experiment.suite_final_dissertation_20260815_170644 | Running seed=10 condition=ppo_baseline guidance=none bonus=0.0
+2026-08-16 00:13:56 | INFO | experiment.suite_final_dissertation_20260815_170644 | Running seed=10 condition=llm_ppo_input guidance=input bonus=0.0
+2026-08-16 00:37:43 | INFO | experiment.suite_final_dissertation_20260815_170644 | Running seed=10 condition=llm_ppo_reward guidance=reward_shaping bonus=1.0
+2026-08-16 01:04:14 | INFO | experiment.suite_final_dissertation_20260815_170644 | Running seed=10 condition=llm_ppo_input_reward guidance=input_and_reward bonus=1.0
+2026-08-16 01:32:37 | INFO | experiment.suite_final_dissertation_20260815_170644 | Seed 10 finished | successful runs=4
+2026-08-16 01:38:34 | INFO | experiment.suite_final_dissertation_20260815_170644 | ========================================
+2026-08-16 01:38:34 | INFO | experiment.suite_final_dissertation_20260815_170644 | EXPERIMENT SUITE COMPLETE
+2026-08-16 01:38:34 | INFO | experiment.suite_final_dissertation_20260815_170644 | Runs completed: 20
+2026-08-16 01:38:34 | INFO | experiment.suite_final_dissertation_20260815_170644 | Failures: 0
+2026-08-16 01:38:34 | INFO | experiment.suite_final_dissertation_20260815_170644 | Manifest: C:\PY_Programs\MSc_Project\agent_framework\results\logs\combined\final_dissertation_20260815_170644\all_seeds\suite_manifest.json
+2026-08-16 01:38:34 | INFO | experiment.suite_final_dissertation_20260815_170644 | Combined metrics: C:\PY_Programs\MSc_Project\agent_framework\results\metrics\combined\final_dissertation_20260815_170644\all_seeds\all_seeds_comparison.xlsx
+2026-08-16 01:38:34 | INFO | experiment.suite_final_dissertation_20260815_170644 | Combined graphs: C:\PY_Programs\MSc_Project\agent_framework\results\graphs\combined\final_dissertation_20260815_170644\all_seeds
+2026-08-16 01:38:34 | INFO | experiment.suite_final_dissertation_20260815_170644 | ========================================

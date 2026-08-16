@@ -1,0 +1,183 @@
+2026-08-15 18:53:00 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | ========================================
+2026-08-15 18:53:00 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | STARTING PPO EXPERIMENT
+2026-08-15 18:53:00 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Run name: ppo_baseline_seed_33_20260815_185300
+2026-08-15 18:53:00 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Runtime config | agentType=RL | algorithm=PPO | guidance=NONE | guidanceBonus=0.00 | seed=33
+2026-08-15 18:53:00 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | PPO config | gamma=0.99 | lr=0.0003 | rollout=256 | batch=64 | epochs=10 | entropy=0.01 | gradClip=0.5
+2026-08-15 18:53:00 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | ========================================
+2026-08-15 18:53:00 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Authenticating AGENT_BOT.
+2026-08-15 18:53:00 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Backend authentication successful | role=AGENT_BOT
+2026-08-15 18:53:00 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Agent ready | type=PPO | base_observation=13 | policy_observation=13 | actions=8 | device=cpu
+2026-08-15 18:53:00 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | PPO training started | episodes=1000
+2026-08-15 18:53:01 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 1/1000 | reward=0.50 | steps=20 | completed=False | recent_reward=0.50 | recent_success=0.00% | env_errors=0 | buffer=20
+2026-08-15 18:53:12 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 10/1000 | reward=35.00 | steps=8 | completed=True | recent_reward=6.95 | recent_success=10.00% | env_errors=0 | buffer=188
+2026-08-15 18:53:26 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 20/1000 | reward=1.80 | steps=20 | completed=False | recent_reward=14.81 | recent_success=20.00% | env_errors=0 | buffer=129
+2026-08-15 18:53:38 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 30/1000 | reward=14.30 | steps=20 | completed=False | recent_reward=13.11 | recent_success=20.00% | env_errors=0 | buffer=57
+2026-08-15 18:53:48 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 40/1000 | reward=4.20 | steps=20 | completed=False | recent_reward=11.31 | recent_success=20.00% | env_errors=0 | buffer=243
+2026-08-15 18:54:01 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 50/1000 | reward=30.70 | steps=19 | completed=True | recent_reward=19.20 | recent_success=50.00% | env_errors=0 | buffer=170
+2026-08-15 18:54:14 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 60/1000 | reward=9.40 | steps=20 | completed=False | recent_reward=21.80 | recent_success=50.00% | env_errors=0 | buffer=88
+2026-08-15 18:54:27 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 70/1000 | reward=31.30 | steps=19 | completed=True | recent_reward=18.79 | recent_success=50.00% | env_errors=0 | buffer=11
+2026-08-15 18:54:42 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 80/1000 | reward=33.30 | steps=18 | completed=True | recent_reward=16.79 | recent_success=30.00% | env_errors=0 | buffer=193
+2026-08-15 18:54:56 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 90/1000 | reward=36.40 | steps=16 | completed=True | recent_reward=35.11 | recent_success=90.00% | env_errors=0 | buffer=83
+2026-08-15 18:55:08 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 100/1000 | reward=5.30 | steps=20 | completed=False | recent_reward=25.92 | recent_success=60.00% | env_errors=0 | buffer=249
+2026-08-15 18:55:08 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Checkpoint saved: C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_seed_33_20260815_185300\ppo_episode_100.pt
+2026-08-15 18:55:22 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 110/1000 | reward=32.40 | steps=20 | completed=True | recent_reward=26.21 | recent_success=70.00% | env_errors=0 | buffer=141
+2026-08-15 18:55:35 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 120/1000 | reward=32.50 | steps=15 | completed=True | recent_reward=25.24 | recent_success=70.00% | env_errors=0 | buffer=26
+2026-08-15 18:55:49 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 130/1000 | reward=34.50 | steps=9 | completed=True | recent_reward=34.51 | recent_success=90.00% | env_errors=0 | buffer=166
+2026-08-15 18:56:01 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 140/1000 | reward=40.50 | steps=8 | completed=True | recent_reward=37.14 | recent_success=100.00% | env_errors=0 | buffer=16
+2026-08-15 18:56:12 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 150/1000 | reward=36.90 | steps=11 | completed=True | recent_reward=30.00 | recent_success=80.00% | env_errors=0 | buffer=137
+2026-08-15 18:56:26 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 160/1000 | reward=37.90 | steps=16 | completed=True | recent_reward=34.25 | recent_success=90.00% | env_errors=0 | buffer=19
+2026-08-15 18:56:38 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 170/1000 | reward=34.80 | steps=11 | completed=True | recent_reward=36.57 | recent_success=100.00% | env_errors=0 | buffer=141
+2026-08-15 18:56:51 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 180/1000 | reward=42.00 | steps=15 | completed=True | recent_reward=39.11 | recent_success=100.00% | env_errors=0 | buffer=240
+2026-08-15 18:57:04 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 190/1000 | reward=35.20 | steps=14 | completed=True | recent_reward=32.47 | recent_success=80.00% | env_errors=0 | buffer=113
+2026-08-15 18:57:13 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 200/1000 | reward=33.30 | steps=19 | completed=True | recent_reward=33.78 | recent_success=90.00% | env_errors=0 | buffer=230
+2026-08-15 18:57:13 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Checkpoint saved: C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_seed_33_20260815_185300\ppo_episode_200.pt
+2026-08-15 18:57:25 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 210/1000 | reward=32.50 | steps=7 | completed=True | recent_reward=31.14 | recent_success=80.00% | env_errors=0 | buffer=93
+2026-08-15 18:57:38 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 220/1000 | reward=41.40 | steps=17 | completed=True | recent_reward=33.53 | recent_success=90.00% | env_errors=0 | buffer=203
+2026-08-15 18:57:50 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 230/1000 | reward=41.90 | steps=11 | completed=True | recent_reward=37.83 | recent_success=100.00% | env_errors=0 | buffer=58
+2026-08-15 18:58:03 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 240/1000 | reward=34.80 | steps=11 | completed=True | recent_reward=30.79 | recent_success=80.00% | env_errors=0 | buffer=177
+2026-08-15 18:58:17 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 250/1000 | reward=33.00 | steps=6 | completed=True | recent_reward=38.67 | recent_success=100.00% | env_errors=0 | buffer=34
+2026-08-15 18:58:29 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 260/1000 | reward=40.50 | steps=8 | completed=True | recent_reward=34.81 | recent_success=90.00% | env_errors=0 | buffer=142
+2026-08-15 18:58:40 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 270/1000 | reward=33.50 | steps=5 | completed=True | recent_reward=31.08 | recent_success=80.00% | env_errors=0 | buffer=251
+2026-08-15 18:58:54 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 280/1000 | reward=34.40 | steps=10 | completed=True | recent_reward=31.28 | recent_success=80.00% | env_errors=0 | buffer=103
+2026-08-15 18:59:07 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 290/1000 | reward=3.00 | steps=20 | completed=False | recent_reward=27.62 | recent_success=70.00% | env_errors=0 | buffer=233
+2026-08-15 18:59:19 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 300/1000 | reward=33.00 | steps=5 | completed=True | recent_reward=33.07 | recent_success=80.00% | env_errors=0 | buffer=94
+2026-08-15 18:59:19 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Checkpoint saved: C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_seed_33_20260815_185300\ppo_episode_300.pt
+2026-08-15 18:59:28 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 310/1000 | reward=37.90 | steps=14 | completed=True | recent_reward=30.32 | recent_success=80.00% | env_errors=0 | buffer=204
+2026-08-15 18:59:40 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 320/1000 | reward=40.50 | steps=8 | completed=True | recent_reward=34.47 | recent_success=90.00% | env_errors=0 | buffer=54
+2026-08-15 18:59:50 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 330/1000 | reward=37.40 | steps=8 | completed=True | recent_reward=37.27 | recent_success=100.00% | env_errors=0 | buffer=145
+2026-08-15 19:00:00 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 340/1000 | reward=36.30 | steps=12 | completed=True | recent_reward=37.71 | recent_success=100.00% | env_errors=0 | buffer=238
+2026-08-15 19:00:14 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 350/1000 | reward=37.40 | steps=16 | completed=True | recent_reward=34.54 | recent_success=90.00% | env_errors=0 | buffer=86
+2026-08-15 19:00:28 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 360/1000 | reward=42.80 | steps=11 | completed=True | recent_reward=30.39 | recent_success=80.00% | env_errors=0 | buffer=193
+2026-08-15 19:00:39 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 370/1000 | reward=39.00 | steps=6 | completed=True | recent_reward=37.43 | recent_success=100.00% | env_errors=0 | buffer=16
+2026-08-15 19:00:51 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 380/1000 | reward=41.60 | steps=16 | completed=True | recent_reward=35.35 | recent_success=90.00% | env_errors=0 | buffer=143
+2026-08-15 19:01:06 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 390/1000 | reward=2.50 | steps=20 | completed=False | recent_reward=27.90 | recent_success=70.00% | env_errors=0 | buffer=11
+2026-08-15 19:01:22 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 400/1000 | reward=3.90 | steps=20 | completed=False | recent_reward=28.73 | recent_success=70.00% | env_errors=0 | buffer=150
+2026-08-15 19:01:22 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Checkpoint saved: C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_seed_33_20260815_185300\ppo_episode_400.pt
+2026-08-15 19:01:37 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 410/1000 | reward=35.30 | steps=11 | completed=True | recent_reward=34.71 | recent_success=90.00% | env_errors=0 | buffer=9
+2026-08-15 19:01:49 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 420/1000 | reward=-1.00 | steps=20 | completed=False | recent_reward=33.73 | recent_success=90.00% | env_errors=0 | buffer=109
+2026-08-15 19:02:02 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 430/1000 | reward=41.30 | steps=15 | completed=True | recent_reward=30.70 | recent_success=80.00% | env_errors=0 | buffer=231
+2026-08-15 19:02:14 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 440/1000 | reward=36.00 | steps=5 | completed=True | recent_reward=37.84 | recent_success=100.00% | env_errors=0 | buffer=58
+2026-08-15 19:02:28 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 450/1000 | reward=41.00 | steps=7 | completed=True | recent_reward=35.38 | recent_success=90.00% | env_errors=0 | buffer=168
+2026-08-15 19:02:44 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 460/1000 | reward=-1.50 | steps=20 | completed=False | recent_reward=28.79 | recent_success=70.00% | env_errors=0 | buffer=42
+2026-08-15 19:02:54 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 470/1000 | reward=34.00 | steps=5 | completed=True | recent_reward=37.84 | recent_success=100.00% | env_errors=0 | buffer=134
+2026-08-15 19:03:04 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 480/1000 | reward=40.40 | steps=9 | completed=True | recent_reward=38.62 | recent_success=100.00% | env_errors=0 | buffer=217
+2026-08-15 19:03:17 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 490/1000 | reward=41.00 | steps=8 | completed=True | recent_reward=34.21 | recent_success=90.00% | env_errors=0 | buffer=69
+2026-08-15 19:03:28 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 500/1000 | reward=34.50 | steps=16 | completed=True | recent_reward=38.48 | recent_success=100.00% | env_errors=0 | buffer=185
+2026-08-15 19:03:28 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Checkpoint saved: C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_seed_33_20260815_185300\ppo_episode_500.pt
+2026-08-15 19:03:41 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 510/1000 | reward=22.80 | steps=20 | completed=False | recent_reward=38.74 | recent_success=90.00% | env_errors=0 | buffer=58
+2026-08-15 19:03:55 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 520/1000 | reward=41.00 | steps=6 | completed=True | recent_reward=36.53 | recent_success=90.00% | env_errors=0 | buffer=173
+2026-08-15 19:04:08 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 530/1000 | reward=38.40 | steps=10 | completed=True | recent_reward=33.85 | recent_success=90.00% | env_errors=0 | buffer=31
+2026-08-15 19:04:20 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 540/1000 | reward=40.40 | steps=10 | completed=True | recent_reward=41.04 | recent_success=100.00% | env_errors=0 | buffer=139
+2026-08-15 19:04:33 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 550/1000 | reward=2.50 | steps=20 | completed=False | recent_reward=37.16 | recent_success=90.00% | env_errors=0 | buffer=6
+2026-08-15 19:04:45 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 560/1000 | reward=41.70 | steps=18 | completed=True | recent_reward=38.13 | recent_success=90.00% | env_errors=0 | buffer=127
+2026-08-15 19:04:56 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 570/1000 | reward=40.00 | steps=10 | completed=True | recent_reward=39.52 | recent_success=100.00% | env_errors=0 | buffer=213
+2026-08-15 19:05:05 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 580/1000 | reward=40.80 | steps=10 | completed=True | recent_reward=38.51 | recent_success=100.00% | env_errors=0 | buffer=38
+2026-08-15 19:05:17 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 590/1000 | reward=40.30 | steps=12 | completed=True | recent_reward=40.51 | recent_success=100.00% | env_errors=0 | buffer=143
+2026-08-15 19:05:28 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 600/1000 | reward=37.70 | steps=18 | completed=True | recent_reward=40.29 | recent_success=100.00% | env_errors=0 | buffer=254
+2026-08-15 19:05:29 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Checkpoint saved: C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_seed_33_20260815_185300\ppo_episode_600.pt
+2026-08-15 19:05:46 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 610/1000 | reward=4.30 | steps=20 | completed=False | recent_reward=29.44 | recent_success=70.00% | env_errors=0 | buffer=135
+2026-08-15 19:05:57 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 620/1000 | reward=43.00 | steps=11 | completed=True | recent_reward=35.55 | recent_success=90.00% | env_errors=0 | buffer=242
+2026-08-15 19:06:09 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 630/1000 | reward=40.20 | steps=13 | completed=True | recent_reward=35.65 | recent_success=90.00% | env_errors=0 | buffer=84
+2026-08-15 19:06:22 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 640/1000 | reward=41.80 | steps=15 | completed=True | recent_reward=37.07 | recent_success=90.00% | env_errors=0 | buffer=199
+2026-08-15 19:06:34 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 650/1000 | reward=3.50 | steps=20 | completed=False | recent_reward=37.25 | recent_success=90.00% | env_errors=0 | buffer=62
+2026-08-15 19:06:44 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 660/1000 | reward=42.80 | steps=13 | completed=True | recent_reward=40.37 | recent_success=100.00% | env_errors=0 | buffer=181
+2026-08-15 19:06:54 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 670/1000 | reward=36.00 | steps=11 | completed=True | recent_reward=37.18 | recent_success=90.00% | env_errors=0 | buffer=50
+2026-08-15 19:07:03 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 680/1000 | reward=17.30 | steps=20 | completed=False | recent_reward=31.87 | recent_success=80.00% | env_errors=0 | buffer=161
+2026-08-15 19:07:16 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 690/1000 | reward=40.50 | steps=7 | completed=True | recent_reward=27.36 | recent_success=60.00% | env_errors=0 | buffer=41
+2026-08-15 19:07:26 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 700/1000 | reward=44.50 | steps=10 | completed=True | recent_reward=41.74 | recent_success=100.00% | env_errors=0 | buffer=138
+2026-08-15 19:07:26 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Checkpoint saved: C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_seed_33_20260815_185300\ppo_episode_700.pt
+2026-08-15 19:07:37 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 710/1000 | reward=41.80 | steps=13 | completed=True | recent_reward=36.42 | recent_success=90.00% | env_errors=0 | buffer=244
+2026-08-15 19:07:47 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 720/1000 | reward=16.70 | steps=20 | completed=False | recent_reward=36.50 | recent_success=90.00% | env_errors=0 | buffer=85
+2026-08-15 19:08:02 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 730/1000 | reward=1.50 | steps=20 | completed=False | recent_reward=32.08 | recent_success=80.00% | env_errors=0 | buffer=204
+2026-08-15 19:08:13 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 740/1000 | reward=39.00 | steps=6 | completed=True | recent_reward=39.78 | recent_success=100.00% | env_errors=0 | buffer=47
+2026-08-15 19:08:27 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 750/1000 | reward=43.00 | steps=7 | completed=True | recent_reward=39.49 | recent_success=100.00% | env_errors=0 | buffer=143
+2026-08-15 19:08:37 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 760/1000 | reward=38.90 | steps=7 | completed=True | recent_reward=39.60 | recent_success=100.00% | env_errors=0 | buffer=235
+2026-08-15 19:08:48 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 770/1000 | reward=42.90 | steps=9 | completed=True | recent_reward=37.49 | recent_success=90.00% | env_errors=0 | buffer=83
+2026-08-15 19:09:01 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 780/1000 | reward=37.30 | steps=13 | completed=True | recent_reward=26.93 | recent_success=70.00% | env_errors=0 | buffer=206
+2026-08-15 19:09:14 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 790/1000 | reward=44.80 | steps=17 | completed=True | recent_reward=38.02 | recent_success=90.00% | env_errors=0 | buffer=65
+2026-08-15 19:09:26 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 800/1000 | reward=36.70 | steps=16 | completed=True | recent_reward=30.22 | recent_success=70.00% | env_errors=0 | buffer=211
+2026-08-15 19:09:26 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Checkpoint saved: C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_seed_33_20260815_185300\ppo_episode_800.pt
+2026-08-15 19:09:39 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 810/1000 | reward=43.00 | steps=10 | completed=True | recent_reward=24.39 | recent_success=60.00% | env_errors=0 | buffer=88
+2026-08-15 19:09:54 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 820/1000 | reward=39.90 | steps=11 | completed=True | recent_reward=37.21 | recent_success=90.00% | env_errors=0 | buffer=221
+2026-08-15 19:10:09 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 830/1000 | reward=41.00 | steps=9 | completed=True | recent_reward=36.79 | recent_success=90.00% | env_errors=0 | buffer=67
+2026-08-15 19:10:19 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 840/1000 | reward=42.20 | steps=14 | completed=True | recent_reward=35.07 | recent_success=90.00% | env_errors=0 | buffer=177
+2026-08-15 19:10:31 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 850/1000 | reward=40.50 | steps=10 | completed=True | recent_reward=37.55 | recent_success=90.00% | env_errors=0 | buffer=29
+2026-08-15 19:10:43 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 860/1000 | reward=43.00 | steps=8 | completed=True | recent_reward=41.19 | recent_success=100.00% | env_errors=0 | buffer=131
+2026-08-15 19:10:55 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 870/1000 | reward=-5.00 | steps=20 | completed=False | recent_reward=32.49 | recent_success=80.00% | env_errors=0 | buffer=7
+2026-08-15 19:11:07 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 880/1000 | reward=-1.10 | steps=20 | completed=False | recent_reward=30.88 | recent_success=80.00% | env_errors=0 | buffer=136
+2026-08-15 19:11:21 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 890/1000 | reward=42.30 | steps=13 | completed=True | recent_reward=40.91 | recent_success=100.00% | env_errors=0 | buffer=243
+2026-08-15 19:11:32 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 900/1000 | reward=40.80 | steps=11 | completed=True | recent_reward=41.15 | recent_success=100.00% | env_errors=0 | buffer=96
+2026-08-15 19:11:32 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Checkpoint saved: C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_seed_33_20260815_185300\ppo_episode_900.pt
+2026-08-15 19:11:46 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 910/1000 | reward=40.70 | steps=15 | completed=True | recent_reward=41.32 | recent_success=100.00% | env_errors=0 | buffer=209
+2026-08-15 19:12:01 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 920/1000 | reward=42.70 | steps=17 | completed=True | recent_reward=38.16 | recent_success=90.00% | env_errors=0 | buffer=86
+2026-08-15 19:12:13 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 930/1000 | reward=43.00 | steps=8 | completed=True | recent_reward=35.94 | recent_success=90.00% | env_errors=0 | buffer=190
+2026-08-15 19:12:29 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 940/1000 | reward=39.40 | steps=11 | completed=True | recent_reward=34.57 | recent_success=80.00% | env_errors=0 | buffer=58
+2026-08-15 19:12:41 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 950/1000 | reward=43.70 | steps=15 | completed=True | recent_reward=41.31 | recent_success=100.00% | env_errors=0 | buffer=161
+2026-08-15 19:12:55 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 960/1000 | reward=42.90 | steps=12 | completed=True | recent_reward=28.44 | recent_success=70.00% | env_errors=0 | buffer=51
+2026-08-15 19:13:07 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 970/1000 | reward=36.50 | steps=15 | completed=True | recent_reward=36.96 | recent_success=90.00% | env_errors=0 | buffer=167
+2026-08-15 19:13:20 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 980/1000 | reward=30.90 | steps=5 | completed=True | recent_reward=27.24 | recent_success=70.00% | env_errors=0 | buffer=31
+2026-08-15 19:13:34 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 990/1000 | reward=39.10 | steps=20 | completed=True | recent_reward=37.80 | recent_success=90.00% | env_errors=0 | buffer=154
+2026-08-15 19:13:45 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Episode 1000/1000 | reward=39.30 | steps=12 | completed=True | recent_reward=36.65 | recent_success=90.00% | env_errors=0 | buffer=251
+2026-08-15 19:13:45 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Checkpoint saved: C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_seed_33_20260815_185300\ppo_episode_1000.pt
+2026-08-15 19:13:45 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | PPO training complete | time=1245.64s | steps=12027 | updates=47 | valid_episodes=1000 | env_errors=0
+2026-08-15 19:13:45 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | PPO deterministic evaluation started | episodes=100
+2026-08-15 19:18:58 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | PPO evaluation complete | success=0/100 valid | success_rate=0.00% | environment_errors=0 | time=312.30s
+2026-08-15 19:18:58 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Evaluation accounting | valid=100 | envErrors=0 | success=0 | successRate=0.00%
+2026-08-15 19:18:58 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Fetching authoritative TRAIN episodes.
+2026-08-15 19:18:59 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Training episodes retrieved: 1000
+2026-08-15 19:18:59 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Fetching authoritative EVALUATION episodes.
+2026-08-15 19:18:59 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Evaluation episodes retrieved: 100
+2026-08-15 19:19:19 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | 
+                           metric     training  evaluation
+              action_success_rate     0.768770    0.176000
+              average_base_reward    33.376100    3.640000
+             average_execution_ms  1195.469000 3073.230000
+           average_failed_actions     2.781000   16.480000
+           average_guidance_bonus     0.000000    0.000000
+            average_no_op_actions     2.984000    0.000000
+                   average_reward    33.376100    3.640000
+                    average_steps    12.027000   20.000000
+                      best_reward    50.000000    6.000000
+                        completed   834.000000    0.000000
+              convergence_episode   162.000000         NaN
+       environment_error_episodes     0.000000    0.000000
+               environment_errors     0.000000    0.000000
+                         episodes  1000.000000  100.000000
+                 execution_ms_std   495.882497 1000.317278
+                   failed_actions  2781.000000 1648.000000
+    failed_episode_average_reward     4.831325    3.640000
+     failed_episode_average_steps    20.000000   20.000000
+         first_100_average_reward    18.379000    3.640000
+          first_100_average_steps    17.850000   20.000000
+           first_100_success_rate     0.400000    0.000000
+   guidance_bonus_reward_fraction     0.000000    0.000000
+          last_100_average_reward    35.839000    3.640000
+           last_100_average_steps    11.790000   20.000000
+            last_100_success_rate     0.870000    0.000000
+                        max_steps    20.000000   20.000000
+              median_execution_ms  1096.500000 3101.000000
+                    median_reward    38.700000    6.000000
+                     median_steps    11.000000   20.000000
+                        min_steps     3.000000   20.000000
+                    no_op_actions  2984.000000    0.000000
+                  reward_per_step     2.775098    0.182000
+                       reward_std    13.410047    5.067583
+                        steps_std     4.827035    0.000000
+                     success_rate     0.834000    0.000000
+               successful_actions  9246.000000  352.000000
+successful_episode_average_reward    39.057674    0.000000
+ successful_episode_average_steps    10.440048    0.000000
+                total_base_reward 33376.100000  364.000000
+          total_execution_seconds  1195.469000  307.323000
+             total_guidance_bonus     0.000000    0.000000
+                     total_reward 33376.100000  364.000000
+                      total_steps 12027.000000 2000.000000
+                   valid_episodes  1000.000000  100.000000
+               wall_clock_seconds  1245.638945  312.300556
+                     worst_reward   -10.000000   -8.500000
+2026-08-15 19:19:19 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | ========================================
+2026-08-15 19:19:19 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | PPO RUN COMPLETE
+2026-08-15 19:19:19 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Model   : C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_seed_33_20260815_185300\ppo_final.pt
+2026-08-15 19:19:19 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Metrics : C:\PY_Programs\MSc_Project\agent_framework\results\metrics\ppo_baseline_seed_33_20260815_185300\ppo_results.xlsx
+2026-08-15 19:19:19 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | Graphs  : C:\PY_Programs\MSc_Project\agent_framework\results\graphs\ppo_baseline_seed_33_20260815_185300
+2026-08-15 19:19:19 | INFO | experiment.ppo_baseline_seed_33_20260815_185300 | ========================================

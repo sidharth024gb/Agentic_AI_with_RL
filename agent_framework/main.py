@@ -57,7 +57,10 @@ from utils.logger import (
 from utils.metrics import (
     build_metric_tables,
     export_metrics_excel,
+    export_raw_run_data,
 )
+
+from training.experiment_suite import run_experiment_suite
 
 from utils.visualization import (
     generate_agent_visualizations,
@@ -361,7 +364,24 @@ def run_training(
     experiment_name=None,
     guidance_mode=None,
     guidance_bonus=None,
+    random_seed=None,
+    suite_name=None,
 ):
+    # Seed must be applied BEFORE the environment and agent are constructed.
+    if random_seed is not None:
+        config.environment.RANDOM_SEED = int(random_seed)
+
+    resolved_total_episodes = (
+        int(total_episodes)
+        if total_episodes is not None
+        else int(config.training.TOTAL_EPISODES)
+    )
+    resolved_evaluation_episodes = (
+        int(evaluation_episodes)
+        if evaluation_episodes is not None
+        else int(config.training.EVALUATION_EPISODES)
+    )
+
     # Resolve CLI -> config BEFORE constructing env/agent.
     runtime = configure_runtime_experiment(
         agent_name=agent_name,
@@ -371,6 +391,10 @@ def run_training(
     )
 
     agent_name = runtime["agent_name"]
+    runtime["seed"] = int(config.environment.RANDOM_SEED)
+    runtime["total_episodes"] = resolved_total_episodes
+    runtime["evaluation_episodes"] = resolved_evaluation_episodes
+    runtime["suite_name"] = suite_name
 
     run_name = create_run_name(runtime["experiment_name"])
 
@@ -396,11 +420,12 @@ def run_training(
         logger.info("Run name: %s", run_name)
         logger.info(
             "Runtime config | agentType=%s | algorithm=%s | "
-            "guidance=%s | guidanceBonus=%.2f",
+            "guidance=%s | guidanceBonus=%.2f | seed=%s",
             runtime["agent_type"],
             runtime["algorithm"],
             runtime["guidance_mode"],
             runtime["guidance_bonus"],
+            runtime["seed"],
         )
         logger.info(
             "PPO config | gamma=%s | lr=%s | rollout=%s | "
@@ -479,7 +504,7 @@ def run_training(
             run_name=run_name,
             model_directory=directories["models"],
             logger=logger,
-            total_episodes=total_episodes,
+            total_episodes=resolved_total_episodes,
             agent_label=agent_name,
         )
 
@@ -492,7 +517,7 @@ def run_training(
             env=env,
             run_name=run_name,
             logger=logger,
-            evaluation_episodes=evaluation_episodes,
+            evaluation_episodes=resolved_evaluation_episodes,
             agent_label=agent_name,
         )
 
@@ -569,6 +594,15 @@ def run_training(
             evaluation_time=evaluation_result["evaluation_time"],
             training_llm_metrics=training_result.get("llm_metrics"),
             evaluation_llm_metrics=evaluation_result.get("llm_metrics"),
+            training_local_episodes=training_result.get("local_episodes"),
+            evaluation_local_episodes=evaluation_result.get("local_episodes"),
+            agent_label=agent_name,
+            runtime_values={
+                "RANDOM_SEED": runtime["seed"],
+                "TOTAL_EPISODES": resolved_total_episodes,
+                "EVALUATION_EPISODES": resolved_evaluation_episodes,
+                "SUITE_NAME": runtime.get("suite_name"),
+            },
         )
 
         # ==================================================
@@ -581,6 +615,18 @@ def run_training(
             tables=tables,
             output_path=excel_path,
             agent_label=agent_name,
+        )
+
+        # Lossless raw records are stored beside the workbook so that
+        # additional derived metrics can be calculated later without rerunning
+        # the expensive training experiment.
+        raw_data_paths = export_raw_run_data(
+            output_directory=directories["metrics"],
+            training_episodes=training_episodes,
+            evaluation_episodes=evaluation_backend,
+            training_result=training_result,
+            evaluation_result=evaluation_result,
+            runtime_config=runtime,
         )
 
         # ==================================================
@@ -624,11 +670,15 @@ def run_training(
         return {
             "run_name": run_name,
             "agent": agent_name,
+            "seed": runtime["seed"],
             "runtime_config": runtime,
             "training": training_result,
             "evaluation": evaluation_result,
+            "tables": tables,
+            "directories": {key: str(value) for key, value in directories.items()},
             "metrics_excel": excel_path,
             "graphs": graph_paths,
+            "raw_data": raw_data_paths,
         }
 
     finally:
@@ -696,6 +746,16 @@ def build_parser():
     )
 
     train_parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help=(
+            "Base random seed for this single run. Defaults to "
+            "config.environment.RANDOM_SEED."
+        ),
+    )
+
+    train_parser.add_argument(
         "--guidance-mode",
         choices=[
             "none",
@@ -718,6 +778,62 @@ def build_parser():
             "Positive bonus for followed LLM procedure steps. "
             "Only applies to reward_shaping/input_and_reward."
         ),
+    )
+
+    run_all_parser = subparsers.add_parser(
+        "run-all",
+        help=(
+            "Run PPO, LLM Input, LLM Reward, and LLM Input+Reward "
+            "for every configured seed and build combined reports."
+        ),
+    )
+
+    run_all_parser.add_argument(
+        "--seeds",
+        nargs="+",
+        type=int,
+        default=None,
+        help=(
+            "Experiment seeds, e.g. --seeds 42 43 44. Defaults to "
+            "EXPERIMENT_SEEDS from config/.env."
+        ),
+    )
+
+    run_all_parser.add_argument(
+        "--episodes",
+        type=int,
+        default=None,
+        help="Training episodes per condition/seed.",
+    )
+
+    run_all_parser.add_argument(
+        "--eval-episodes",
+        type=int,
+        default=None,
+        help="Deterministic evaluation episodes per condition/seed.",
+    )
+
+    run_all_parser.add_argument(
+        "--guidance-bonus",
+        type=float,
+        default=None,
+        help=("Guidance bonus for REWARD_SHAPING and INPUT_AND_REWARD."),
+    )
+
+    run_all_parser.add_argument(
+        "--suite-name",
+        type=str,
+        default=None,
+        help=(
+            "Name for the combined result folder. Defaults to "
+            "EXPERIMENT_SUITE_NAME from config/.env."
+        ),
+    )
+
+    run_all_parser.add_argument(
+        "--continue-on-error",
+        action="store_true",
+        help=("Continue later conditions/seeds if one experiment fails."),
     )
 
     return parser
@@ -755,6 +871,35 @@ def main(argv=None):
                 experiment_name=args.experiment_name,
                 guidance_mode=args.guidance_mode,
                 guidance_bonus=args.guidance_bonus,
+                random_seed=args.seed,
+            )
+
+            return 0
+
+        if args.command == "run-all":
+            if args.episodes is not None and args.episodes <= 0:
+                raise ValueError("--episodes must be greater than 0.")
+
+            if args.eval_episodes is not None and args.eval_episodes <= 0:
+                raise ValueError("--eval-episodes must be greater than 0.")
+
+            if args.guidance_bonus is not None and args.guidance_bonus < 0:
+                raise ValueError("--guidance-bonus must be >= 0.")
+
+            if args.seeds is not None:
+                if any(seed < 0 for seed in args.seeds):
+                    raise ValueError("--seeds values must be >= 0.")
+                if len(set(args.seeds)) != len(args.seeds):
+                    raise ValueError("--seeds must not contain duplicates.")
+
+            run_experiment_suite(
+                run_training_fn=run_training,
+                seeds=args.seeds,
+                total_episodes=args.episodes,
+                evaluation_episodes=args.eval_episodes,
+                guidance_bonus=args.guidance_bonus,
+                suite_name=args.suite_name,
+                continue_on_error=args.continue_on_error,
             )
 
             return 0

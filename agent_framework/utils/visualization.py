@@ -643,6 +643,61 @@ def generate_agent_visualizations(
             ),
         )
 
+        additional_update_metrics = [
+            (
+                "normalized_entropy",
+                "Normalized entropy",
+                "Normalized policy entropy",
+            ),
+            (
+                "approx_kl",
+                "Approximate KL divergence",
+                "PPO approximate KL divergence",
+            ),
+            (
+                "clip_fraction",
+                "Clip fraction",
+                "PPO clip fraction",
+            ),
+            (
+                "explained_variance",
+                "Explained variance",
+                "Critic explained variance",
+            ),
+            (
+                "clipped_policy_loss",
+                "Clipped policy loss",
+                "PPO clipped surrogate loss",
+            ),
+            (
+                "policy_grad_norm",
+                "Policy gradient norm",
+                "Policy gradient norm",
+            ),
+            (
+                "value_grad_norm",
+                "Value gradient norm",
+                "Value-network gradient norm",
+            ),
+        ]
+
+        for metric, ylabel, title_suffix in additional_update_metrics:
+            if metric not in updates_df.columns:
+                continue
+
+            _add_path(
+                paths,
+                metric,
+                _plot_update_metric(
+                    updates_df,
+                    metric,
+                    ylabel,
+                    f"{agent_name} {title_suffix}",
+                    f"{safe}_{metric}.png",
+                    output_directory,
+                ),
+            )
+
     # ======================================================
     # Actions
     # ======================================================

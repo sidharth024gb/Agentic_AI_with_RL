@@ -18,6 +18,30 @@ from dotenv import load_dotenv
 load_dotenv(dotenv_path="./config/.env")
 
 
+def _parse_int_list(value, default=(42, 43, 44)):
+    """Parse a comma/space separated integer list from configuration."""
+
+    if value is None:
+        return list(default)
+
+    if isinstance(value, (list, tuple, set)):
+        raw_values = value
+    else:
+        raw_values = str(value).replace(";", ",").replace(" ", ",").split(",")
+
+    result = []
+
+    for item in raw_values:
+        text = str(item).strip()
+        if not text:
+            continue
+        number = int(text)
+        if number not in result:
+            result.append(number)
+
+    return result or list(default)
+
+
 # ==========================================================
 # Backend Configuration
 # ==========================================================
@@ -293,6 +317,26 @@ class ExperimentConfig:
     GUIDANCE_BONUS: float = float(os.getenv("GUIDANCE_BONUS", "1.0"))
 
     ENVIRONMENT_VERSION: str = "v2-reward-fix"
+
+    # ------------------------------------------------------
+    # Multi-seed experiment suite
+    # ------------------------------------------------------
+
+    # .env example:
+    #     EXPERIMENT_SEEDS=42,43,44
+    #
+    # ``RANDOM_SEED`` remains the base seed for a normal single run.
+    # ``EXPERIMENT_SEEDS`` is used by ``python main.py run-all``.
+    SEEDS: list[int] = field(
+        default_factory=lambda: _parse_int_list(
+            os.getenv("EXPERIMENT_SEEDS", "42,43,44")
+        )
+    )
+
+    SUITE_NAME: str = os.getenv(
+        "EXPERIMENT_SUITE_NAME",
+        "final_comparison",
+    )
 
 
 # ==========================================================
