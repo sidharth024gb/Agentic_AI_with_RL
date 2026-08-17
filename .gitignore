@@ -1,11 +1,2 @@
-.venv
-__pycache__/
-
-*.zip
-*.lnk
-*.env
-
-node_modules/
-
 backend_server/logs/
 archive/
