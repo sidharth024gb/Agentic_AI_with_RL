@@ -1,0 +1,80 @@
+2026-08-18 03:58:32 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | ========================================
+2026-08-18 03:58:32 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | STARTING LLM + PPO EXPERIMENT
+2026-08-18 03:58:32 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | Run name: llm_ppo_reward_seed_42_20260818_035832
+2026-08-18 03:58:32 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | Runtime config | agentType=LLM_RL | algorithm=PPO | guidance=REWARD_SHAPING | guidanceBonus=1.00 | seed=42
+2026-08-18 03:58:32 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | PPO config | gamma=0.99 | lr=0.0003 | rollout=256 | batch=64 | epochs=10 | entropy=0.01 | gradClip=0.5
+2026-08-18 03:58:32 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | ========================================
+2026-08-18 03:58:32 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | Authenticating AGENT_BOT.
+2026-08-18 03:58:32 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | Backend authentication successful | role=AGENT_BOT
+2026-08-18 03:58:32 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | Agent ready | type=LLM + PPO | base_observation=13 | policy_observation=13 | actions=8 | device=cpu
+2026-08-18 03:58:32 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | LLM configuration | model=llama3 | guidance=REWARD_SHAPING | temperature=0.1 | cache=True
+2026-08-18 03:58:32 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | LLM_RL training started | episodes=1
+2026-08-18 03:58:33 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | Episode 1/1 | reward=10.80 | steps=20 | completed=False | recent_reward=10.80 | recent_success=0.00% | env_errors=0 | buffer=20
+2026-08-18 03:58:33 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | LLM | cached=True | plan=['GET_INVOICES', 'CHECK_DUPLICATE', 'CHECK_SUPPLIER', 'APPROVE_INVOICES', 'CHECK_BUDGET', 'PAY_INVOICES', 'CHECK_PAYMENT_COMPLETED'] | guidance_bonus=2.00 | procedure_adherence=10.00%
+2026-08-18 03:58:33 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | LLM_RL training complete | time=0.81s | steps=20 | updates=1 | valid_episodes=1 | env_errors=0
+2026-08-18 03:58:33 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | LLM_RL deterministic evaluation started | episodes=1
+2026-08-18 03:58:33 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | LLM_RL evaluation complete | success=0/1 valid | success_rate=0.00% | environment_errors=0 | time=0.25s
+2026-08-18 03:58:33 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | Evaluation accounting | valid=1 | envErrors=0 | success=0 | successRate=0.00%
+2026-08-18 03:58:33 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | Fetching authoritative TRAIN episodes.
+2026-08-18 03:58:33 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | Training episodes retrieved: 1
+2026-08-18 03:58:33 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | Fetching authoritative EVALUATION episodes.
+2026-08-18 03:58:34 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | Evaluation episodes retrieved: 1
+2026-08-18 03:58:38 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | 
+                           metric   training  evaluation
+              action_success_rate   0.700000    0.000000
+              average_base_reward   8.800000  -10.000000
+             average_execution_ms 704.000000  207.000000
+           average_failed_actions   6.000000   20.000000
+           average_guidance_bonus   2.000000    0.000000
+            average_no_op_actions   8.000000    0.000000
+                   average_reward  10.800000  -10.000000
+                    average_steps  20.000000   20.000000
+                      best_reward  10.800000  -10.000000
+                        completed   0.000000    0.000000
+              convergence_episode        NaN         NaN
+       environment_error_episodes   0.000000    0.000000
+               environment_errors   0.000000    0.000000
+                         episodes   1.000000    1.000000
+                 execution_ms_std   0.000000    0.000000
+                   failed_actions   6.000000   20.000000
+    failed_episode_average_reward  10.800000  -10.000000
+     failed_episode_average_steps  20.000000   20.000000
+         first_100_average_reward  10.800000  -10.000000
+          first_100_average_steps  20.000000   20.000000
+           first_100_success_rate   0.000000    0.000000
+   guidance_bonus_reward_fraction   0.185185   -0.000000
+          last_100_average_reward  10.800000  -10.000000
+           last_100_average_steps  20.000000   20.000000
+            last_100_success_rate   0.000000    0.000000
+                        max_steps  20.000000   20.000000
+              median_execution_ms 704.000000  207.000000
+                    median_reward  10.800000  -10.000000
+                     median_steps  20.000000   20.000000
+                        min_steps  20.000000   20.000000
+                    no_op_actions   8.000000    0.000000
+                  reward_per_step   0.540000   -0.500000
+                       reward_std   0.000000    0.000000
+                        steps_std   0.000000    0.000000
+                     success_rate   0.000000    0.000000
+               successful_actions  14.000000    0.000000
+successful_episode_average_reward   0.000000    0.000000
+ successful_episode_average_steps   0.000000    0.000000
+                total_base_reward   8.800000  -10.000000
+          total_execution_seconds   0.704000    0.207000
+             total_guidance_bonus   2.000000    0.000000
+                     total_reward  10.800000  -10.000000
+                      total_steps  20.000000   20.000000
+                   valid_episodes   1.000000    1.000000
+               wall_clock_seconds   0.814586    0.250188
+                     worst_reward  10.800000  -10.000000
+2026-08-18 03:58:38 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | 
+LLM GUIDANCE SUMMARY
+     phase  procedure_attempts  procedure_followed  procedure_adherence_rate  total_guidance_bonus  average_guidance_bonus
+EVALUATION                  20                   0                       0.0                   0.0                     0.0
+     TRAIN                  20                   2                       0.1                   2.0                     0.1
+2026-08-18 03:58:38 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | ========================================
+2026-08-18 03:58:38 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | LLM + PPO RUN COMPLETE
+2026-08-18 03:58:38 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | Model   : C:\PY_Programs\MSc_Project\agent_framework\results\models\llm_ppo_reward_seed_42_20260818_035832\llm_rl_final.pt
+2026-08-18 03:58:38 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | Metrics : C:\PY_Programs\MSc_Project\agent_framework\results\metrics\llm_ppo_reward_seed_42_20260818_035832\llm_rl_results.xlsx
+2026-08-18 03:58:38 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | Graphs  : C:\PY_Programs\MSc_Project\agent_framework\results\graphs\llm_ppo_reward_seed_42_20260818_035832
+2026-08-18 03:58:38 | INFO | experiment.llm_ppo_reward_seed_42_20260818_035832 | ========================================

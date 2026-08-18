@@ -1,0 +1,128 @@
+{
+  "run_name": "llm_ppo_input_reward_seed_33_20260818_035917",
+  "agent_label": "llm_rl",
+  "training_time": 1.8098299000412226,
+  "episode_ids": [
+    "6a83ca8583b953efcfae554e"
+  ],
+  "local_episodes": [
+    {
+      "episode": 1,
+      "backendEpisodeId": "6a83ca8583b953efcfae554e",
+      "backendEpisodeNumber": 22015,
+      "reward": 41.4,
+      "baseReward": 14.4,
+      "guidanceBonus": 2.0,
+      "completionBonus": 25.0,
+      "steps": 11,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 11,
+      "procedureFollowed": 2,
+      "procedureAdherence": 0.18181818181818182,
+      "llmPlan": [
+        "GET_INVOICES",
+        "CHECK_DUPLICATE",
+        "CHECK_SUPPLIER",
+        "APPROVE_INVOICES",
+        "CHECK_BUDGET",
+        "PAY_INVOICES",
+        "CHECK_PAYMENT_COMPLETED"
+      ],
+      "llmPrerequisites": {
+        "0": [],
+        "1": [
+          0
+        ],
+        "2": [
+          0,
+          1
+        ],
+        "3": [
+          0,
+          1,
+          2
+        ],
+        "5": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "4": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "7": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          4
+        ]
+      },
+      "llmPlanCached": true,
+      "llmPlanningTimeMs": 0.0
+    }
+  ],
+  "valid_episode_count": 1,
+  "environment_error_episodes": 0,
+  "ppo_updates": [
+    {
+      "episode": 1,
+      "total_steps": 11,
+      "update": 1,
+      "rollout_size": 11,
+      "minibatch_size": 11,
+      "ppo_epochs": 10,
+      "policy_loss": -0.054497350193560126,
+      "clipped_policy_loss": -0.03371259337714037,
+      "value_loss": 743.4953552246094,
+      "entropy": 2.078475737571716,
+      "normalized_entropy": 0.9995355464009152,
+      "entropy_coef": 0.01,
+      "approx_kl": 0.00129660856036935,
+      "clip_fraction": 0.0,
+      "ratio_mean": 1.0031415343284606,
+      "ratio_std": 0.042213087808340786,
+      "explained_variance": 0.12216061353683472,
+      "policy_grad_norm": 0.9481646955013275,
+      "value_grad_norm": 164.05984191894532,
+      "advantage_mean_raw": 27.486478805541992,
+      "advantage_std_raw": 1.6333779096603394,
+      "return_mean": 27.572162628173828,
+      "return_std": 1.669785737991333,
+      "value_prediction_mean": 0.3526735469698906,
+      "value_prediction_std": 0.11913185231387616,
+      "learning_rate": 0.0003,
+      "clip_epsilon": 0.2,
+      "gamma": 0.99,
+      "gae_lambda": 0.95,
+      "max_grad_norm": 0.5
+    }
+  ],
+  "llm_metrics": {
+    "model": "llama3",
+    "guidance_mode": "INPUT_AND_REWARD",
+    "planned_episodes": 1,
+    "planning_failures": 0,
+    "cached_plan_episodes": 1,
+    "uncached_plan_episodes": 0,
+    "uncached_planning_time_ms": 0.0,
+    "planner_calls": 0,
+    "planner_successful_calls": 0,
+    "planner_failed_calls": 0,
+    "average_llm_latency_ms": 0.0,
+    "total_llm_latency_ms": 0.0,
+    "cache_hits": 1,
+    "cache_misses": 0,
+    "cache_writes": 0
+  },
+  "final_checkpoint": "C:\\PY_Programs\\MSc_Project\\agent_framework\\results\\models\\llm_ppo_input_reward_seed_33_20260818_035917\\llm_rl_final.pt"
+}

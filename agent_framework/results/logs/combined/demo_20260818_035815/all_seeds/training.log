@@ -1,0 +1,46 @@
+2026-08-18 03:58:15 | INFO | experiment.suite_demo_20260818_035815 | ========================================
+2026-08-18 03:58:15 | INFO | experiment.suite_demo_20260818_035815 | STARTING EXPERIMENT SUITE: demo_20260818_035815
+2026-08-18 03:58:15 | INFO | experiment.suite_demo_20260818_035815 | Seeds: [42, 33, 24, 50, 10]
+2026-08-18 03:58:15 | INFO | experiment.suite_demo_20260818_035815 | Conditions: ['ppo_baseline', 'llm_ppo_input', 'llm_ppo_reward', 'llm_ppo_input_reward']
+2026-08-18 03:58:15 | INFO | experiment.suite_demo_20260818_035815 | Training episodes: 1
+2026-08-18 03:58:15 | INFO | experiment.suite_demo_20260818_035815 | Evaluation episodes: 1
+2026-08-18 03:58:15 | INFO | experiment.suite_demo_20260818_035815 | Guidance bonus: 1.0
+2026-08-18 03:58:15 | INFO | experiment.suite_demo_20260818_035815 | ========================================
+2026-08-18 03:58:15 | INFO | experiment.suite_demo_20260818_035815 | Starting seed 42
+2026-08-18 03:58:15 | INFO | experiment.suite_demo_20260818_035815 | Running seed=42 condition=ppo_baseline guidance=none bonus=0.0
+2026-08-18 03:58:27 | INFO | experiment.suite_demo_20260818_035815 | Running seed=42 condition=llm_ppo_input guidance=input bonus=0.0
+2026-08-18 03:58:32 | INFO | experiment.suite_demo_20260818_035815 | Running seed=42 condition=llm_ppo_reward guidance=reward_shaping bonus=1.0
+2026-08-18 03:58:38 | INFO | experiment.suite_demo_20260818_035815 | Running seed=42 condition=llm_ppo_input_reward guidance=input_and_reward bonus=1.0
+2026-08-18 03:58:55 | INFO | experiment.suite_demo_20260818_035815 | Seed 42 finished | successful runs=4
+2026-08-18 03:58:55 | INFO | experiment.suite_demo_20260818_035815 | Starting seed 33
+2026-08-18 03:58:55 | INFO | experiment.suite_demo_20260818_035815 | Running seed=33 condition=ppo_baseline guidance=none bonus=0.0
+2026-08-18 03:59:01 | INFO | experiment.suite_demo_20260818_035815 | Running seed=33 condition=llm_ppo_input guidance=input bonus=0.0
+2026-08-18 03:59:10 | INFO | experiment.suite_demo_20260818_035815 | Running seed=33 condition=llm_ppo_reward guidance=reward_shaping bonus=1.0
+2026-08-18 03:59:17 | INFO | experiment.suite_demo_20260818_035815 | Running seed=33 condition=llm_ppo_input_reward guidance=input_and_reward bonus=1.0
+2026-08-18 03:59:33 | INFO | experiment.suite_demo_20260818_035815 | Seed 33 finished | successful runs=4
+2026-08-18 03:59:33 | INFO | experiment.suite_demo_20260818_035815 | Starting seed 24
+2026-08-18 03:59:33 | INFO | experiment.suite_demo_20260818_035815 | Running seed=24 condition=ppo_baseline guidance=none bonus=0.0
+2026-08-18 03:59:41 | INFO | experiment.suite_demo_20260818_035815 | Running seed=24 condition=llm_ppo_input guidance=input bonus=0.0
+2026-08-18 03:59:47 | INFO | experiment.suite_demo_20260818_035815 | Running seed=24 condition=llm_ppo_reward guidance=reward_shaping bonus=1.0
+2026-08-18 03:59:55 | INFO | experiment.suite_demo_20260818_035815 | Running seed=24 condition=llm_ppo_input_reward guidance=input_and_reward bonus=1.0
+2026-08-18 04:00:10 | INFO | experiment.suite_demo_20260818_035815 | Seed 24 finished | successful runs=4
+2026-08-18 04:00:10 | INFO | experiment.suite_demo_20260818_035815 | Starting seed 50
+2026-08-18 04:00:10 | INFO | experiment.suite_demo_20260818_035815 | Running seed=50 condition=ppo_baseline guidance=none bonus=0.0
+2026-08-18 04:00:16 | INFO | experiment.suite_demo_20260818_035815 | Running seed=50 condition=llm_ppo_input guidance=input bonus=0.0
+2026-08-18 04:00:23 | INFO | experiment.suite_demo_20260818_035815 | Running seed=50 condition=llm_ppo_reward guidance=reward_shaping bonus=1.0
+2026-08-18 04:00:29 | INFO | experiment.suite_demo_20260818_035815 | Running seed=50 condition=llm_ppo_input_reward guidance=input_and_reward bonus=1.0
+2026-08-18 04:00:47 | INFO | experiment.suite_demo_20260818_035815 | Seed 50 finished | successful runs=4
+2026-08-18 04:00:47 | INFO | experiment.suite_demo_20260818_035815 | Starting seed 10
+2026-08-18 04:00:47 | INFO | experiment.suite_demo_20260818_035815 | Running seed=10 condition=ppo_baseline guidance=none bonus=0.0
+2026-08-18 04:00:54 | INFO | experiment.suite_demo_20260818_035815 | Running seed=10 condition=llm_ppo_input guidance=input bonus=0.0
+2026-08-18 04:01:02 | INFO | experiment.suite_demo_20260818_035815 | Running seed=10 condition=llm_ppo_reward guidance=reward_shaping bonus=1.0
+2026-08-18 04:01:10 | INFO | experiment.suite_demo_20260818_035815 | Running seed=10 condition=llm_ppo_input_reward guidance=input_and_reward bonus=1.0
+2026-08-18 04:01:27 | INFO | experiment.suite_demo_20260818_035815 | Seed 10 finished | successful runs=4
+2026-08-18 04:01:38 | INFO | experiment.suite_demo_20260818_035815 | ========================================
+2026-08-18 04:01:38 | INFO | experiment.suite_demo_20260818_035815 | EXPERIMENT SUITE COMPLETE
+2026-08-18 04:01:38 | INFO | experiment.suite_demo_20260818_035815 | Runs completed: 20
+2026-08-18 04:01:38 | INFO | experiment.suite_demo_20260818_035815 | Failures: 0
+2026-08-18 04:01:38 | INFO | experiment.suite_demo_20260818_035815 | Manifest: C:\PY_Programs\MSc_Project\agent_framework\results\logs\combined\demo_20260818_035815\all_seeds\suite_manifest.json
+2026-08-18 04:01:38 | INFO | experiment.suite_demo_20260818_035815 | Combined metrics: C:\PY_Programs\MSc_Project\agent_framework\results\metrics\combined\demo_20260818_035815\all_seeds\all_seeds_comparison.xlsx
+2026-08-18 04:01:38 | INFO | experiment.suite_demo_20260818_035815 | Combined graphs: C:\PY_Programs\MSc_Project\agent_framework\results\graphs\combined\demo_20260818_035815\all_seeds
+2026-08-18 04:01:38 | INFO | experiment.suite_demo_20260818_035815 | ========================================

@@ -1,0 +1,12 @@
+{
+  "agent_name": "llm_rl",
+  "agent_type": "LLM_RL",
+  "algorithm": "PPO",
+  "guidance_mode": "REWARD_SHAPING",
+  "guidance_bonus": 1.0,
+  "experiment_name": "llm_ppo_reward_seed_24",
+  "seed": 24,
+  "total_episodes": 1,
+  "evaluation_episodes": 1,
+  "suite_name": "demo_20260818_035815"
+}

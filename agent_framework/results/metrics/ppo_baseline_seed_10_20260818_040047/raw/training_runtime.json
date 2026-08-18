@@ -1,0 +1,65 @@
+{
+  "run_name": "ppo_baseline_seed_10_20260818_040047",
+  "agent_label": "ppo",
+  "training_time": 1.7242513000383042,
+  "episode_ids": [
+    "6a83cadf83b953efcfae5f53"
+  ],
+  "local_episodes": [
+    {
+      "episode": 1,
+      "backendEpisodeId": "6a83cadf83b953efcfae5f53",
+      "backendEpisodeNumber": 22033,
+      "reward": 0.4,
+      "baseReward": 0.4,
+      "guidanceBonus": 0.0,
+      "completionBonus": 0.0,
+      "steps": 20,
+      "completed": false,
+      "terminatedReason": "MAX_STEPS",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 0,
+      "procedureFollowed": 0,
+      "procedureAdherence": null
+    }
+  ],
+  "valid_episode_count": 1,
+  "environment_error_episodes": 0,
+  "ppo_updates": [
+    {
+      "episode": 1,
+      "total_steps": 20,
+      "update": 1,
+      "rollout_size": 20,
+      "minibatch_size": 20,
+      "ppo_epochs": 10,
+      "policy_loss": -0.02984114605933428,
+      "clipped_policy_loss": -0.009049128582701016,
+      "value_loss": 6.135882711410522,
+      "entropy": 2.07920184135437,
+      "normalized_entropy": 0.999884728509717,
+      "entropy_coef": 0.01,
+      "approx_kl": 0.00032304018841387003,
+      "clip_fraction": 0.0,
+      "ratio_mean": 1.000640344619751,
+      "ratio_std": 0.020782360155135394,
+      "explained_variance": 0.023338019847869873,
+      "policy_grad_norm": 0.30307375490665434,
+      "value_grad_norm": 5.6845841884613035,
+      "advantage_mean_raw": 1.6707870960235596,
+      "advantage_std_raw": 1.9387027025222778,
+      "return_mean": 1.6917434930801392,
+      "return_std": 1.9302634000778198,
+      "value_prediction_mean": 0.13023893646895884,
+      "value_prediction_std": 0.16015942431986332,
+      "learning_rate": 0.0003,
+      "clip_epsilon": 0.2,
+      "gamma": 0.99,
+      "gae_lambda": 0.95,
+      "max_grad_norm": 0.5
+    }
+  ],
+  "llm_metrics": null,
+  "final_checkpoint": "C:\\PY_Programs\\MSc_Project\\agent_framework\\results\\models\\ppo_baseline_seed_10_20260818_040047\\ppo_final.pt"
+}

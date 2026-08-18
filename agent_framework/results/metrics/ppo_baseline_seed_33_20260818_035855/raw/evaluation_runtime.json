@@ -1,0 +1,28 @@
+{
+  "evaluation_time": 0.4193999000126496,
+  "episode_ids": [
+    "6a83ca7083b953efcfae531f"
+  ],
+  "local_episodes": [
+    {
+      "episode": 1,
+      "backendEpisodeId": "6a83ca7083b953efcfae531f",
+      "backendEpisodeNumber": 22010,
+      "reward": -10.0,
+      "guidanceBonus": 0.0,
+      "steps": 20,
+      "completed": false,
+      "terminatedReason": "MAX_STEPS",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 0,
+      "procedureFollowed": 0,
+      "procedureAdherence": null
+    }
+  ],
+  "valid_episode_count": 1,
+  "environment_error_episodes": 0,
+  "success_count": 0,
+  "success_rate": 0.0,
+  "llm_metrics": null
+}

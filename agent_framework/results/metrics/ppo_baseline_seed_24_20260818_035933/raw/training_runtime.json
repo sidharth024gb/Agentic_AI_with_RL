@@ -1,0 +1,65 @@
+{
+  "run_name": "ppo_baseline_seed_24_20260818_035933",
+  "agent_label": "ppo",
+  "training_time": 1.9408311999868602,
+  "episode_ids": [
+    "6a83ca9683b953efcfae5664"
+  ],
+  "local_episodes": [
+    {
+      "episode": 1,
+      "backendEpisodeId": "6a83ca9683b953efcfae5664",
+      "backendEpisodeNumber": 22017,
+      "reward": 31.9,
+      "baseReward": 6.9,
+      "guidanceBonus": 0.0,
+      "completionBonus": 25.0,
+      "steps": 20,
+      "completed": true,
+      "terminatedReason": "GOAL_REACHED",
+      "environmentError": false,
+      "validForMetrics": true,
+      "procedureAttempts": 0,
+      "procedureFollowed": 0,
+      "procedureAdherence": null
+    }
+  ],
+  "valid_episode_count": 1,
+  "environment_error_episodes": 0,
+  "ppo_updates": [
+    {
+      "episode": 1,
+      "total_steps": 20,
+      "update": 1,
+      "rollout_size": 20,
+      "minibatch_size": 20,
+      "ppo_epochs": 10,
+      "policy_loss": -0.030209176056087018,
+      "clipped_policy_loss": -0.009416580246761442,
+      "value_loss": 393.32115173339844,
+      "entropy": 2.0792595863342287,
+      "normalized_entropy": 0.9999124979750765,
+      "entropy_coef": 0.01,
+      "approx_kl": 0.00022752791801394778,
+      "clip_fraction": 0.0,
+      "ratio_mean": 1.0098064064979553,
+      "ratio_std": 0.014835604117251933,
+      "explained_variance": 0.07497203350067139,
+      "policy_grad_norm": 0.4369237065315247,
+      "value_grad_norm": 90.2237533569336,
+      "advantage_mean_raw": 19.349321365356445,
+      "advantage_std_raw": 5.116952896118164,
+      "return_mean": 19.302038192749023,
+      "return_std": 5.0797529220581055,
+      "value_prediction_mean": 0.11402515675872564,
+      "value_prediction_std": 0.10337264686822892,
+      "learning_rate": 0.0003,
+      "clip_epsilon": 0.2,
+      "gamma": 0.99,
+      "gae_lambda": 0.95,
+      "max_grad_norm": 0.5
+    }
+  ],
+  "llm_metrics": null,
+  "final_checkpoint": "C:\\PY_Programs\\MSc_Project\\agent_framework\\results\\models\\ppo_baseline_seed_24_20260818_035933\\ppo_final.pt"
+}

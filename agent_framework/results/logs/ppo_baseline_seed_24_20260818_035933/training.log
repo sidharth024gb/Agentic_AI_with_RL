@@ -1,0 +1,73 @@
+2026-08-18 03:59:33 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | ========================================
+2026-08-18 03:59:33 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | STARTING PPO EXPERIMENT
+2026-08-18 03:59:33 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | Run name: ppo_baseline_seed_24_20260818_035933
+2026-08-18 03:59:33 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | Runtime config | agentType=RL | algorithm=PPO | guidance=NONE | guidanceBonus=0.00 | seed=24
+2026-08-18 03:59:33 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | PPO config | gamma=0.99 | lr=0.0003 | rollout=256 | batch=64 | epochs=10 | entropy=0.01 | gradClip=0.5
+2026-08-18 03:59:33 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | ========================================
+2026-08-18 03:59:33 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | Authenticating AGENT_BOT.
+2026-08-18 03:59:34 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | Backend authentication successful | role=AGENT_BOT
+2026-08-18 03:59:34 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | Agent ready | type=PPO | base_observation=13 | policy_observation=13 | actions=8 | device=cpu
+2026-08-18 03:59:34 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | PPO training started | episodes=1
+2026-08-18 03:59:35 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | Episode 1/1 | reward=31.90 | steps=20 | completed=True | recent_reward=31.90 | recent_success=100.00% | env_errors=0 | buffer=20
+2026-08-18 03:59:36 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | PPO training complete | time=1.94s | steps=20 | updates=1 | valid_episodes=1 | env_errors=0
+2026-08-18 03:59:36 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | PPO deterministic evaluation started | episodes=1
+2026-08-18 03:59:36 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | PPO evaluation complete | success=0/1 valid | success_rate=0.00% | environment_errors=0 | time=0.51s
+2026-08-18 03:59:36 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | Evaluation accounting | valid=1 | envErrors=0 | success=0 | successRate=0.00%
+2026-08-18 03:59:36 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | Fetching authoritative TRAIN episodes.
+2026-08-18 03:59:36 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | Training episodes retrieved: 1
+2026-08-18 03:59:36 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | Fetching authoritative EVALUATION episodes.
+2026-08-18 03:59:36 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | Evaluation episodes retrieved: 1
+2026-08-18 03:59:41 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | 
+                           metric    training  evaluation
+              action_success_rate    0.400000     0.00000
+              average_base_reward   31.900000   -10.00000
+             average_execution_ms 1736.000000   452.00000
+           average_failed_actions   12.000000    20.00000
+           average_guidance_bonus    0.000000     0.00000
+            average_no_op_actions    2.000000     0.00000
+                   average_reward   31.900000   -10.00000
+                    average_steps   20.000000    20.00000
+                      best_reward   31.900000   -10.00000
+                        completed    1.000000     0.00000
+              convergence_episode         NaN         NaN
+       environment_error_episodes    0.000000     0.00000
+               environment_errors    0.000000     0.00000
+                         episodes    1.000000     1.00000
+                 execution_ms_std    0.000000     0.00000
+                   failed_actions   12.000000    20.00000
+    failed_episode_average_reward    0.000000   -10.00000
+     failed_episode_average_steps    0.000000    20.00000
+         first_100_average_reward   31.900000   -10.00000
+          first_100_average_steps   20.000000    20.00000
+           first_100_success_rate    1.000000     0.00000
+   guidance_bonus_reward_fraction    0.000000    -0.00000
+          last_100_average_reward   31.900000   -10.00000
+           last_100_average_steps   20.000000    20.00000
+            last_100_success_rate    1.000000     0.00000
+                        max_steps   20.000000    20.00000
+              median_execution_ms 1736.000000   452.00000
+                    median_reward   31.900000   -10.00000
+                     median_steps   20.000000    20.00000
+                        min_steps   20.000000    20.00000
+                    no_op_actions    2.000000     0.00000
+                  reward_per_step    1.595000    -0.50000
+                       reward_std    0.000000     0.00000
+                        steps_std    0.000000     0.00000
+                     success_rate    1.000000     0.00000
+               successful_actions    8.000000     0.00000
+successful_episode_average_reward   31.900000     0.00000
+ successful_episode_average_steps   20.000000     0.00000
+                total_base_reward   31.900000   -10.00000
+          total_execution_seconds    1.736000     0.45200
+             total_guidance_bonus    0.000000     0.00000
+                     total_reward   31.900000   -10.00000
+                      total_steps   20.000000    20.00000
+                   valid_episodes    1.000000     1.00000
+               wall_clock_seconds    1.940831     0.51352
+                     worst_reward   31.900000   -10.00000
+2026-08-18 03:59:41 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | ========================================
+2026-08-18 03:59:41 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | PPO RUN COMPLETE
+2026-08-18 03:59:41 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | Model   : C:\PY_Programs\MSc_Project\agent_framework\results\models\ppo_baseline_seed_24_20260818_035933\ppo_final.pt
+2026-08-18 03:59:41 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | Metrics : C:\PY_Programs\MSc_Project\agent_framework\results\metrics\ppo_baseline_seed_24_20260818_035933\ppo_results.xlsx
+2026-08-18 03:59:41 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | Graphs  : C:\PY_Programs\MSc_Project\agent_framework\results\graphs\ppo_baseline_seed_24_20260818_035933
+2026-08-18 03:59:41 | INFO | experiment.ppo_baseline_seed_24_20260818_035933 | ========================================
