@@ -1,46 +1,29 @@
-# Core numerical and data processing
+# ==========================================================
+# agent_framework/requirements.txt
+# Final finance PPO + LLM-guided PPO framework
+# Python 3.10+
+# ==========================================================
 
-numpy
-pandas
+# Core numerical / reinforcement-learning implementation
+numpy>=1.26,<3.0
+torch>=2.2,<3.0
 
-# Deep learning
+# Backend REST communication
+requests>=2.31,<3.0
 
-torch
+# LLM planner (local Ollama / Llama 3)
+ollama>=0.4,<1.0
 
-# HTTP / Backend communication
+# Environment/configuration
+python-dotenv>=1.0,<2.0
 
-requests
+# Experiment analysis and structured outputs
+pandas>=2.2,<3.0
+openpyxl>=3.1,<4.0
 
-# Configuration
+# Visualisation
+matplotlib>=3.8,<4.0
+seaborn>=0.13,<1.0
 
-python-dotenv
-
-# Reinforcement learning environment interface
-
-gymnasium
-
-# Testing
-
-pytest
-
-# Visualization
-
-matplotlib
-
-# LLM integration
-
-ollama
-
-
-| Package         | Used for                                                 |
-| --------------- | -------------------------------------------------------- |
-| `numpy`         | State processing, numerical operations, PPO calculations |
-| `pandas`        | Metrics/results processing                               |
-| `torch`         | Policy network, value network, PPO training              |
-| `requests`      | `api_client.py` backend communication                    |
-| `python-dotenv` | Loading your `.env` configuration                        |
-| `gymnasium`     | RL environment interface                                 |
-| `pytest`        | `test_agent.py`, `test_api.py`, `test_environment.py`    |
-| `matplotlib`    | `visualization.py`                                       |
-| `ollama`        | Connecting the LLM agent to your local Ollama/Llama 3    |
-
+# Tests
+pytest>=8.0,<9.0

@@ -1,4 +1,35 @@
-gymnasium: The industry standard for creating "Sandbox" environments.
-stable-baselines3: Provides reliable, pre-built implementations of RL algorithms like PPO.
-ollama: The Python client to communicate with your local Llama 3 model.
-shimmy: A helper package to ensure compatibility between different versions of gym environments.
+# ==========================================================
+# POC/requirements.txt
+# Preliminary 5x5 GridWorld PPO + LLM proof of concept
+# Python 3.10+
+# ==========================================================
+
+# GridWorld / reinforcement learning
+gymnasium>=0.29,<2.0
+stable-baselines3>=2.3,<3.0
+shimmy>=1.3,<3.0
+
+# Numerical operations
+numpy>=1.26,<3.0
+
+# LLM planner
+ollama>=0.4,<1.0
+
+# NOTE:
+# The current POC planner.py still imports `from google import genai`
+# even though the Gemini inference block is commented out.
+google-genai>=1.0,<2.0
+
+# Configuration
+python-dotenv>=1.0,<2.0
+PyYAML>=6.0,<7.0
+
+# Experiment analysis and Excel output
+pandas>=2.2,<3.0
+openpyxl>=3.1,<4.0
+
+# Visualisation
+matplotlib>=3.8,<4.0
+
+# Tests
+pytest>=8.0,<9.0
